@@ -26,6 +26,15 @@ The dependencies of LLview Server are:
         - DBD::SQLite
         - Config::IniFiles
         - JSON
+        - Compress::Zlib
+        - Archive::Tar
+        - LWP::Simple
+        - LWP::UserAgent
+        - Tk
+        - Tk::NoteBook
+        - Tk::Table
+        - Cwd
+
 - Python (>3.9) (For JuRepTool and plugins for Prometheus and Gitlab)
     - Packages (install with `pip install <PackageName>`)
         - matplotlib (>3.5.0)
@@ -152,6 +161,9 @@ Finally, the command itself must be updated with the correct values for:
 
 
 
+#### `liveview`
+
+The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
 
 #### `icmap` action
