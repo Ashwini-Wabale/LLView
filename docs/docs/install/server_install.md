@@ -169,6 +169,7 @@ Finally, the command itself must be updated with the correct values for:
 The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
 
+
 #### `icmap` action
 
 To color the nodes in the detailed job reports according to their interconnect group, the information of their cell/rack can be given in an `icmap` file (usually in the ``${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm` folder) containing a list of nodes with the following format:
@@ -179,7 +180,6 @@ To color the nodes in the detailed job reports according to their interconnect g
     (...)
     ```
 This information is then converted into an xml file via the `$LLVIEW_HOME/da/utils/get_hostnodemap.py` script, which is then imported to the database to be used by the reports.
-
 
 
 
