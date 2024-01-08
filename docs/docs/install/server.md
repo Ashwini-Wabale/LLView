@@ -26,6 +26,16 @@ The dependencies of LLview Server are:
         - DBD::SQLite
         - Config::IniFiles
         - JSON
+
+        - Compress::Zlib
+        - Archive::Tar
+        - LWP::Simple
+        - LWP::UserAgent
+        - Tk
+        - Tk::NoteBook
+        - Tk::Table
+        - Cwd
+
 - Python (>3.9) (For JuRepTool)
     - Packages (install with `pip install <PackageName>`)
         - matplotlib
@@ -135,6 +145,10 @@ Finally, the command itself must be updated with the correct values for:
 #### `compress` and `archive`
 
 The actions `compress` and `archive` perform actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
+
+#### `liveview`
+
+The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
 ### JuRepTool
 
