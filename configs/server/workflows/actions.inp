@@ -42,6 +42,14 @@ execute="${LLVIEW_HOME}/da/LML_da.pl -par -nostep -v -conf ${LLVIEW_CONF}/server
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
 logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_liveview`date +.%Y.%m.%d`.log"
 
+# Workflow for Live View (using LLview's 'client' part)
+[liveview]
+active=0
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/lmlstat_start.ready
+execute="${LLVIEW_HOME}/da/LML_da.pl -par -nostep -v -conf ${LLVIEW_CONF}/server/workflows/LML_da_liveview.conf >> logs/liveview`date +.%Y.%m.%d`.log 2>> logs/liveview`date +.%Y.%m.%d`.errlog;"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_liveview`date +.%Y.%m.%d`.log"
+
 # Workflow for Job Reporting interface
 [jobreport]
 active=1
