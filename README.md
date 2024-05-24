@@ -7,17 +7,21 @@
 
 # LLview
 
+<div align="center">
+  <img src="docs/docs/images/LLview_thumbnail.png" alt="LLview thumbnail" width="100%"/>
+</div>
+
 LLview is a set of software components to monitor clusters that are controlled by a resource manager and a scheduler system. Within its Job Reporting module, it provides detailed information of all the individual jobs running on the system. To achieve this, LLview connects to different sources in the system and collects data to present to the user via a web portal. For example, the resource manager provides information about the jobs, while additional daemons may be used to acquire extra information from the compute nodes, keeping the overhead at a minimum, as the metrics are obtained in the range of minutes apart. The LLview portal establishes a link between performance metrics and individual jobs to provide a comprehensive job reporting interface.
 
 ## Installation
 
-Installation instructions can be found on LLview's [documentation page](https://apps.fz-juelich.de/jsc/llview/docu/install/).
+[Installation instructions](https://apps.fz-juelich.de/jsc/llview/docu/install/) can be found on LLview's [documentation page](https://llview.fz-juelich.de/docs).
 
 LLview presents its gathered data in a Web Portal created by [JURI](https://github.com/FZJ-JSC/JURI).
 
 ## Further Information
 
-For further information please see: http://www.fz-juelich.de/jsc/llview
+For further information please see: http://llview.fz-juelich.de/docs
 
 Contact: [llview.jsc@fz-juelich.de](mailto:llview.jsc@fz-juelich.de)
 
