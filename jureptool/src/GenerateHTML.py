@@ -1094,7 +1094,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
       <td colspan="8"><b>Job GPU Statistics</b></td>
     </tr>
     <tr>
-      <td style="text-align: right;">avg. GPU Usage: </td>
+      <td style="text-align: right;">avg. GPU Utilization: </td>
       <td><b>{data['gpu']['gpu_usage_avg']:.2f}</b> %</td>
       <td style="text-align: right;">avg. Mem. Usage Rate: </td>
       <td><b>{float(data['gpu']['gpu_memur_avg']):.2f}</b> %</td>

@@ -108,7 +108,7 @@ GPU:
   _datapoints_header: 'gpu_ndps'
   y:
     name: 'GPU'
-  Usage: 
+  Utilization: 
     header: 'gpu_usage'
     type: 'float16'
     unit: '%'
@@ -117,6 +117,15 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: [0,100]
     description: 'Percent of time over the past sample period during which one or more kernels was executing on the GPU'
+  Active SM:
+    header: 'gpu_active'
+    type: 'float16'
+    unit: ''
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,1]
+    description: 'Average fraction of time at least one warp was active on a multiprocessor, averaged over all multiprocessors.'
   Memory Usage: 
     header: 'gpu_memu'
     type: 'float32'

@@ -211,7 +211,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
 
     if gpus:
       page.fig.text(0.071,0.680,"Job GPU Statistics", ha='left', fontweight='bold')
-      page.fig.text(0.190,0.667,"avg. GPU Usage:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.190,0.667,"avg. GPU Utilization:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.190,0.667,f"{data['gpu']['gpu_usage_avg']:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.245,0.667,"%", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.410,0.667,"avg. Mem. Usage Rate:  ", ha='right', fontsize=config['appearance']['smallfont'])
@@ -317,12 +317,12 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       page.ax2 = page.fig.add_axes([0.130,0.365, 0.740,0.180], frame_on=False, sharex=page.ax1, zorder=4)
       page.ax2.yaxis.tick_right()
       page.ax2.yaxis.set_label_position('right') 
-      page.ax2.set_ylabel("GPU Usage (%)",fontsize=config['appearance']['smallfont'], color=config['appearance']['colors_cmap'][0])
+      page.ax2.set_ylabel("GPU Utilization (%)",fontsize=config['appearance']['smallfont'], color=config['appearance']['colors_cmap'][0])
       page.ax2.set_ylim([0,100])
       page.ax2.tick_params(axis='y', colors=config['appearance']['colors_cmap'][0])
 
       # Getting plotting curves
-      cols = [config['plots']['x']['header'],config['plots']['GPU']['Usage']['header']]
+      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Utilization']['header']]
       df_gpu = df['GPU'][cols].groupby([config['plots']['x']['header']], as_index=False).mean()
       df_gpu['datetime'] = pd.to_datetime(df_gpu['ts']+config['appearance']['timezonegap'],unit='s')
       x2 = list(df_gpu['datetime'])
@@ -330,7 +330,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
 
       # Plotting
       p2 = page.ax2.step(x2,y2, color=config['appearance']['colors_cmap'][0], marker='s', ms=2, where='mid', zorder=6)
-      legends["Average GPU Usage"] = p2[0]
+      legends["Average GPU Utilization"] = p2[0]
       page.ax2.tick_params(axis='x', bottom=False, labelbottom=False)
         
     # Add legends
