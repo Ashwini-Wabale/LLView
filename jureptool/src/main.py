@@ -154,6 +154,9 @@ def _ProcessReport(njob,total_jobs,job,config):
     num_gpus = 0
     gpus = False
 
+  # Escaping job name
+  data['job']['name'] = re.escape(data['job']['name'])
+
   # Configuring plots (from plots.yml)
   sections = [_ for _ in config['plots'] if _ not in ['x','y']]
 
@@ -529,11 +532,15 @@ def _ProcessReport(njob,total_jobs,job,config):
     #   proj_end = timeline_df['end'].max()
     proj_end = datetime.datetime.timestamp(datetime.datetime.strptime(data['job']['updatetime'], '%Y-%m-%d %H:%M:%S'))
     timeline_df.loc[timeline_df['end']<0,'end'] = proj_end
-    timeline_df['start_time'] = timeline_df['beg'].apply(lambda x: datetime.datetime.utcfromtimestamp(int(x)+config['appearance']['timezonegap'])) 
-    timeline_df['end_time'] = timeline_df['end'].apply(lambda x: datetime.datetime.utcfromtimestamp(int(x+config['appearance']['timezonegap']))) 
+    timeline_df['start_time'] = timeline_df['beg'].apply(lambda x: datetime.datetime.fromtimestamp(int(x+config['appearance']['timezonegap']),datetime.timezone.utc)) 
+    timeline_df['end_time'] = timeline_df['end'].apply(lambda x: datetime.datetime.fromtimestamp(int(x+config['appearance']['timezonegap']),datetime.timezone.utc)) 
     timeline_df['duration'] = timeline_df['end_time']-timeline_df['start_time']
     timeline_df[['color','edgecolor','colorhtml','edgecolorhtml']] = timeline_df['st'].apply(lambda x: add_color(x))
-    # Sorting the dataframe
+    # Escaping job names
+    timeline_df['name'] = timeline_df['name'].apply(lambda x: re.escape(x))
+    # Removing `+0` (or maybe `+\d`) part of the step name (hetjobs? array?)
+    timeline_df['step']=timeline_df['step'].str.split("+").str[0]
+    # Removing the first lines (job, batch, interactive) to sort the dataframe, and then reinserting (concatenating) them
     timeline_df = pd.concat([timeline_df[timeline_df['step']=='job'],timeline_df[timeline_df['step']=='batch'],timeline_df[timeline_df['step']=='interactive'],timeline_df[(timeline_df['step']!='job') & (timeline_df['step']!='batch') & (timeline_df['step']!='interactive')].sort_values('step', key=lambda x: x.astype(int))],axis=0).reset_index(drop=True)
     # Calculating number of pages using configured max_timeline_steps_per_page
     config['timeline']['steps_per_page'] = config['appearance']['max_timeline_steps_per_page']

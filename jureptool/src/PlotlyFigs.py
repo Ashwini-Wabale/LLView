@@ -157,11 +157,11 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
     for time,value in zip(x2,y2):
       delta_comp = (time - time_range[0]).components
       delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
-      hovertext.append(f"Time: {time} ({delta})<br />Avg. GPU Usage: {value:.2f}")
+      hovertext.append(f"Time: {time} ({delta})<br />Avg. GPU Utilization: {value:.2f}")
 
     fig.add_trace(go.Scatter( x=x2,
                               y=y2, 
-                              name = 'Average GPU Usage',
+                              name = 'Average GPU Utilization',
                               legendgroup = 'gpu',
                               line = {"shape": 'hvh', "color":f"rgb{color}"},
                               mode="lines+markers",
@@ -174,12 +174,12 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                                 ),
                                 ),
                                 1, 2, secondary_y=True)
-    fig['layout']['yaxis3'].update(dict( title="GPU Usage (%)",
+    fig['layout']['yaxis3'].update(dict( title="GPU Utilization (%)",
                                           color = f"rgb{color}",
                                           tickcolor = f"rgb{color}",
                                           range=[0,110],
                                           ))
-    fig.add_annotation( text = "<b>Average<br>GPU Usage</b>",
+    fig.add_annotation( text = "<b>Average<br>GPU Utilization</b>",
                         x = 0.0,
                         y = 100,
                         xanchor='center',
