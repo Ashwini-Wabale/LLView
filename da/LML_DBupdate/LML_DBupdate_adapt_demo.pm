@@ -268,7 +268,7 @@ sub get_demo_state {
   my $self = shift;
   my ($jobsstate,$nodebug)=@_;
 
-  if ( $jobsstate =~ /^CANCELLED by ([\w]+)$/ ) {
+  if ( $jobsstate =~ /^CANCELLED by (.+)$/ ) {
     my $login = $1;
     my $demologin = $self->get_demo_login($login,$nodebug);
     $jobsstate =~ s/$login/$demologin/; 

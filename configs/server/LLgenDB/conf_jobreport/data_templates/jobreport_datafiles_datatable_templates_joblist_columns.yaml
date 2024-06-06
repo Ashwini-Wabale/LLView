@@ -36,7 +36,7 @@
         headerName: "Project",
         headerTooltip: "Budget used for job submission" ,
         cellDataType: "text", 
-        cellRenderer: "(params) => gen_project_link(params,'/data/ll/user')",
+        cellRenderer: "(params) => gen_project_link(params,'/data/ll/project')",
       },
       {
         field: "queue",

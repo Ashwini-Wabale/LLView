@@ -184,7 +184,7 @@ def id_to_username(state: str) -> str:
 
   ret = state
   # Getting the username for "CANCELLED by id" messages
-  if match := re.match('^CANCELLED by ([\w]+)$',state):
+  if match := re.match('^CANCELLED by (.+)$',state):
     id = match.group(1)
     rawoutput = check_output(f"id {id}", shell=True, text=True)
     if match := re.match(f'^uid={id}\((.+?)\).*$',rawoutput):
