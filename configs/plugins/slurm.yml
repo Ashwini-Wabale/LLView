@@ -165,6 +165,10 @@ classesinfo:
 
 stepinfo: # One entry per step
   cmd: 'sacct -P -a -o JobIDRaw,State,Exitcode,Start,End,time,JobName%30,Partition,User,Account,NNodes,NTasks,NCPUS,NodeList%30 -s BF,CA,CD,DL,F,NF,OOM,RQ,RS,RV,S,TO,R'
+  
+  # If a timestamp file is given, the query should be made in a given period
+  # This is set by the flags '-S <start_time> -E <end_time>' and the file
+  # 'timestampfile' stores the last timestamp for which information was obtained
   timestamp:
     file: './jobs_step_last_timestamp.dat'
     ts_delay: 30
