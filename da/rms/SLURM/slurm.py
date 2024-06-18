@@ -360,8 +360,8 @@ class SlurmInfo:
   Class that stores and processes information from Slurm output  
   """
   def __init__(self):
-    self._dict = {}
-    self._raw = {}
+    self._raw = {}  # Dictionary with parsed raw information
+    self._dict = {} # Dictionary with modified information (which is outputted to LML)
     self.log   = logging.getLogger('logger')
 
   def __add__(self, other):
@@ -462,7 +462,7 @@ class SlurmInfo:
         current_unit = unit[unitname]
         self._raw[current_unit] = {}
         # Adding prefix and type of the unit, when given in the input
-        if stype:
+        if prefix:
           self._raw[current_unit]["__prefix"] = prefix
         if stype:
           self._raw[current_unit]["__type"] = stype
@@ -474,7 +474,8 @@ class SlurmInfo:
 
   def add_value(self,key,value,dict):
     """
-    Function to add (key,value) pair to dict. It is separate to be easier to adapt
+    Function to add (key,value) pair to dict. 
+    This is a separate function to make it easier to adapt some corner cases
     (e.g., to not include empty keys)
     """
     dict[key] = value if value != "(null)" else ""
