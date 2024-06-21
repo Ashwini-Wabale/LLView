@@ -56,9 +56,8 @@ sub create_footerfiles {
 sub process_footer {
   my $self = shift;
   my ($fname,$footerref,$varsetref)=@_;
-  my ($ds);
-  my $file=$self->apply_varset($footerref->{filepath},$varsetref);
   my($dsref);
+  my $file=$self->apply_varset($footerref->{filepath},$varsetref);
 
   if(0) {
     foreach my $name ("name") {

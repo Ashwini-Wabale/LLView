@@ -428,13 +428,11 @@ jobreport:
                             #    WHEN (usage_avg<1.0) THEN ROUND(MIN(usage_avg,1.0), 2)
                             #    ELSE 1.0
                             #  END AS total_score,
-
                             # If gpu_active_avg and cpu_usage is available, this is a better score
                             #  CASE
                             #  WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_usage_avg/100.0,1.0), 2)
                             #  ELSE 0.5
                             #  END AS gpu_usage_score,
-
                             #  CASE
                             #    WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
                             #    WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)

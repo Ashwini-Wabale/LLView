@@ -79,7 +79,7 @@ if(defined($opt_logfile)) {
   if ( -f $opt_logfile ) {
     my $cmd="mv $opt_logfile ${opt_logfile}_last";
     my $rc=0;
-    printf "executing: %s\n",$cmd if($verbose);
+    printf "executing: %s\n",$cmd if($opt_verbose);
     system($cmd);$rc=$?;
     if($rc) {
       printf STDERR "failed executing: %s rc=%d\n",$cmd,$rc; exit(-1);
@@ -97,14 +97,14 @@ my $trun=sprintf("%14.6f",$tend-$tstart);
 print "transfertime: $trun ($tstart,$tend)\n";
 
 sub _ddssh_rsync {
-  my($indir,$outdir,$keyfile,$port,$login,$server,$rsyncopts,$exclude,$verbose)=@_;
+  my($indir,$outdir,$keyfile,$port,$login,$server,$rsyncopts,$exclude,$opt_verbose)=@_;
   my $rc=0;
 
   my $excludeopts="";
   $excludeopts="--exclude \'$exclude\'" if($exclude); 
   my $cmd="rsync -e \"ssh -p $port -i $keyfile\" $rsyncopts $excludeopts $indir $login"."\@"."$server:$outdir";
 
-  printf "executing: %s\n",$cmd if($verbose);
+  printf "executing: %s\n",$cmd if($opt_verbose);
   system($cmd);$rc=$?;
   if($rc) {
     printf STDERR "failed executing: %s rc=%d\n",$cmd,$rc; 
