@@ -15,6 +15,8 @@
 - view:
     name:          "mentor"
     filepath:      "$outputdir/ll/mentor.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_views
     logo:          "img/llview_logo_white.svg"
     home:          "login.php"
     info:          "data/_info/info.json"

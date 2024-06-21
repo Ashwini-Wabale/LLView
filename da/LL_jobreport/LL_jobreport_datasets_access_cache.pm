@@ -16,6 +16,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 use lib "$FindBin::RealBin/../lib";
 use LML_da_util qw( check_folder );
@@ -224,9 +225,10 @@ sub register_data_for_file_access_cache {
 
   # update last ts stored to file
   $ds->{$shortfile}->{dataset}=$shortfile;
-  $ds->{$shortfile}->{status}=1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
   $ds->{$shortfile}->{checksum}=0;
   $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
   $self->{COUNT_OP_NEW_FILE}++;
   
   return();
@@ -365,9 +367,10 @@ sub process_data_query_and_save_access {
   $ds->{$shortfile}->{dataset}=$shortfile;
   $ds->{$shortfile}->{name}=$dataset->{name};
   $ds->{$shortfile}->{ukey}=-1;
-  $ds->{$shortfile}->{status}=1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
   $ds->{$shortfile}->{checksum}=0;
   $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
   $self->{COUNT_OP_NEW_FILE}++;
   
   # printf("%s process_data_query_and_save_json: executed single access file generation in %7.4fs\n",$self->{INSTNAME},time()-$starttime);

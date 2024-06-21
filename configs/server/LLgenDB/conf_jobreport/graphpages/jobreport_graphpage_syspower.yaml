@@ -15,9 +15,10 @@
 - graphpage:
     name:          "syspower"
     filepath:      "$outputdir/ll/graphpage_syspower.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 1
     graphs: 
-            
        - name: "system_rack_power"
          xcol: "date"
          height: "450px"

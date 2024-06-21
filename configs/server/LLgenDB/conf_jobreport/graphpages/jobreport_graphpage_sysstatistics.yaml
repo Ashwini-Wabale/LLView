@@ -15,9 +15,10 @@
 - graphpage:
     name:          "sysstatistics"
     filepath:      "$outputdir/ll/graphpage_sysstatistics.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 1
     graphs: 
-
        - name: "Job_size_hist_avg"
          xcol: "date"
          height: "400px"

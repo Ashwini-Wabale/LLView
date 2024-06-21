@@ -11,7 +11,7 @@
 data_database:   jobreport
 data_table:      "joblist, jobmetrics, jobscores, pdffiles_reg, htmlfiles_reg"
 data_table_join_col: jobid 
-stat_database:   jobreport_json_stat
+format:         'json'
 column_convert: 'firstts->hhmmss_sincenow,lastts->hhmmss_sincenow,ts->todate_std_hhmm,runtime->hhmm_short,
                  wall->hhmm_short, waittime->hhmm_short,
                  starttime->todate_std_hhmm,endtime->todate_std_hhmm,used_mem_max->MiBtoGiB,pckinout_avg->toMillion,
@@ -22,7 +22,9 @@ column_convert: 'firstts->hhmmss_sincenow,lastts->hhmmss_sincenow,ts->todate_std
                  fs_all_Mbw_sum->MiBtoGiB, fs_all_Mbr_sum->MiBtoGiB,
                  gpu_memu_avg->toGiB,gpu_memu_max->toGiB,
                  gpu_pu_avg->toThousand,gpu_pu_max->toThousand,
-                 nummsgs->onlygtnull,numerrnodes->onlygtnull, usage_avg->toPercent'
+                 nummsgs->onlygtnull,numerrnodes->onlygtnull,usage_avg->toPercent,
+                 gpu_active_avg->toPercent,gpu_active_min->toPercent,gpu_active_max->toPercent'
+stat_database:   jobreport_json_stat
 columns: 'jobid, ts, owner, wall, queue, account, mentor, runtime,
          starttime, endtime, numnodes, resid, waittime, nsteps,
          load_avg, usage_avg, ldscore, total_cores_avg, cpuscore,
@@ -47,6 +49,7 @@ columns: 'jobid, ts, owner, wall, queue, account, mentor, runtime,
          gpu_pcie_rx_avg, gpu_pcie_rx_max, 
          gpu_nvlink_tx_avg, gpu_nvlink_tx_max,
          gpu_nvlink_rx_avg, gpu_nvlink_rx_max, 
+         gpu_active_avg, gpu_active_min, gpu_active_max,
          gpu_dcgm_up_avg,gpu_dcgm_up_max,
          gpu_usage_score,total_score,
          firstts, lastts,
@@ -83,4 +86,4 @@ columns_not_used: 'jgroup, jstatus, detailedstatus, state,
          falastts, fs_all_fslastts,fs_home_fslastts, fs_project_fslastts, fs_scratch_fslastts, 
          fs_fastdata_fslastts, gpulastts, gpu_eadm_d_sum,
          gpu_eadm_s_sum, gpu_eaom_d_sum, gpu_eaom_s_sum, gpu_evdm_d_sum,
-         gpu_evdm_s_sum, gpu_evom_d_sum, gpu_evom_s_sum,'         
+         gpu_evdm_s_sum, gpu_evom_d_sum, gpu_evom_s_sum'

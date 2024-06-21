@@ -56,20 +56,25 @@ sub create_footerfiles {
 sub process_footer {
   my $self = shift;
   my ($fname,$footerref,$varsetref)=@_;
-  my ($ds);
+  my($dsref);
   my $file=$self->apply_varset($footerref->{filepath},$varsetref);
 
   if(0) {
     foreach my $name ("name") {
-      $ds->{$name}=$self->apply_varset($footerref->{$name},$varsetref) if(exists($footerref->{$name}));
+      $dsref->{$name}=$self->apply_varset($footerref->{$name},$varsetref) if(exists($footerref->{$name}));
     }
   }
   if(exists($footerref->{footerset})) {
     foreach my $setref (@{$footerref->{footerset}}) {
-      push(@{$ds},$self->process_footersetelem($setref->{footersetelem},$varsetref)) if(exists($setref->{footersetelem}));
+      push(@{$dsref},$self->process_footersetelem($setref->{footersetelem},$varsetref)) if(exists($setref->{footersetelem}));
     }
   }
-  
+
+  # get status of datasets from DB
+  my $where="name='".$footerref->{name}."'";
+  $self->get_datasetstat_from_DB($footerref->{stat_database},$footerref->{stat_table},$where);
+  my $ds=$self->{DATASETSTAT}->{$footerref->{stat_database}}->{$footerref->{stat_table}};
+
   # save the JSON file
   my $fh = IO::File->new();
   &check_folder("$file");
@@ -77,9 +82,23 @@ sub process_footer {
     print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
-  $fh->print($self->encode_JSON($ds));
+  $fh->print($self->encode_JSON($dsref));
   $fh->close();
   print "process_view: file=$file ready\n";
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$footerref->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($footerref->{stat_database},$footerref->{stat_table},$where);
 }
 
 sub process_footersetelem {

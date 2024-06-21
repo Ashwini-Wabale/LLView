@@ -53,10 +53,14 @@
                     desc: "Maximum used memory by the job across all job nodes and over time (GiB)"  }
                     
 # GPU
-# - { name: gpu_usage_avg, sort: "N",  group: "GPU", title: "GPUUsage", data_format: "round_number_or_null", format: "text-right", bg_color_map: "gpu_usage_score",
-#                       desc: "Average GPU usage (percent of time one or more kernels was executing)"  }
+# - { name: gpu_usage_avg, sort: "N",  group: "GPU (Ext)", title: "GPUUsage", data_format: "round_number_or_null", format: "text-right",
+#                       desc: "Average GPU utilization (percent of time one or more kernels was executing)"  }
 # - { name: gpu_usage_max, sort: "N",  group: "GPU (Ext)", title: "GPUMaxUsage", data_format: "round_number_or_null", format: "text-right",
-#                       desc: "Max. GPU usage (percent of time one or more kernels was executing)"  }
+#                       desc: "Max. GPU utilization (percent of time one or more kernels was executing)"  }
+# - { name: gpu_active_avg, sort: "N",  group: "GPU",     title: "GPUActvSM", data_format: "round_number_or_null", bg_color_map: "gpu_usage_score", 
+#                      desc: "Average percent of time at least one warp was active on a GPU multiprocessor, averaged over all GPU multiprocessors."  }
+# - { name: gpu_active_max, sort: "N",  group: "GPU (Ext)", title: "GPUMaxActvSM", data_format: "round_number_or_null", 
+#                      desc: "Maximum percent of time at least one warp was active on a GPU multiprocessor, averaged over all GPU multiprocessors."  }
 # - { name: gpu_memu_avg, sort: "N",  group: "GPU (Ext)", title: "GPUAvgMem", data_format: "round_number_or_null", format: "text-right",
 #                       desc: "Average used GPU memory by the job across all job GPUs and over time (GiB)"  }
 # - { name: gpu_memu_max, sort: "N",  group: "GPU", title: "GPUMaxMem", data_format: "round_number_or_null", format: "text-right",
@@ -137,11 +141,11 @@
 #                       desc: "Total number of file open/close operations on SCRATCH during job run time (GiB)"  }
 
 # - { name: fs_fastdata_Mbw_sum, sort: "N",  group: "I/O per FS", title: "DATA Wr", data_format: "round_number_or_null", format: "text-right", bg_color_map: "fs_fastdata_w_score",
-#                       desc: "Total data volume written for FASTDATA during job run time (GiB)"  }
+#                       desc: "Total data volume written for DATA during job run time (GiB)"  }
 # - { name: fs_fastdata_Mbr_sum, sort: "N",  group: "I/O per FS", title: "DATA Rd", data_format: "round_number_or_null", format: "text-right", bg_color_map: "fs_fastdata_r_score",
-#                       desc: "Total data volume read for FASTDATA during job run time (GiB)"  }
+#                       desc: "Total data volume read for DATA during job run time (GiB)"  }
 # - { name: fs_fastdata_Moc_sum, sort: "N",  group: "I/O per FS", title: "DATA OC", data_format: "round_number_or_null", format: "text-right",
-#                       desc: "Total number of file open/close operations on FASTDATA during job run time (M)"  }
+#                       desc: "Total number of file open/close operations on DATA during job run time (M)"  }
 
 # RC/State
 - { name: rc_state, sort: "S",  group: "Status", title: "State", format: "text-right", 

@@ -8,7 +8,6 @@
 # Contributors:
 #    Wolfgang Frings (Forschungszentrum Juelich GmbH) 
 
-
 # Full list of attributes
 #jobid ts node gpu_clk gpu_clkr gpu_link gpu_memf gpu_memt
 #gpu_memu gpu_memur gpu_pciw gpu_pfst gpu_pu gpu_rtp_d gpu_rtp_s
@@ -21,14 +20,14 @@
     set:        GPU
     FORALL:     'P,U,J:VAR_project_user_job'
     filepath:   '$outputdir/projects/$P/$U/GPU_${J}_node.dat'
-    columns:        'jobid,ts,gpuid,gpu_usage,gpu_memu,gpu_pu,gpu_temp,gpu_memur,gpu_sclk,gpu_clk,gpu_clkr,gpu_pfst,gpu_pcie_tx,gpu_pcie_rx,gpu_nvlink_tx,gpu_nvlink_rx'
+    columns:        'jobid,ts,gpuid,gpu_usage,gpu_memu,gpu_pu,gpu_temp,gpu_memur,gpu_sclk,gpu_clk,gpu_clkr,gpu_pfst,gpu_pcie_tx,gpu_pcie_rx,gpu_nvlink_tx,gpu_nvlink_rx,gpu_active'
     column_convert: 'gpu_memu->Bytes2GiB,gpu_pu->toThousand,gpu_pcie_tx->KiBtoGiB,gpu_pcie_rx->KiBtoGiB,gpu_nvlink_tx->KiBtoGiB,gpu_nvlink_rx->KiBtoGiB'
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'dat'
-    format_str:      '%-10s %10d %12s %10.3f %7.3f %10.3f %10.3f %10.3f %8d %8d %8d %8d %11.3f %11.3f %11.3f %11.3f'
-    header:          'jobid              ts       nodeid  gpu_usage gpu_memu     gpu_pu   gpu_temp  gpu_memur gpu_sclk  gpu_clk gpu_clkr gpu_pfst gpu_pcie_tx gpu_pcie_rx gpu_nvlink_tx gpu_nvlink_rx'
-    format_header:   '%-10s %10s %12s %10s %7s %10s %10s %10s %8s %8s %8s %8s %11s %11s %11s'
+    format_str:      '%-10s %10d %12s %10.3f %7.3f %10.3f %10.3f %10.3f %8d %8d %8d %8d %11.3f %11.3f %11.3f %11.3f %11.3f'
+    header:          'jobid              ts       nodeid  gpu_usage gpu_memu     gpu_pu   gpu_temp  gpu_memur gpu_sclk  gpu_clk gpu_clkr gpu_pfst gpu_pcie_tx gpu_pcie_rx gpu_nvlink_tx gpu_nvlink_rx gpu_active'
+    format_header:   '%-10s %10s %12s %10s %7s %10s %10s %10s %8s %8s %8s %8s %11s %11s %11s %11s'
     column_filemap: 'J:jobid'
     # renew:          'always'
     data_database:   gpustate

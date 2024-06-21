@@ -414,10 +414,11 @@ sub update_table {
             }
           }
           foreach my $subsql (split(/\s*;\s*/,$self->replace_vars($sql))) {
+            my $stime=time();
             my $rc=$dbobj->execute_sql($subsql);
             $cnt=$rc; # count only last operation
             if($sqldebug) {
-              printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$subsql);
+              printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d %4.2fs SQL: %s\n",$table,$rc,time()-$stime,$subsql);
             }
           }
           if(exists($options->{update}->{sql_update_contents}->{aggr_by_time_resolutions})) {
@@ -485,7 +486,7 @@ sub update_table_aggr_by_time {
     # print "$self->{INSTNAME} update_table_aggr_by_time: res=$res sql_del=$sql_del\n";
     my $rc=$dbobj->execute_sql($sql_del);
     if($sqldebug) {
-      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$sql_del);
+      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d SQL: %s\n",$table,$rc,$sql_del);
     }
     my $sql_ins;
     if(@keyvars) {
@@ -510,7 +511,7 @@ sub update_table_aggr_by_time {
     # print "$self->{INSTNAME} update_table_aggr_by_time: res=$res sql_ins=$sql_ins\n"; 
     $rc=$dbobj->execute_sql($sql_ins);
     if($sqldebug) {
-      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$sql_ins);
+      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d SQL: %s\n",$table,$rc,$sql_ins);
     }
   }
   return();

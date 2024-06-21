@@ -54,18 +54,18 @@ sub process_data_query_and_save_csv_dat {
   if($#datatables>0) {
       my @fromlist; my $c=0;
       if(!exists($dataset->{data_table_join_col})) {
-	  print STDERR "LLmonDB:    ERROR, attribute data_table_join_col missing for dataset $dataset->{name}\n";
-	  return();
+        print STDERR "LLmonDB:    ERROR, attribute data_table_join_col missing for dataset $dataset->{name}\n";
+        return();
       } else {
-	  $joincol=$dataset->{data_table_join_col};
+        $joincol=$dataset->{data_table_join_col};
       }
       foreach my $d (@datatables) {
-	  $c++;
-	  push(@fromlist,sprintf("%s D%d",$d,$c));
-	  if($c>1) {
-	      $where.=" AND " if($where);
-	      $where.=sprintf("D1.%s=D%d.%s",$joincol,$c,$joincol);
-	  }
+        $c++;
+        push(@fromlist,sprintf("%s D%d",$d,$c));
+        if($c>1) {
+          $where.=" AND " if($where);
+          $where.=sprintf("D1.%s=D%d.%s",$joincol,$c,$joincol);
+        }
       }
       $from = join(",",@fromlist);
   } else {
@@ -246,7 +246,7 @@ sub write_data_to_multi_file_csv_dat {
     # open new file
     my $openop;
     
-    if($ds->{$file}->{status} == 0) {
+    if($ds->{$file}->{status} == FSTATUS_NOT_EXISTS) {
       $openop=">";
       $self->{COUNT_OP_NEW_FILE}++;
     } else {
@@ -258,8 +258,8 @@ sub write_data_to_multi_file_csv_dat {
       # print STDERR "LLmonDB:    ERROR, cannot open $self->{OUTDIR}/$file\n";
       return();
     }
-    $self->{SAVE_LASTFH}->print($header) if($ds->{$file}->{status} == 0);
-    $ds->{$file}->{status}=1;
+    $self->{SAVE_LASTFH}->print($header) if($ds->{$file}->{status} == FSTATUS_NOT_EXISTS);
+    $ds->{$file}->{status}=FSTATUS_EXISTS;
     $self->{SAVE_LASTFILE}=$file;
     # printf("%s write_data_to_multi_file_csv_dat:      open file %s %s\n",$self->{INSTNAME},$file,$openop);
   }
@@ -269,6 +269,7 @@ sub write_data_to_multi_file_csv_dat {
   } else {
     $ds->{$file}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
   }
+  $ds->{$file}->{mts}=$self->{CURRENTTS}; # last change ts
 
   # convert data
   while ( my ($colnum, $func) = each(%{$col_convert}) ) {
@@ -314,7 +315,7 @@ sub write_data_to_single_file_csv_dat {
       return();
     }
     $self->{SAVE_LASTFH}->print($header);
-    $ds->{$file}->{status}=1;
+    $ds->{$file}->{status}=FSTATUS_EXISTS;
     $self->{SAVE_LASTFILE}=$file;
   }
   return() if(!defined($dataref));
@@ -324,7 +325,7 @@ sub write_data_to_single_file_csv_dat {
   } else {
     $ds->{$file}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
   }
-
+  $ds->{$file}->{mts}=$self->{CURRENTTS}; # last change ts
 
   return() if(!defined($dataref));
   

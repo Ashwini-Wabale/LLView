@@ -15,6 +15,8 @@
 - graphpage:
     name:          "internalstat"
     filepath:      "$outputdir/ll/graphpage_internalstat.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 2
     graphs: 
        - name: "DBstat_ALL"
