@@ -300,6 +300,9 @@ jobreport:
         - { name: gpu_nvlink_rx_avg, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_nvlink_rx_min, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_nvlink_rx_max, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_avg,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_min,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_max,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpulist,         type: extralongstr_t,    LLDB_from: gpustate/currentjobs_gpulist, LL_default: "" }
         - { name: gpuspec,         type: extralongstr_t,    LLDB_from: gpustate/currentjobs_gpuspec, LL_default: "" }
         - { name: gpu_node_up_avg,  type: cnt_f_t,          LLDB_from: gpustate/gpu_aggr_by_jobid/node_up_avg,   LL_default: 0  }
@@ -398,13 +401,13 @@ jobreport:
                              END AS fs_fastdata_r_score,
 
                              CASE
-                             WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_usage_avg/100.0,1.0), 2)
+                             WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_active_avg/100.0,1.0), 2)
                              ELSE 0.5
                              END AS gpu_usage_score,
 
                              CASE
-                               WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
-                               WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)
+                               WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_active_avg,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
+                               WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_active_avg,1.0) + 0.03, 2)
                                WHEN (load_avg<0.5*total_cores_avg) THEN ROUND(MIN(load_avg/(0.5*total_cores_avg),1.0), 2)
                                ELSE 1.0
                              END AS total_score,
@@ -423,6 +426,19 @@ jobreport:
                             #    WHEN (gpu_numgpus>0) AND (usage_avg<1.0) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*usage_avg, 2)
                             #    WHEN (gpu_numgpus>0) AND (usage_avg>=1.0) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)
                             #    WHEN (usage_avg<1.0) THEN ROUND(MIN(usage_avg,1.0), 2)
+                            #    ELSE 1.0
+                            #  END AS total_score,
+
+                            # If gpu_active_avg and cpu_usage is available, this is a better score
+                            #  CASE
+                            #  WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_usage_avg/100.0,1.0), 2)
+                            #  ELSE 0.5
+                            #  END AS gpu_usage_score,
+
+                            #  CASE
+                            #    WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
+                            #    WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)
+                            #    WHEN (load_avg<0.5*total_cores_avg) THEN ROUND(MIN(load_avg/(0.5*total_cores_avg),1.0), 2)
                             #    ELSE 1.0
                             #  END AS total_score,
         archive:
@@ -995,6 +1011,30 @@ jobreport_json_stat:
       name: datasetstat_support
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
+      name: datasetstat_support_queued
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_mapstat
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_alluser
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_user
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allmentors
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allPIs
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allPAs
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allProjects
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
       name: datasetstat_user_running
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
@@ -1014,6 +1054,15 @@ jobreport_json_stat:
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_templates
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_footer
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_graphpages
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_views
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_job_jureptool

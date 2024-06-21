@@ -66,6 +66,14 @@ execute="${LLVIEW_HOME}/da/LL_jobreport/LL_jobreport_dataset_mngt_perform_action
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
 logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_archive`date +.%Y.%m.%d`.log"
 
+# Workflow for Job Reporting clean up: perform delayed action on jobreport files (delete)
+[delete]
+active=1
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions/mngt_actions_delete_lastts.dat
+execute="${LLVIEW_HOME}/da/LL_jobreport/LL_jobreport_dataset_mngt_perform_actions.pl -v --type=delete --journaldir ./tmp/jobreport/tmp/mngtactions --parallel 8 >> logs/delete`date +.%Y.%m.%d`.log 2>> logs/delete`date +.%Y.%m.%d`.errlog;"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_delete`date +.%Y.%m.%d`.log"
+
 # Example workflow that runs everytime the second reaches 30 ('watchtime')
 [timetest]
 active=0

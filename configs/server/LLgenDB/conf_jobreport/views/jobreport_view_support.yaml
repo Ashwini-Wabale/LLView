@@ -15,6 +15,8 @@
 - view:
     name:          "support"
     filepath:      "$outputdir/ll/support.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_views
     info:          "data/_info/info.json"
     # Demo mode
     # demo:          true
@@ -72,6 +74,7 @@
     #               graph_page_config: "/data/ll/graphpage_sysinterconnect.json"
               - page:
                   name: "Statistics"
+                  description: "Graphics containing statistics on memory and node usage"
                   section: "sysstatistics"
                   default: false
                   graph_page_config: "/data/ll/graphpage_sysstatistics.json"

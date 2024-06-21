@@ -58,24 +58,29 @@ sub create_views {
 sub process_view {
   my $self = shift;
   my ($vname,$viewref,$varsetref)=@_;
-  my ($ds);
+  my ($dsref);
   my $file=$self->apply_varset($viewref->{filepath},$varsetref);
 
   foreach my $name ("title","image","home","logo","info","search_field","demo") {
-    $ds->{$name}=$self->apply_varset($viewref->{$name},$varsetref) if(exists($viewref->{$name}));
+    $dsref->{$name}=$self->apply_varset($viewref->{$name},$varsetref) if(exists($viewref->{$name}));
   }
   if(exists($viewref->{data})) {
     foreach my $name ("system","permission","view") {
-      $ds->{data}->{$name}=$self->apply_varset($viewref->{data}->{$name},$varsetref) if(exists($viewref->{data}->{$name}));
+      $dsref->{data}->{$name}=$self->apply_varset($viewref->{data}->{$name},$varsetref) if(exists($viewref->{data}->{$name}));
     }
   }
 
   if(exists($viewref->{pages})) {
     foreach my $pref (@{$viewref->{pages}}) {
-      push(@{$ds->{pages}},$self->process_view_page($pref->{page},$varsetref)) if(exists($pref->{page}));
+      push(@{$dsref->{pages}},$self->process_view_page($pref->{page},$varsetref)) if(exists($pref->{page}));
     }
   }
-  
+
+  # get status of datasets from DB
+  my $where="name='".$viewref->{name}."'";
+  $self->get_datasetstat_from_DB($viewref->{stat_database},$viewref->{stat_table},$where);
+  my $ds=$self->{DATASETSTAT}->{$viewref->{stat_database}}->{$viewref->{stat_table}};
+
   # save the JSON file
   my $fh = IO::File->new();
   &check_folder("$file");
@@ -83,8 +88,23 @@ sub process_view {
     print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
-  $fh->print($self->encode_JSON($ds));
+  $fh->print($self->encode_JSON($dsref));
   $fh->close();
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$viewref->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($viewref->{stat_database},$viewref->{stat_table},$where);
+
   # print "process_view: file=$file ready\n";
 
 }

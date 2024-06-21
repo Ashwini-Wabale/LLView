@@ -170,6 +170,9 @@
            - { name: gpu_usage,  col: "gpu_usage"  }
            - { name: pcietx,     col: "gpu_pcie_tx"  }
            - { name: pcierx,     col: "gpu_pcie_rx"  }
+           - { name: nvlinktx,   col: "gpu_nvlink_tx"  }
+           - { name: nvlinkrx,   col: "gpu_nvlink_rx"  }
+           - { name: gpu_active, col: "gpu_active"  }
            - { name: ncores,     col: "ncores"  }
            - { name: features,   col: "features"  }
 

@@ -21,7 +21,8 @@ vars:
 directories:
  - { path: "$outputdir/projects, $outputdir/support, $outputdir/config, 
             $outputdir/_info, $outputdir/sec_files, $outputdir/mentors,
-            $outputdir/_queued, $outputdir/_sysstat, $outputdir/llview_batch,  
+            $outputdir/_queued, $outputdir/_sysstat, 
+            $outputdir/_sysstat/cp, $outputdir/llview_batch,  
             $outputdir/../tmp/data/, $outputdir/../tmp/data/sysstat, 
             $outputdir/LLtemplates, $outputdir/ll, 
             $outputdir/_internal, $outputdir/_internal/DBtab, 
@@ -68,7 +69,15 @@ datamngt:
        max_files: 50
        # gzip, xz (not for web server)
        compress_tool: gzip
-       
+
+ - action:
+     name: remove_older_3days
+     type: remove
+     options:
+       parallel_level: 12
+       limit: 72h
+       max_files: 2000
+
  - action:
      name: archive_jobs_files
      type: archive
@@ -95,7 +104,8 @@ graphpages:
  %include "./graphpages/jobreport_graphpage_sysinterconnect.yaml"
  %include "./graphpages/jobreport_graphpage_environment.yaml"
  %include "./graphpages/jobreport_graphpage_steptimelines.yaml"
- 
+#  %include "./graphpages/jobreport_graphpage_nodeexporterstat.yaml"
+
 views:
  %include "./views/jobreport_view_support.yaml"
  %include "./views/jobreport_view_mentor.yaml"

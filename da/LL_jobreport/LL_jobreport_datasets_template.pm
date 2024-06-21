@@ -29,7 +29,10 @@ sub process_dataset_template {
     $file=~s/\$\{$key\}/$value/gs;	$file=~s/\$$key/$value/gs;
   }
   # print "process_dataset_template: file=$file\n";
-  
+
+  # get status of datasets from DB
+  $self->get_datasetstat_from_DB($dataset->{stat_database},$dataset->{stat_table});
+
   my $ds=$self->{DATASETSTAT}->{$dataset->{stat_database}}->{$dataset->{stat_table}};
 
   # scan columns
@@ -140,6 +143,21 @@ sub process_dataset_template {
   }
   $fh->print($data); 
   $fh->close();
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$dataset->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($dataset->{stat_database},$dataset->{stat_table});
+
 }
 
 1;

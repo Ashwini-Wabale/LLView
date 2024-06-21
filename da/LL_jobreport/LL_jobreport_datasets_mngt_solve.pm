@@ -16,6 +16,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 # SQL help:
 # restore wrong file in database:
@@ -77,7 +78,7 @@ sub solve_datasets {
           printf("%s[%05d] fn inconsistence: [st=%d] %s vs %s\n",$self->{INSTNAME},
                   $cnt_fn_inconsistence,$ref->{status},$file,$ref->{dataset});
         }
-        next if($ref->{status}==0);
+        next if($ref->{status}==FSTATUS_NOT_EXISTS);
         my $realfile=sprintf("%s/%s",$self->{OUTDIR},$ref->{dataset});
         if(!exists($fl->{$realfile})) {
           $cnt_not_on_FS++;
@@ -99,9 +100,9 @@ sub solve_datasets {
             $ds->{$shortfile}->{dataset}=$shortfile;
             $ds->{$shortfile}->{name}=$dataset->{name};
             if($shortfile=~/\.gz$/) {
-              $ds->{$shortfile}->{status}=2;
+              $ds->{$shortfile}->{status}=FSTATUS_COMPRESSED;
             } else {
-              $ds->{$shortfile}->{status}=1;
+              $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
             }
             $ds->{$shortfile}->{lastts_saved}=$mtime;
             $ds->{$shortfile}->{checksum}=0;

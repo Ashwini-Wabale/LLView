@@ -265,6 +265,16 @@
     format:             'access'
     stat_database:       jobreport_access_stat
     stat_table:          datasetstat_support_access
+    filemode:            new
+    %include "jobreport_datafiles_access_groupfile_support.yaml"
+
+- dataset:
+    name: secfiles_access7cp
+    set:                 access_support
+    filepath:           '$outputdir/_sysstat/cp/.htaccess'
+    format:             'access'
+    stat_database:       jobreport_access_stat
+    stat_table:          datasetstat_support_access
     filemode:            new 
     %include "jobreport_datafiles_access_groupfile_support.yaml"
 

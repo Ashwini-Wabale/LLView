@@ -275,8 +275,8 @@
       - { name: ts_min,          group: "DBstat",  sort: "D", title: "Min. Date", desc: "Minimum date of entries"   }
       - { name: ts_max,          group: "DBstat",  sort: "D", title: "Max. Date", desc: "Maximum date of entries"   }
       - { name: ts_dur,          group: "DBstat",  sort: "N", title: "Time Span", desc: "Time span between minimum and maximum dates"   }
-      - { name: db,              group: "DBstat",  sort: "S", title: "Database",  desc: "Database name"      }
-      - { name: tab,             group: "DBstat",  sort: "S", title: "Table",     desc: "Table name"      }
+      - { name: db,              group: "DBstat",  sort: "S", title: "Database", format: "text-left", desc: "Database name"      }
+      - { name: tab,             group: "DBstat",  sort: "S", title: "Table", format: "text-left", desc: "Table name"      }
       - { name: tabpath,         group: "DBstat_ext",  sort: "S", title: "Table Path", desc: "Path of the table"      }
       - { name: nrows,           group: "DBstat",  sort: "N", title: "#Rows", desc: "Number of rows stored in table"      }
       - { name: time_aggr_res,   group: "DBstat",  sort: "N", title: "TimeRes", desc: "Time resolution if table is using time_aggr, otherwise -1"      }

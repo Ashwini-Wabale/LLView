@@ -224,7 +224,6 @@ sub load_config {
     $self->print_to($outfile);
   }
   
-  
   # $self->{CONFIGDATA}=YAML::XS::LoadFile( $self->{CONFIGFILE});
   $YAML::XS::Boolean = "JSON::PP";
   $self->{CONFIGDATA}=YAML::XS::Load( $data );

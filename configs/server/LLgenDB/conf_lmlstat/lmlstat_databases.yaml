@@ -205,6 +205,9 @@ lmlstat:
         - { name: gpu_usage  , type: rate_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_pcie_tx, type: bytes_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_pcie_rx, type: bytes_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_nvlink_tx, type: bytes_t,  LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_nvlink_rx, type: bytes_t,  LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_active , type: float_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: ncores,      type: tasks_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: features,    type: feature_t,  LLDB_from: gpustate/gpu, LML_default: "-" }
         - { name: state,       type: status_t,   LLDB_from: gpustate/gpu, LML_default: '-' }
