@@ -25,10 +25,10 @@ export LLVIEW_SHUTDOWN="$HOME/HALT_ALL"
 export LLVIEW_LOG_DAYS=2
 
 # Number of processors used by JuRepTool (default: 2, 0 to turn off)
-export JUREPTOOL_NPROCS=0
+export JUREPTOOL_NPROCS=2
 
 # Folder on the webserver that is shared on the web (necessary for the definition of the .htgroups)
-export LLVIEW_WEB_DATA="/home/llstat/jobreport_system"
+export LLVIEW_WEB_DATA="/srv/www/llview/htdocs/system"
 
 # Image to be used on the login page, relative to DocumentRoot (starting with /) 
 # or relative to $LLVIEW_WEB_DATA (default: img/$LLVIEW_SYSTEMNAME.jpg)
