@@ -540,8 +540,8 @@ def _ProcessReport(njob,total_jobs,job,config):
     timeline_df['name'] = timeline_df['name'].apply(lambda x: re.escape(x))
     # Removing `+0` (or maybe `+\d`) part of the step name (hetjobs? array?)
     timeline_df['step']=timeline_df['step'].str.split("+").str[0]
-    # Removing the first lines (job, batch, interactive) to sort the dataframe, and then reinserting (concatenating) them
-    timeline_df = pd.concat([timeline_df[timeline_df['step']=='job'],timeline_df[timeline_df['step']=='batch'],timeline_df[timeline_df['step']=='interactive'],timeline_df[(timeline_df['step']!='job') & (timeline_df['step']!='batch') & (timeline_df['step']!='interactive')].sort_values('step', key=lambda x: x.astype(int))],axis=0).reset_index(drop=True)
+    # Removing the first lines (job, batch, extern, interactive) to sort the dataframe, and then reinserting (concatenating) them
+    timeline_df = pd.concat([timeline_df[timeline_df['step']=='job'],timeline_df[timeline_df['step']=='batch'],timeline_df[timeline_df['step']=='extern'],timeline_df[timeline_df['step']=='interactive'],timeline_df[(timeline_df['step']!='job') & (timeline_df['step']!='batch') & (timeline_df['step']!='extern') & (timeline_df['step']!='interactive')].sort_values('step', key=lambda x: x.astype(int))],axis=0).reset_index(drop=True)
     # Calculating number of pages using configured max_timeline_steps_per_page
     config['timeline']['steps_per_page'] = config['appearance']['max_timeline_steps_per_page']
     config['timeline']['npages'] = int((config['timeline']['nsteps']-1)/config['timeline']['steps_per_page'])+1
