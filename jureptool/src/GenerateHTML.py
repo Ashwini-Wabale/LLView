@@ -102,6 +102,7 @@ def CreateHTML( config,
   }
   li {
     margin-left: 1rem;
+    white-space: nowrap;
   }
 
   .menu-button {
@@ -152,7 +153,7 @@ def CreateHTML( config,
 
   main {
     display: grid;
-    grid-template-columns: 12em 1fr ;
+    grid-template-columns: 16em 1fr ;
     grid-auto-flow: row;
     width: 100%;
     margin: 0 auto 0 auto;
@@ -195,7 +196,7 @@ def CreateHTML( config,
   }
   .section-toc li.visible > a {
     color: #111;
-    transform: translate(5px); 
+    padding-left: 5px; 
   }
   .section-toc-marker {
     position: absolute;
