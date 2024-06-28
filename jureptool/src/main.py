@@ -537,7 +537,7 @@ def _ProcessReport(njob,total_jobs,job,config):
     timeline_df['duration'] = timeline_df['end_time']-timeline_df['start_time']
     timeline_df[['color','edgecolor','colorhtml','edgecolorhtml']] = timeline_df['st'].apply(lambda x: add_color(x))
     # Escaping job names
-    timeline_df['name'] = timeline_df['name'].apply(lambda x: re.escape(x))
+    timeline_df['name'] = timeline_df['name'].apply(lambda x: re.escape(str(x)))
     # Removing `+0` (or maybe `+\d`) part of the step name (hetjobs? array?)
     timeline_df['step']=timeline_df['step'].str.split("+").str[0]
     # Removing the first lines (job, batch, extern, interactive) to sort the dataframe, and then reinserting (concatenating) them

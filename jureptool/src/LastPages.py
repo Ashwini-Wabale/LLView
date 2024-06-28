@@ -83,7 +83,7 @@ def LastPages(pdf,data,config,page_num,timeline_df,time_range,error_lines):
         # page.ax.axhspan(index-0.5,index+0.5, color=['black','white'][index%2], alpha=0.1, zorder=0)
         # Adding state 'st' as text at the right of the bar  
         page.ax.text(0.99, index-last_step_prev_page-1+0.05, row['name'], color='black', ha='right', va='center',fontsize=(config['appearance']['smallfont'] if nsteps_this_page<=90 else config['appearance']['tinyfont'] ), transform=page.ax.get_yaxis_transform())
-        page.ax.text(1.01, index-last_step_prev_page-1+0.05, row['st'], color=row['edgecolor'], ha='left', va='center',fontsize=(config['appearance']['normalfont'] if nsteps_this_page<=90 else config['appearance']['smallfont'] ), fontweight='bold', transform=page.ax.get_yaxis_transform())
+        page.ax.text(1.01, index-last_step_prev_page-1+0.05, row['st'].replace("CANCELLED by","CANCELLED\nby"), color=row['edgecolor'], ha='left', va='center',fontsize=(config['appearance']['normalfont'] if nsteps_this_page<=90 else config['appearance']['smallfont'] ), fontweight='bold', transform=page.ax.get_yaxis_transform())
         # if (row['rc'] != 0) or (row['sig'] != 0):
         page.ax.text(0.94, index-last_step_prev_page-1+0.05, f"Return Code: {row['rc']}, Signal: {row['sig']}", ha='right', va='center', fontsize=config['appearance']['tinyfont'], color='k', transform=transforms.blended_transform_factory(page.fig.transFigure, page.ax.transData)) 
       page.ax.barh(timeline_df_this_page['step'], timeline_df_this_page['duration'], left=timeline_df_this_page['start_time'], color=timeline_df_this_page['color'], edgecolor=timeline_df_this_page['edgecolor'], linewidth=0.5)
