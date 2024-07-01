@@ -666,7 +666,8 @@ def CreateHTML( config,
       let hash = $(visible).attr('id');
       if (currentHash == hash) {return;}
       // window.location.hash = hash;
-      if(history.pushState) { history.pushState(null, null, "#"+hash); } else { window.location.hash = hash; }
+      // if(history.pushState) { history.pushState(null, null, "#"+hash); } else { window.location.hash = hash; } 
+      history.replaceState(null, null, "#"+hash);
       currentHash = hash;
     }
   }, false );
