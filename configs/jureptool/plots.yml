@@ -109,7 +109,7 @@ GPU:
   y:
     name: 'GPU'
   Utilization: 
-    header: 'gpu_usage'
+    header: 'gpu_util'
     type: 'float16'
     unit: '%'
     log: False
@@ -190,16 +190,6 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: False  
     description: 'Current frequency of the memory clock, in MHz'
-  Performance State:
-    header: 'gpu_pfst'  
-    type: 'int16'  
-    unit: '#'  
-    log: False  
-    note: "0: Highest performance\n\n12: Lowest performance"
-    cmap: 'cmc.hawaii'
-    lim: [0,15] 
-    skip_when_all: 0
-    description: 'The current performance state for the GPU. States range from P0 (maximum performance) to P12 (minimum performance)'
   PCIe TX:
     header: 'gpu_pcie_tx'  
     type: 'float32'  

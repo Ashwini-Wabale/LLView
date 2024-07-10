@@ -180,7 +180,7 @@
             traces:
               - trace:  
                   name:   "GPU usage"
-                  ycol: "gpu_usage"
+                  ycol: "gpu_util"
                   yaxis:  "y"
                   type:   "bar"
                   color:  "#A00082"

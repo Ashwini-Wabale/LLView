@@ -14,5 +14,5 @@ columns:
   - { name: ukey,            type: ukey_t,     LL_default: 'unknown' }
   - { name: lastts_saved,    type: ts_t,       LL_default: -1        }
   - { name: checksum,        type: checksum_t, LL_default: 0         }
-  - { name: status,          type: istatus_t,  LL_default: -1 }   # 0 -> not exists, 1 -> exists, -1 unknown, 2 compressed
+  - { name: status,          type: istatus_t,  LL_default: -1        }   # 0 -> not exists, 1 -> exists, -1 unknown, 2 compressed
   - { name: mts,             type: ts_t,       LL_default: -1        }

@@ -10,9 +10,12 @@
 #    Filipe Guimarães (Forschungszentrum Juelich GmbH) 
 
 # show pattern for GPU footer graph, show the graphs only if queue eq ...
-#show_pattern: 
-#  Queue: "gpu"
-    # xx: 
-    #    - val1
-    #    - val2         
-    # owner: "neubacher1"
+show_pattern: 
+  Queue: 
+    - "gpu"
+    - "gh"
+    - "arm"
+  # xx: 
+  #    - val1
+  #    - val2         
+  # owner: "username1"

@@ -57,6 +57,13 @@ It may be necessary also to adapt the `login.php` page, which obtains the verifi
 
 The top-level `.htaccess` is also important to define the decompression of the generated `.gz` files. The provided example in `$JURI_HOME/.htaccess` contains the relevant configuration.
 
+!!! tip
+
+    The login page for supporters has a `Jump to JobID` field to quickly access Detailed HTML reports. A simple setup that also allows a quick links to the reports (e.g., `llview.fz-juelich.de/<JobID>`) is to add an `.htaccess` file in the parent of `$LLVIEW_WEB_DATA` (i.e. `$LLVIEW_WEB_DATA/../`) with the following configuration:
+    ```
+    RedirectMatch "^/(.*?)/([0-9]+)$" "/$1/login.php?jobid=$2"
+    ```
+
 ## Installation
 
 - Make sure the [dependencies](#dependencies) are satisfied

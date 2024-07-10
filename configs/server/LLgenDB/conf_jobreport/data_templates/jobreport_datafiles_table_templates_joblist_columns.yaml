@@ -53,9 +53,9 @@
                     desc: "Maximum used memory by the job across all job nodes and over time (GiB)"  }
                     
 # GPU
-# - { name: gpu_usage_avg, sort: "N",  group: "GPU (Ext)", title: "GPUUsage", data_format: "round_number_or_null", format: "text-right",
+# - { name: gpu_util_avg, sort: "N",  group: "GPU (Ext)", title: "GPUUsage", data_format: "round_number_or_null", format: "text-right",
 #                       desc: "Average GPU utilization (percent of time one or more kernels was executing)"  }
-# - { name: gpu_usage_max, sort: "N",  group: "GPU (Ext)", title: "GPUMaxUsage", data_format: "round_number_or_null", format: "text-right",
+# - { name: gpu_util_max, sort: "N",  group: "GPU (Ext)", title: "GPUMaxUsage", data_format: "round_number_or_null", format: "text-right",
 #                       desc: "Max. GPU utilization (percent of time one or more kernels was executing)"  }
 # - { name: gpu_active_avg, sort: "N",  group: "GPU",     title: "GPUActvSM", data_format: "round_number_or_null", bg_color_map: "gpu_usage_score", 
 #                      desc: "Average percent of time at least one warp was active on a GPU multiprocessor, averaged over all GPU multiprocessors."  }
@@ -99,10 +99,6 @@
 #                       desc: "Average reception rate over NVlink"  }
 # - { name: gpu_nvlink_rx_max, sort: "N",  group: "GPU (Ext)",   title: "GPUMaxNVLRX", data_format: "round_number_or_null", format: "text-right",
 #                       desc: "Maximum reception rate over NVlink"  }
-# - { name: gpu_dcgm_up_avg, sort: "N",  group: "GPU (Ext)",       title: "DCGM", data_format: "round_number", format: "text-right",
-#                       desc: "Average DCGM enabled"  }
-# - { name: gpu_dcgm_up_max, sort: "N",  group: "GPU (Ext)",   title: "DCGMmax", data_format: "round_number", format: "text-right",
-#                       desc: "Maximum DCGM enabled"  }
 
 # Network
 # - { name: mbinout_avg, sort: "N",  group: "Network", title: "IC Data", data_format: "round_number", format: "text-right",

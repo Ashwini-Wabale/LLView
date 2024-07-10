@@ -15,6 +15,7 @@ The dependencies of LLview Server are:
         - Parallel::ForkManager
         - File::Monitor
         - File::Spec
+        - warnings::unused
         - Exporter
         - Storable
         - IO::File
@@ -24,7 +25,7 @@ The dependencies of LLview Server are:
         - DBD::SQLite
         - Config::IniFiles
         - JSON
-- Python (>3.9) (For JuRepTool)
+- Python (>3.9) (For JuRepTool and plugins for Prometheus and Gitlab)
     - Packages (install with `pip install <PackageName>`)
         - matplotlib (>3.5.0)
         - numpy
@@ -32,6 +33,7 @@ The dependencies of LLview Server are:
         - pyyaml
         - plotly
         - cmcrameri
+        - requests
     - gzip (if compressed HTML are to be generated with option --gzip, python must have been installed with `gzip` capacities)
 - SQLite3
 - [Fonts for JuRepTool](#jureptool_fonts)
@@ -143,13 +145,13 @@ This information is then converted into an xml file via the `$LLVIEW_HOME/da/uti
 One of the options to set the users that have "Support" access on LLview is via the `supportinput` action. This action watches a file (default in `${LLVIEW_SHARED}/../config/support_input.dat`) that contains a simple list of usernames (one per line). When this file is changed, the file is copied to `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/wservice`. This file is then used in the [`webservice` step of the `dbupdate` action](#webservice-step).
 
 
-#### `compress` and `archive` actions
+#### `compress`, `archive` and `delete` actions
 
-The actions `compress` and `archive` perform actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
+The actions `compress`, `archive` and `delete` perform maintenance actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
 
-### JuRepTool
+#### JuRepTool
 
-JuRepTool is the LLview module that generates the PDF and HTML reports. It runs in parallel alongside LLview's main workflow, and the generated files are automatically copied and made available on the LLview portal.
+JuRepTool is the LLview module that generates the PDF and HTML detailed reports. It runs as an action triggered by the file `${LLVIEW_SYSTEMNAME}/tmp/plotlists.dat`, which contains the list of jobs that needs to have their report created. The generated reports are automatically copied and made available on the LLview portal.
 To setup and use JuRepTool:
 
 - Update the config files located under `$LLVIEW_CONF/jureptool`. The configuration of the script and plots are given in 4 YAML files:

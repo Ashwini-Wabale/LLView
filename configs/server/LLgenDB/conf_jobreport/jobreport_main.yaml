@@ -26,7 +26,8 @@ directories:
             $outputdir/../tmp/data/, $outputdir/../tmp/data/sysstat, 
             $outputdir/LLtemplates, $outputdir/ll, 
             $outputdir/_internal, $outputdir/_internal/DBtab, 
-            $outputdir/_internal/steptimings" }
+            $outputdir/_internal/steptimings,
+            $outputdir/cb"}
  - {
      FORALL: 'P:VAR_project',
      path: '$outputdir/projects/$P'

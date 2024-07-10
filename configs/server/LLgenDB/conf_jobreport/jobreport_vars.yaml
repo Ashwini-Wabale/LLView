@@ -222,3 +222,5 @@
     sql: "SELECT p.pid FROM pcpucores_current_pattern c, pcpucores_time_aggr_span_avg p WHERE c.pattern=p.pattern"
 #    sql: "SELECT distinct p.pid FROM pcpucores_time_aggr_span_avg p"
   }
+
+%include "../conf_cb/vars_cb.yaml"

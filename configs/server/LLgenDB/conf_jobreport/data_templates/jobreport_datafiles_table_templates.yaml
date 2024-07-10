@@ -434,9 +434,9 @@
       - { name: used_cores_min,      group: "minmax",  sort: "N", title: "Used_Cores (min)",  desc: "Minimum used cores", data_format: "round_number_or_null"  }
       - { name: used_cores_avg,      group: "project", sort: "N", title: "Used_Cores (avg)",  desc: "Average used cores", data_format: "round_number_or_null"  }
       - { name: used_cores_max,      group: "minmax",  sort: "N", title: "Used_Cores (max)",  desc: "Maximum used cores", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_min,      group: "minmax",  sort: "N", title: "GPU Usage (min)",  desc: "Minimum GPU usage", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_avg,      group: "project", sort: "N", title: "GPU Usage (avg)",  desc: "Average GPU usage", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_max,      group: "minmax",  sort: "N", title: "GPU Usage (max)",  desc: "Maximum GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_min,      group: "minmax",  sort: "N", title: "GPU Usage (min)",  desc: "Minimum GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_avg,      group: "project", sort: "N", title: "GPU Usage (avg)",  desc: "Average GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_max,      group: "minmax",  sort: "N", title: "GPU Usage (max)",  desc: "Maximum GPU usage", data_format: "round_number_or_null"  }
 
 
 - dataset:
@@ -494,3 +494,44 @@
       - { name: n_4096,          group: "heatmap", sort: "N", title: "N_4096",    desc: "Percentage used by jobs of size 4096",  data_format: "percent_or_null", bg_color_map: "n_4096 'RdYlGn'" }
       - { name: n_8192,          group: "heatmap", sort: "N", title: "N_8192",    desc: "Percentage used by jobs of size 8192",  data_format: "percent_or_null", bg_color_map: "n_8192 'RdYlGn'" }
       - { name: n_all,           group: "heatmap", sort: "N", title: "N_ALL",     desc: "Percentage used by jobs of any size",   data_format: "percent_or_null", bg_color_map: "n_all 'RdYlGn'" }
+
+- dataset:
+    name: template_CB
+    set:           template
+    filepath:      '$outputdir/LLtemplates/CB.handlebars'
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_templates
+    format:        'datatable'
+    ag-grid-theme: 'balham' #quartz, balham, material, alpine (with -dark or -auto-dark suffix too)
+    columns:
+      - {
+          field: "name",
+          headerName: "Name",
+          headerTooltip: "Benchmark name",
+          pinned: "left",
+      }
+      - {
+          headerName: "Timings",
+          groupId: "Timings",
+          children: [
+            {
+              field: "min_ts",
+              headerName: "Date of First Run", 
+              headerTooltip: "Minimum timestamp of the benchmark",
+              cellDataType: "text",
+            },
+            {
+              field: "max_ts",
+              headerName: "Date of Last Run", 
+              headerTooltip: "Maximum timestamp of the benchmark",
+              cellDataType: "text",
+            },
+          ]
+        }
+      - {
+          field: "count",
+          headerName: "#Runs",
+          headerTooltip: "Number of runs of the benchmark"
+      }
+
+%include "../../conf_cb/template_cb.yaml"

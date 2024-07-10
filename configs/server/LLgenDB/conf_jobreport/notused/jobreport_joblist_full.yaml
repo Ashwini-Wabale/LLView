@@ -95,26 +95,12 @@
         - { name: fs_all_ooc_max,         display_group: fsusage }
 
         - { name: gpulastts,       display_group: gpu }
-        - { name: istatus_avg,     display_group: gpu }
-        - { name: istatus_min,     display_group: gpu }
-        - { name: istatus_max,     display_group: gpu }
-        - { name: gpu_eadm_d_sum,  display_group: gpu }
-        - { name: gpu_eadm_s_sum,  display_group: gpu }
-        - { name: gpu_eaom_d_sum,  display_group: gpu }
-        - { name: gpu_eaom_s_sum,  display_group: gpu }
-        - { name: gpu_evdm_d_sum,  display_group: gpu }
-        - { name: gpu_evdm_s_sum,  display_group: gpu }
-        - { name: gpu_evom_d_sum,  display_group: gpu }
-        - { name: gpu_evom_s_sum,  display_group: gpu }
         - { name: gpu_clk_avg,     display_group: gpu }
         - { name: gpu_clk_min,     display_group: gpu }
         - { name: gpu_clk_max,     display_group: gpu }
         - { name: gpu_clkr_avg,    display_group: gpu }
         - { name: gpu_clkr_min,    display_group: gpu }
         - { name: gpu_clkr_max,    display_group: gpu }
-        - { name: gpu_link_avg,    display_group: gpu }
-        - { name: gpu_link_min,    display_group: gpu }
-        - { name: gpu_link_max,    display_group: gpu }
         - { name: gpu_memf_avg,    display_group: gpu }
         - { name: gpu_memf_min,    display_group: gpu }
         - { name: gpu_memf_max,    display_group: gpu }
@@ -127,36 +113,30 @@
         - { name: gpu_memur_avg,   display_group: gpu }
         - { name: gpu_memur_min,   display_group: gpu }
         - { name: gpu_memur_max,   display_group: gpu }
-        - { name: gpu_pciw_avg,    display_group: gpu }
-        - { name: gpu_pciw_min,    display_group: gpu }
-        - { name: gpu_pciw_max,    display_group: gpu }
-        - { name: gpu_pfst_avg,    display_group: gpu }
-        - { name: gpu_pfst_min,    display_group: gpu }
-        - { name: gpu_pfst_max,    display_group: gpu }
         - { name: gpu_pu_avg,      display_group: gpu }
         - { name: gpu_pu_min,      display_group: gpu }
         - { name: gpu_pu_max,      display_group: gpu }
-        - { name: gpu_rtp_d_avg,   display_group: gpu }
-        - { name: gpu_rtp_d_min,   display_group: gpu }
-        - { name: gpu_rtp_d_max,   display_group: gpu }
-        - { name: gpu_rtp_s_avg,   display_group: gpu }
-        - { name: gpu_rtp_s_min,   display_group: gpu }
-        - { name: gpu_rtp_s_max,   display_group: gpu }
-        - { name: gpu_rtpd_avg,    display_group: gpu }
-        - { name: gpu_rtpd_min,    display_group: gpu }
-        - { name: gpu_rtpd_max,    display_group: gpu }
         - { name: gpu_sclk_avg,    display_group: gpu }
         - { name: gpu_sclk_min,    display_group: gpu }
         - { name: gpu_sclk_max,    display_group: gpu }
         - { name: gpu_temp_avg,    display_group: gpu }
         - { name: gpu_temp_min,    display_group: gpu }
         - { name: gpu_temp_max,    display_group: gpu }
-        - { name: gpu_usage_avg,   display_group: gpu }
-        - { name: gpu_usage_min,   display_group: gpu }
-        - { name: gpu_usage_max,   display_group: gpu }
+        - { name: gpu_util_avg,   display_group: gpu }
+        - { name: gpu_util_min,   display_group: gpu }
+        - { name: gpu_util_max,   display_group: gpu }
+        - { name: gpu_active_avg,   display_group: gpu }
+        - { name: gpu_active_min,   display_group: gpu }
+        - { name: gpu_active_max,   display_group: gpu }
         - { name: gpu_pcie_tx_avg, display_group: gpu }
         - { name: gpu_pcie_tx_min, display_group: gpu }
         - { name: gpu_pcie_tx_max, display_group: gpu }
         - { name: gpu_pcie_rx_avg, display_group: gpu }
         - { name: gpu_pcie_rx_min, display_group: gpu }
         - { name: gpu_pcie_rx_max, display_group: gpu }
+        - { name: gpu_nvlink_tx_avg, display_group: gpu }
+        - { name: gpu_nvlink_tx_min, display_group: gpu }
+        - { name: gpu_nvlink_tx_max, display_group: gpu }
+        - { name: gpu_nvlink_rx_avg, display_group: gpu }
+        - { name: gpu_nvlink_rx_min, display_group: gpu }
+        - { name: gpu_nvlink_rx_max, display_group: gpu }

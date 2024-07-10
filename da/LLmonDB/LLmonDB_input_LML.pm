@@ -68,6 +68,7 @@ sub process_LMLdata {
 
   printf("$self->{INSTNAME} LLmonDB: start with job-DB:  %s\n",defined($self->{DBcontains_map_data})?$self->{DBcontains_map_data}:"-none-") if($self->{VERBOSE});
   printf("$self->{INSTNAME} LLmonDB: found other DBs:    %s\n",join(", ",@DBs)) if($self->{VERBOSE});
+  printf("$self->{INSTNAME} LLmonDB: available cap.:     %s\n",join(", ",sort(keys(%{$cap})))) if($self->{VERBOSE});
 
   my $stepnr=1;
   
