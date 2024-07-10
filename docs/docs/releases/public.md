@@ -1,5 +1,46 @@
 # LLview Public Releases
 
+### 2.3.1-base (July 10, 2024)
+
+Prometheus plugin and GitLab plugin for Continuous Benchmarks! Many fixes and improvements, some of which are listed below.
+
+<h4> Added </h4>
+
+- Prometheus and Gitlab (for Continuous Benchmark) plugins
+- Brought changes from production version, mainly rsync list of files
+- JuRepTool: Added hash for each graph to URL (also automatically while scrolling)
+- JuRepTool: Added link in plotly graphs to copy the link
+- JURI: Possibility to filter graph data from CSV (with 'where' key)
+- JURI: Added hoverinfo from 'onhover' also on scatter plots
+- JURI: Added possibility to pass trace.line from LLview to plotly graphs
+
+<h4> Changed </h4>
+
+- Improved README, with thumbnail
+- Usage->Utilization for GPU
+- Added ActiveSM in GPU metrics
+- JURI: Changed the storing of headers to save them for each page
+
+<h4> Fixed </h4>
+
+- Fixed project link
+- Fixed regex pattern for 'CANCELLED by user' to allow more general usernames
+- Fix for cases where username is in support but not alluser (previously didn't have access to _queued)
+- JuRepTool: Fixed icon sizes in plotly modeBar
+- JuRepTool: Fix for horizontal scroll in nav of html report
+- JuRepTool: adapt for new slurm 'extern' job name
+- JuRepTool: Escape job and step name
+- JuRepTool: Ignore '+0' in step id
+- JuRepTool: Removed deprecated function 'utcfromtimestamp'
+- JuRepTool: Added new tests and fixed old ones (due to new metrics)
+- JuRepTool: Added line break in 'Cancelled by username' in PDF timeline to avoid overlapping text
+- JURI: Fix the size of the footer, to avoid table be under it
+- JURI: Fix the escape of the column group names
+- JURI: Fixes for some gridApi calls that return warnings or errors
+- JURI: Removed autoSizeStrategy and minWidth from column defs, as that breaks their sizing and flexbox
+- JURI: Fixed small bugs when columns or grids are not present
+
+
 ### 2.3.0-base (May 21, 2024)
 
 Faster tables! Using now ag-grid to virtualise the tables, now many more jobs can be shown on the tables. It also provides a "Quick Filter" (or Global Search) that is applied over all columns at once.
