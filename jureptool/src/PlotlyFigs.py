@@ -130,7 +130,7 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             "size": 12,
                         })
   if x2:
-    int_usage = int(data['gpu']['gpu_usage_avg'])
+    int_usage = int(data['gpu']['gpu_util_avg'])
     img = np.arange(int_usage).reshape((int_usage, 1))
     fig.add_trace(go.Heatmap(z=img, 
                             showscale=False, 
@@ -194,7 +194,7 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             "family": "'Liberation Sans','Arial',sans-serif",
                             "size": 14,
                         })
-    fig.add_annotation( text = f"<b>{data['gpu']['gpu_usage_avg']:.1f}%</b>",
+    fig.add_annotation( text = f"<b>{data['gpu']['gpu_util_avg']:.1f}%</b>",
                         x = 0.0,
                         y = 75,
                         xref = "x3",

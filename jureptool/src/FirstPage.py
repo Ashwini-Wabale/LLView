@@ -212,7 +212,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     if gpus:
       page.fig.text(0.071,0.680,"Job GPU Statistics", ha='left', fontweight='bold')
       page.fig.text(0.190,0.667,"avg. GPU Utilization:  ", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.190,0.667,f"{data['gpu']['gpu_usage_avg']:.2f}", ha='left', fontweight='bold')
+      page.fig.text(0.190,0.667,f"{data['gpu']['gpu_util_avg']:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.245,0.667,"%", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.410,0.667,"avg. Mem. Usage Rate:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.410,0.667,f"{float(data['gpu']['gpu_memur_avg']):.2f}", ha='left', fontweight='bold')
@@ -311,7 +311,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     # GPU
     if (gpus and int(data['num_datapoints']['gpu_ndps'])>1):
       # GPU Average usage bar
-      AverageUsageBar(0.920,0.365,"GPU",page.fig,config,data['gpu']['gpu_usage_avg'])
+      AverageUsageBar(0.920,0.365,"GPU",page.fig,config,data['gpu']['gpu_util_avg'])
 
       # Setting up GPU axis
       page.ax2 = page.fig.add_axes([0.130,0.365, 0.740,0.180], frame_on=False, sharex=page.ax1, zorder=4)
@@ -336,7 +336,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     # Add legends
     if (p1 or p2):
       ax = (page.ax2 if p2 else page.ax1)
-      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if ('gpu' in data) and (data['gpu']['gpu_usage_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
+      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if ('gpu' in data) and (data['gpu']['gpu_util_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
       leg.set_zorder(100)
       page.ax1.set_xlim(time_range)
       page.ax1.xaxis.set_major_formatter(DateFormatter('%d/%m/%y\n%H:%M:%S'))

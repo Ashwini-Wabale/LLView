@@ -11,8 +11,8 @@
                      load_min,load_avg,load_max,
                      usage_min,usage_avg,usage_max,
                      used_cores_min,used_cores_avg,used_cores_max,
-                     gpu_usage_min,gpu_usage_avg,gpu_usage_max'
-    header:         'date,numjobs,numnodes,wall,runtime,wallusage,load,usage,used_cores,gpu_usage'
+                     gpu_util_min,gpu_util_avg,gpu_util_max'
+    header:         'date,numjobs,numnodes,wall,runtime,wallusage,load,usage,used_cores,gpu_util'
     column_convert: 'ts->todate_1_wo_time, 
                      wall_min->hourfrac,wall_avg->hourfrac,wall_max->hourfrac, 
                      runtime_min->hourfrac,runtime_avg->hourfrac,runtime_max->hourfrac,

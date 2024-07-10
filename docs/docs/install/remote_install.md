@@ -15,6 +15,7 @@ The dependencies of LLview Remote are:
         - Parallel::ForkManager
         - File::Monitor
         - File::Spec
+        - warnings::unused
         - Exporter
         - Storable
         - IO::File

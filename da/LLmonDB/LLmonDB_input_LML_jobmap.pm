@@ -139,8 +139,8 @@ sub get_jobnodemap_from_LML {
     }
     foreach $node (keys(%{$dataref->{$jobid}})) {
       if(exists($nodes->{$node})) {
-        if(exists($nodes->{$node}->{used_cores})) {
-          $dataref->{$jobid}->{$node}->{perc}/=$nodes->{$node}->{used_cores};
+        if(exists($nodes->{$node}->{used_cores_requ})) {
+          $dataref->{$jobid}->{$node}->{perc}/=$nodes->{$node}->{used_cores_requ};
         } else {
           $dataref->{$jobid}->{$node}->{perc}=1.0;
         }

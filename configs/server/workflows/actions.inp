@@ -42,6 +42,14 @@ execute="${LLVIEW_HOME}/da/LML_da.pl -par -maxprocesses 8 -nostep -conf ${LLVIEW
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
 logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_jobreport`date +.%Y.%m.%d`.log"
 
+# Workflow for JuRepTool
+[jureptool]
+active=1
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/plotlist.dat
+execute="if [[ ${JUREPTOOL_NPROCS} =~ ^[0-9]+$ && ${JUREPTOOL_NPROCS} > 0 ]] ; then (nice -n 19 ${PYTHON} ${LLVIEW_HOME}/jureptool/src/main.py --configfolder ${LLVIEW_CONF}/jureptool --shutdown ${LLVIEW_SHUTDOWN} ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/jureptool/shutdown --nohtml --gzip --nprocs ${JUREPTOOL_NPROCS} --loglevel DEBUG ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/plotlist.dat --logprefix ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool >> ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool.log 2>> ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool.errlog); fi"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/jureptool
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_jureptool`date +.%Y.%m.%d`.log"
+
 # Workflow to create the interconnect mapping file
 [icmap]
 active=1
@@ -101,8 +109,8 @@ logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_cleanlogs`date +.%Y
 # Workflow: copying of support list for mapping
 [supportinput]
 active=1
-watchfile=${LLVIEW_SHARED}/../config/support_input.dat
-execute="cp ${LLVIEW_SHARED}/../config/support_input.dat ./"
+watchfile=${LLVIEW_SHARED}/../config/support_input_test.dat
+execute="cp ${LLVIEW_SHARED}/../config/support_input_test.dat ./support_input.dat"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/wservice
 logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_supportinput`date +.%Y.%m.%d`.log"
 

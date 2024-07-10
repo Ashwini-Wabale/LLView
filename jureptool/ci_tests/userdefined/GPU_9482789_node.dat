@@ -1,4 +1,4 @@
-jobid              ts       nodeid  gpu_usage gpu_memu     gpu_pu   gpu_temp  gpu_memur gpu_sclk  gpu_clk gpu_clkr gpu_pfst gpu_pcie_tx gpu_pcie_rx gpu_nvlink_tx gpu_nvlink_rx gpu_active
+jobid              ts       nodeid  gpu_util gpu_memu     gpu_pu   gpu_temp  gpu_memur gpu_sclk  gpu_clk gpu_clkr gpu_pfst gpu_pcie_tx gpu_pcie_rx gpu_nvlink_tx gpu_nvlink_rx gpu_active
 9482789    1710007149   jwb0021_00     94.000   2.082    122.054     50.000      0.000     1410     1215        0        0       0.071       0.087       0.000       0.000         0.629
 9482789    1710007149   jwb0021_01      0.000   0.418     65.718     44.000      0.000     1095     1215        0        0       0.000       0.000       0.000       0.000         0.620
 9482789    1710007149   jwb0021_02      0.000   0.418     65.251     44.000      0.000     1095     1215        0        0       0.000       0.000       0.000       0.000         0.601

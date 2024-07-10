@@ -12,10 +12,11 @@
     field: "jobid",
     headerName: "JobID",
     headerTooltip: "Slurm JobID",
-    # cellDataType: "text",
-    # filter: "agTextColumnFilter",
+    cellDataType: "text",
+    filter: "agTextColumnFilter",
     pinned: "left",
     sort: "desc",
+    maxWidth: 90,
   }
 
 # Job general info
@@ -72,12 +73,15 @@
         field: "starttime",
         cellDataType: "dateString",
         headerName: "Start Date",
+        # minWidth: 125,
+        # flex: 2,
         headerTooltip: "Start date of the job"
       },
       { 
         field: "ts",
         cellDataType: "dateString",
         headerName: "Last Update",
+        # minWidth: 125,
         headerTooltip: "Date of last update from scheduler or end time of job"
       },
       { 
@@ -85,6 +89,7 @@
         columnGroupShow: "open",
         cellDataType: "dateString",
         headerName: "End Date (est)",
+        # minWidth: 125,
         headerTooltip: "End date (or estimate) of the job"
       },
       { 
@@ -226,22 +231,39 @@
     groupId: "GPU",
     children: [
       {
-        field: "gpu_usage_avg",
+        field: "gpu_active_avg",
         cellDataType: "number",
-        headerName: "GPUUsage",
+        headerName: "GPUActiveSM",
         valueFormatter: "(params) => round_number_or_null(params)",
         cellStyle: "(params) => cell_background_color(params,'gpu_usage_score')",
-        headerTooltip: "Average GPU usage (percent of time one or more kernels was executing)"
+        headerTooltip: "Average percent of time at least one warp was active on a GPU multiprocessor, averaged over all GPU multiprocessors."
       },
       {
-        field: "gpu_usage_max",
+        field: "gpu_active_max",
         cellDataType: "number",
         columnGroupShow: "open",
-        headerName: "GPUMaxUsage",
+        headerName: "GPUMaxActiveSM",
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
-        headerTooltip: "Max. GPU usage (percent of time one or more kernels was executing)"
+        headerTooltip: "Maximum percent of time at least one warp was active on a GPU multiprocessor, averaged over all GPU multiprocessors."
       },
+      # {
+      #   field: "gpu_util_avg",
+      #   cellDataType: "number",
+      #   columnGroupShow: "open",
+      #   headerName: "GPUUsage",
+      #   valueFormatter: "(params) => round_number_or_null(params)",
+      #   headerTooltip: "Average GPU utilization (percent of time one or more kernels was executing)"
+      # },
+      # {
+      #   field: "gpu_util_max",
+      #   cellDataType: "number",
+      #   columnGroupShow: "open",
+      #   headerName: "GPUMaxUsage",
+      #   valueFormatter: "(params) => round_number_or_null(params)",
+      #   cellClass: "text-right",
+      #   headerTooltip: "Maximum GPU utilization (percent of time one or more kernels was executing)"
+      # },
       {
         field: "gpu_memu_avg",
         cellDataType: "number",
@@ -408,24 +430,6 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         headerTooltip: "Maximum reception rate over NVlink"
-      },
-      {
-        field: "gpu_dcgm_up_avg",
-        cellDataType: "number",
-        columnGroupShow: "open",
-        headerName: "DCGM",
-        valueFormatter: "(params) => round_number(params)",
-        cellClass: "text-right",
-        headerTooltip: "Average DCGM enabled"
-      },
-      {
-        field: "gpu_dcgm_up_max",
-        cellDataType: "number",
-        columnGroupShow: "open",
-        headerName: "DCGMmax",
-        valueFormatter: "(params) => round_number(params)",
-        cellClass: "text-right",
-        headerTooltip: "Maximum DCGM enabled"
       },
     ]
   }
@@ -610,6 +614,7 @@
         cellStyle: "(params) => cell_color(params,'rc_state_color')",
         headerName: "State",
         headerTooltip: "State of the Job",
+        # minWidth: 95,
       },
       {
         field: "nummsgs",
@@ -652,10 +657,14 @@
         headerName: "",
         filter: "", 
         cellRenderer: "(params) => create_report_link(params,'html','account','owner')",
-        # data_pre: "html_link account owner",
         tooltipValueGetter: "() => 'Show job report'",
         headerTooltip: "Detailed HTML reports",
         floatingFilter: false,
+        resizable: false,
+        suppressSizeToFit: false,
+        suppressAutoSize: false,
+        # minWidth: 35,
+        maxWidth: 35,
         pinned: "right",
       },
       {
@@ -663,10 +672,14 @@
         headerName: "",
         filter: "", 
         cellRenderer: "(params) => create_report_link(params,'pdf','account','owner')",
-        # data_pre: "pdf_link account owner",
         tooltipValueGetter: "() => 'Download job report'",
         headerTooltip: "Detailed PDF reports", 
         floatingFilter: false,
+        # minWidth: 35,
+        maxWidth: 35,
+        suppressSizeToFit: false,
+        suppressAutoSize: false,
+        resizable: false,
         pinned: "right",
       },
     ]

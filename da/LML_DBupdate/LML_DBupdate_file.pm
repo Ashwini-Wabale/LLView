@@ -208,8 +208,8 @@ sub update_structure {
         my $nodeid = $fh->{DATA}->{OBJECT}->{$key}->{name};
 
         $nodeinfo->{id}=$nodeid;
-        if(exists($nodeinfo->{ci_ts})) {	
-          if($nodeinfo->{ci_ts}=~/\d+/) {
+        if(exists($nodeinfo->{cpu_ts})) {	
+          if($nodeinfo->{cpu_ts}=~/\d+/) {
             if(!exists($data->{CINODES_BY_NODEID}->{$nodeid})) {
               push(@{$data->{CINODE_ENTRIES}},$nodeinfo);
               $data->{CINODES_BY_NODEID}->{$nodeid}=$nodeinfo;
@@ -371,6 +371,16 @@ sub update_structure {
         if(exists($fh->{DATA}->{INFODATA}->{$key})) {
           my $jref    = $fh->{DATA}->{INFODATA}->{$key};
           push(@{$data->{JUMONC_ENTRIES}},$jref);
+        }
+      } elsif ($ref->{type} eq "benchmark") {
+        my $bmname = $fh->{DATA}->{OBJECT}->{$key}->{name};
+        if($bmname=~/^([\D]+)\d+/) {
+          my $bm=$1;
+          if(exists($fh->{DATA}->{INFODATA}->{$key})) {
+            my $jref    = $fh->{DATA}->{INFODATA}->{$key};
+            push(@{$data->{"cb_${bm}_ENTRIES"}},$jref);
+            # print "TMPDEB: CB, add entry $key to cb_${bm}\n";
+          }
         }
       } elsif ($ref->{type} eq "trigger") {
         if(exists($fh->{DATA}->{INFODATA}->{$key})) {

@@ -49,19 +49,21 @@ my $startMonitor = "cd $folder; $searchCmdMonitor --config $conf/server/workflow
 restartProg($searchCmdMonitor, $startMonitor);
 
 
+# (JuRepTool was moved to an action in actions.inp, but this part 
+# was kept here commented out in case it is preferred to be used)
 # Checking if JuReptool is running
-my $jureptool = "$llview/jureptool";
-my $nprocs = ($ENV{'JUREPTOOL_NPROCS'} =~ '^[0-9]+$') ? $ENV{'JUREPTOOL_NPROCS'} : 2;
-if ( $nprocs > 0 ) {
-  # folder used by jureptool for temporary files (lastmod and reports), as well as shutdown file (to shutdown only jureptool)
-  my $folder = "$data/$system/jureptool/";
-  &check_folder($folder);
-  &check_folder("$folder/results/"); # folder required for temporary reports
+# my $jureptool = "$llview/jureptool";
+# my $nprocs = ($ENV{'JUREPTOOL_NPROCS'} =~ '^[0-9]+$') ? $ENV{'JUREPTOOL_NPROCS'} : 2;
+# if ( $nprocs > 0 ) {
+#   # folder used by jureptool for temporary files (lastmod and reports), as well as shutdown file (to shutdown only jureptool)
+#   my $folder = "$data/$system/jureptool/";
+#   &check_folder($folder);
+#   &check_folder("$folder/results/"); # folder required for temporary reports
 
-  my $searchCmdjureptool = "$ENV{PYTHON} $jureptool/src/main.py --configfolder $ENV{LLVIEW_CONF}/jureptool --shutdown $ENV{LLVIEW_SHUTDOWN} $folder/shutdown";
-  my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $data/$system/tmp/jobreport/tmp/plotlist.dat --logprefix $data/$system/logs/jureptool 1>> $data/$system/logs/jureptool.log 2>> $data/$system/logs/jureptool.errlog &";  
-  restartProg($searchCmdjureptool, $startjureptool);
-}
+#   my $searchCmdjureptool = "$ENV{PYTHON} $jureptool/src/main.py --configfolder $ENV{LLVIEW_CONF}/jureptool --shutdown $ENV{LLVIEW_SHUTDOWN} $folder/shutdown";
+#   my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $data/$system/tmp/jobreport/tmp/plotlist.dat --logprefix $data/$system/logs/jureptool 1>> $data/$system/logs/jureptool.log 2>> $data/$system/logs/jureptool.errlog &";  
+#   restartProg($searchCmdjureptool, $startjureptool);
+# }
 
 #**************************************************************
 #

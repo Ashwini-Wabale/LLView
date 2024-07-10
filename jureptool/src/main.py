@@ -147,7 +147,7 @@ def _ProcessReport(njob,total_jobs,job,config):
       if(data['gpu']['gpulist']=="0"):
         log.warning("No GPU information yet - report skipped!")
         return    # skip job without the GPU list
-      data['gpu']['gpu_usage_avg'] = float(data['gpu']['gpu_usage_avg'])
+      data['gpu']['gpu_util_avg'] = float(data['gpu']['gpu_util_avg'])
       gpus = True
   except (ValueError,KeyError):
     data['job']['numgpus'] = 0
@@ -899,7 +899,7 @@ def main():
   config['maxjobs'] = args.maxjobs
   config['nprocs'] = args.nprocs
   config['outfolder'] = args.outfolder
-  
+
   # Systems configurations
   config['system'] = parse_config_yaml(f"{args.configfolder}/system_info.yml")
   # Plots configurations
@@ -950,6 +950,9 @@ def main():
   elif args.semail or args.remail:
     log.error("Email configuration requires both sender (--semail) and receiver email (--remail)")
     exit()
+
+  # Creating output folder where temporary reports are created
+  os.makedirs(config['outfolder'], exist_ok = True)
 
   # Infinite loop to process modified plotlist files (daemon mode)
   while True:
