@@ -682,7 +682,8 @@ def CreateHTML( config,
         el = el[0];
     }
     var rect = el.getBoundingClientRect();
-    return ( rect.top > 0 && rect.top <= (window.innerHeight || document.documentElement.clientHeight) );
+    // Added small value above the top, otherwise it was changing the fragment to the graph below
+    return ( rect.top > -3 && rect.top <= (window.innerHeight || document.documentElement.clientHeight) );
   }
 
   // Scroll to given '#elementid' when it is ready in page. If not present yet, try every second, waiting for it to be ready
