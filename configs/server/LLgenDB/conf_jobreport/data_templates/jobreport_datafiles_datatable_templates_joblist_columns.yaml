@@ -16,6 +16,7 @@
     filter: "agTextColumnFilter",
     pinned: "left",
     sort: "desc",
+    minWidth: 75,
     maxWidth: 90,
   }
 
@@ -93,6 +94,13 @@
         headerTooltip: "End date (or estimate) of the job"
       },
       { 
+        field: "lastts",
+        columnGroupShow: "open",
+        cellDataType: "dateString",
+        headerName: "Since Last Update",
+        headerTooltip: "Time passed since the last job update" 
+      },
+      { 
         field: "wall",
         columnGroupShow: "open",
         # cellDataType: "timeInterval",
@@ -124,7 +132,7 @@
       { 
         field: "waittime",
         columnGroupShow: "open",
-        // cellDataType: "timeInterval",
+        # cellDataType: "timeInterval",
         headerName: "Wait Time",
         headerTooltip: "Wait time before job start (difference between start time and submit time)"
       },

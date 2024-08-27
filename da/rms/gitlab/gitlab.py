@@ -181,6 +181,10 @@ class BenchRepo:
   def __delitem__(self,key):
     del self._dict[key]
 
+  @property
+  def lastts(self):
+      return self._lastts
+
   def add(self, to_add: dict, add_to=None):
     """
     (Deep) Merge dictionary 'to_add' into internal 'self._dict'
@@ -311,6 +315,7 @@ class BenchRepo:
     # Getting headers and information about parameters/metrics to be obtained
     headers = {}
     calc_headers = {}
+
     for _ in [key for key in ['parameters', 'metrics', 'annotations'] if key in self._config[self._name]]:
       # Adding one calc_headers per type to be able to write out error message when there's a problem below
       calc_headers[_] = {}
@@ -361,6 +366,9 @@ class BenchRepo:
 
     #========================================================================================
     # Looping throught the sources to collect parameters/metrics
+
+    # Temporary lastts:
+    lastts_temp = 0
     for source in self._sources[self._name]:
       # Initializing variable to collect all data defined for given metric
       current_data = []
@@ -534,9 +542,14 @@ class BenchRepo:
       # either from content or from common_data)
       if self._lastts:
         current_data[:] = [data for data in current_data if data['ts'] > self._lastts]
+      # Storing temporary lastts from last timestamp of current data
+      lastts_temp = max([data['ts'] for data in current_data]+[self._lastts,lastts_temp])
+
       if current_data: # Adding an id to current data, to have an unique identifier for the csv file generation
         self._dict |= ({f"{self._name}{idx}": data|{'id':'_'.join([data[key] for key in self._parameters[self._name]])} for idx,data in zip(self._counter,current_data)})
 
+    # Storing new lastts from last timestamp of all data
+    self._lastts = lastts_temp
     return True
 
   def safe_math_eval(self,string):
@@ -680,7 +693,7 @@ class BenchRepo:
                                 'options': {
                                             'update': {
                                                         'LML': f"cb_{benchname}",
-                                                        'mode': 'replace',
+                                                        'mode': 'add',
                                                         'sql_update_contents': {
                                                           'vars': 'mintsinserted',
                                                           'sqldebug': 1,
@@ -1724,7 +1737,7 @@ def main():
         continue
 
       end_time = time.time()
-      lastts[reponame] = end_time
+      lastts[reponame] = bench.lastts
       log.debug(f"Gathering '{reponame}' information took {end_time - start_time:.4f}s\n")
 
       # Add timing key

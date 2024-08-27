@@ -11,7 +11,7 @@
 # Example configuration for a benchmark of 'application'
 application:
   host: 'https://gitlab.jsc.fz-juelich.de/project/application'
-  token: "<some_token>" # Token with at minimum "Role: Reporter" and "scope: read_repo"
+  token: "some_token" # Token with at minimum "Role: Reporter" and "scope: read_repo"
   branch: "some_brach" # If the results are not on the master/main branch, it can be changed
   sources:
     folders: 

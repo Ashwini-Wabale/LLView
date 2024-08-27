@@ -58,31 +58,31 @@ sub save_datasetstat_in_DB {
   my $ds=$self->{DATASETSTAT}->{$stat_db}->{$stat_table};
   foreach my $key (keys(%{$ds})) {
     if(!defined($ds->{$key}->{"dataset"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR dataset for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR dataset for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"name"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR name for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR name for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"ukey"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR ukey for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR ukey for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"lastts_saved"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR lastts_saved for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR lastts_saved for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"checksum"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR checksum for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR checksum for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"status"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR status for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR status for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"mts"})) {
-      print "save_datasetstat_in_DB: ERROR status for key $key not defined\n";
+      print "save_datasetstat_in_DB: ERROR status for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
 

@@ -813,7 +813,7 @@ def log_init(config):
     oh.addFilter(_ExcludeErrorsFilter())
     log.addHandler(oh)  # add the handler to the logger so records from this process are handled
 
-    eh = TimedRotatingFileHandler(config['logprefix']+".err",'midnight',1)
+    eh = TimedRotatingFileHandler(config['logprefix']+".errlog",'midnight',1)
     eh.suffix = "%Y.%m.%d.errlog"
     eh.extMatch = re.compile(r"^.\d{4}.\d{2}.\d{2}.errlog$")
     eh.setLevel('ERROR')
