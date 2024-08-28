@@ -94,13 +94,13 @@ def gpu(options: dict, gpus_info) -> dict:
   if gpus_info._token:
     # with token
     headers = {'accept': 'application/json', 'Authorization': gpus_info._token}
-    r = requests.get(url, headers=headers, timeout=(5,10), verify=False)
+    r = requests.get(url, headers=headers, timeout=(5,10))
   else:
     # with credentials
     credentials = None
     if gpus_info._user and gpus_info._pass:
       credentials = (gpus_info._user, gpus_info._pass)
-    r = requests.get(url, auth=credentials, timeout=(5,10), verify=False)
+    r = requests.get(url, auth=credentials, timeout=(5,10))
 
   # If current query does not succeed, log error and skip next steps
   if not r.ok:
@@ -203,13 +203,13 @@ class Info:
         if self._token:
           # with token
           headers = {'accept': 'application/json', 'Authorization': self._token}
-          r = requests.get(url, headers=headers, timeout=(5,10), verify=False)
+          r = requests.get(url, headers=headers, timeout=(5,10))
         else:
           # with credentials
           credentials = None
           if self._user and self._pass:
             credentials = (self._user, self._pass)
-          r = requests.get(url, auth=credentials, timeout=(5,10), verify=False)
+          r = requests.get(url, auth=credentials, timeout=(5,10))
 
         # If current query does not succeed, log error and continue to next query
         if not r.ok:
@@ -236,12 +236,12 @@ class Info:
         if 'cpu' in instance['metric']:
           self._raw[id].setdefault(name,{})
           self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = ast.literal_eval(instance['value'][1])
-          if self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
-          if self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
+          if ('min' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
+          if ('max' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
         else:
           self._raw[id][name] = ast.literal_eval(instance['value'][1])
-          if self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
-          if self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
+          if ('min' in metric) and self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
+          if ('max' in metric) and self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
         if 'factor' in metric:
           self._raw[id][name] *= metric['factor']
         # Adding extra keys 
@@ -575,7 +575,7 @@ def get_token(username,password,config):
 
   # Get token endpoint
   log.info(f"Requesting token from POST method via {token_endpoint}\n")
-  token_request = requests.post(token_endpoint, data=data, headers=headers, verify=False)
+  token_request = requests.post(token_endpoint, data=data, headers=headers)
 
   if not token_request.ok:
     log.error(f'Token request not successful (return code {token_request.status_code})! Creating empty LML...\n')
