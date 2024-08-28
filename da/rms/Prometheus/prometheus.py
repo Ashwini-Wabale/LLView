@@ -91,10 +91,16 @@ def gpu(options: dict, gpus_info) -> dict:
   log.debug(f"{url}\n")
 
   # Querying Prometheus server
-  credentials = None
-  if gpus_info._user and gpus_info._pass:
-    credentials = (gpus_info._user, gpus_info._pass)
-  r = requests.get(url, auth=credentials, timeout=(5,10))
+  if gpus_info._token:
+    # with token
+    headers = {'accept': 'application/json', 'Authorization': gpus_info._token}
+    r = requests.get(url, headers=headers, timeout=(5,10))
+  else:
+    # with credentials
+    credentials = None
+    if gpus_info._user and gpus_info._pass:
+      credentials = (gpus_info._user, gpus_info._pass)
+    r = requests.get(url, auth=credentials, timeout=(5,10))
 
   # If current query does not succeed, log error and skip next steps
   if not r.ok:
@@ -118,12 +124,13 @@ class Info:
   """
   Class that stores and processes information from Slurm output  
   """
-  def __init__(self,hostname="",username=None,password=None):
+  def __init__(self,hostname="",username=None,password=None,token=None):
     self._raw = {}  # Dictionary with parsed raw information
     self._dict = {} # Dictionary with modified information (which is output to LML)
     self._host = os.path.expandvars(hostname)
     self._user = username
     self._pass = password
+    self._token = token
     self.log   = logging.getLogger('logger')
 
   def __add__(self, other):
@@ -193,10 +200,16 @@ class Info:
         self.log.debug(f"{url}\n")
 
         # Querying Prometheus server
-        credentials = None
-        if self._user and self._pass:
-          credentials = (self._user, self._pass)
-        r = requests.get(url, auth=credentials, timeout=(5,10))
+        if self._token:
+          # with token
+          headers = {'accept': 'application/json', 'Authorization': self._token}
+          r = requests.get(url, headers=headers, timeout=(5,10))
+        else:
+          # with credentials
+          credentials = None
+          if self._user and self._pass:
+            credentials = (self._user, self._pass)
+          r = requests.get(url, auth=credentials, timeout=(5,10))
 
         # If current query does not succeed, log error and continue to next query
         if not r.ok:
@@ -206,7 +219,7 @@ class Info:
         # Getting data from returned result of query
         data = r.json()['data']['result']
 
-        if 'cache' in metric and metric['cache']:
+        if ('cache' in metric) and metric['cache']:
           cached_queries[name] = data
 
       # Looping over all instances (nodes/gpus) in current queried result
@@ -223,8 +236,12 @@ class Info:
         if 'cpu' in instance['metric']:
           self._raw[id].setdefault(name,{})
           self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = ast.literal_eval(instance['value'][1])
+          if ('min' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
+          if ('max' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
         else:
           self._raw[id][name] = ast.literal_eval(instance['value'][1])
+          if ('min' in metric) and self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
+          if ('max' in metric) and self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
         if 'factor' in metric:
           self._raw[id][name] *= metric['factor']
         # Adding extra keys 
@@ -539,6 +556,37 @@ def log_continue(log,message):
   return
 
 
+def get_token(username,password,config):
+  """
+  Get token to be used in requests
+  """
+  log = logging.getLogger('logger')
+  # Build Auth URI for token
+  token_endpoint = config['endpoint']
+
+  # Preparing data to request token
+  data = {
+      'username': username,
+      'password': password,
+      'grant_type': 'password',
+      'client_id': config['client_id']
+  }
+  headers = {'content-type': 'application/x-www-form-urlencoded'}
+
+  # Get token endpoint
+  log.info(f"Requesting token from POST method via {token_endpoint}\n")
+  token_request = requests.post(token_endpoint, data=data, headers=headers)
+
+  if not token_request.ok:
+    log.error(f'Token request not successful (return code {token_request.status_code})! Creating empty LML...\n')
+    return ""
+  log.debug(f"token_request: {token_request.json()}\n")
+  token = f"Bearer {token_request.json()['access_token']}"
+
+  log.debug(f"This is a valid token you can copy paste:\n{token}\n")
+  return token
+
+
 def get_credentials(name,config):
   """
   This function receives a server 'name' and 'config', checks 
@@ -597,7 +645,6 @@ def get_credentials(name,config):
       log.error("Keyring module cannot be imported, password will not be saved.\n")
       password = getpass.getpass(f"Enter password for {username}:")
   return username,password
-
 
 
 def parse_config_yaml(filename):
@@ -714,7 +761,6 @@ def main():
     parser.print_help()
     exit(1)
 
-
   if (args.singleLML):
     unique = Info()
 
@@ -731,6 +777,13 @@ def main():
 
     # Getting credentials for the current server
     username, password = get_credentials(servername,server_config)
+
+    token = None
+    if 'token' in server_config and len(server_config['token']):
+      token = get_token(username,password,server_config['token'])
+      if not token:
+        log.error(f"Token was defined but could not be obtained. Skipping server {servername}...\n")
+        continue
 
     # Cached queries: to be used in different files without querying again
     cached_queries = {}
@@ -750,7 +803,8 @@ def main():
       info = Info(
                   hostname=server_config['hostname'],
                   username=username,
-                  password=password
+                  password=password,
+                  token=token
                   )
 
       # Parsing Slurm output

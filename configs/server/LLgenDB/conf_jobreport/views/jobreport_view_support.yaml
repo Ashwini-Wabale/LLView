@@ -204,6 +204,7 @@
        - page:
             name: "Jobs"
             section: "jobs"
+            description: "This page contains all jobs (with more than 1-min of runtime) that are running or finished running on the system in the last three weeks."
             template: "/data/LLtemplates/datatable"
             icon: "play"
             context: "data/support/all.csv"
