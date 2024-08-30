@@ -161,9 +161,9 @@ sub adapt_data {
     my $nodeid=$ref->{id};
     if(exists($data->{CINODES_BY_NODEID}->{$nodeid})) {
       $ref->{usage}=$data->{CINODES_BY_NODEID}->{$nodeid}->{usage};
-      $ref->{used_cores}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused}+$data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused};
+      $ref->{used_cores}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused}+(defined($data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused})? $data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused}: 0);
       $ref->{used_cores_phys}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused};
-      $ref->{used_cores_logic}=$data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused};
+      $ref->{used_cores_logic}=(defined($data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused})? $data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused}: 0);
     }
   }
 

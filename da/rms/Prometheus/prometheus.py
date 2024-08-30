@@ -61,8 +61,11 @@ def cpus(options: dict, cpus_info) -> dict:
     cpusextra.setdefault(node,{})
     cpusextra[node]['usage'] = 0
     cpusextra[node]['physcoresused'] = 0
-    cpusextra[node]['logiccoresused'] = 0
-    ncores = len(cpuinfo['coreidle'].keys())/2
+    if 'logiccores' in options and not options['logiccores']:
+      ncores = len(cpuinfo['coreidle'].keys())
+    else:
+      cpusextra[node]['logiccoresused'] = 0
+      ncores = len(cpuinfo['coreidle'].keys())/2
     for core,coreidle in cpuinfo['coreidle'].items():
       cpusextra[node]['usage'] += 1 - coreidle
       if core < ncores:
