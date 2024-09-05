@@ -479,7 +479,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_all_w_score')",
-        headerTooltip: "Total data volume written for all file systems during job run time (GiB)"  },
+        headerTooltip: "Total data volume written for all file systems during job run time (GiB)"
+      },
       {
         field: "fs_all_Mbr_sum",
         cellDataType: "number",
@@ -488,7 +489,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_all_r_score')",
-        headerTooltip: "Total data volume read for all file systems during job run time (GiB)"  },
+        headerTooltip: "Total data volume read for all file systems during job run time (GiB)"
+      },
       {
         field: "fs_all_Moc_sum",
         cellDataType: "number",
@@ -496,7 +498,8 @@
         headerName: "O/C",
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
-        headerTooltip: "Total number of file open/close operations on all file systems during job run time (M)"  },
+        headerTooltip: "Total number of file open/close operations on all file systems during job run time (M)"
+      },
       {
         field: "fs_home_Mbw_sum",
         cellDataType: "number",
@@ -505,7 +508,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_home_w_score')",
-        headerTooltip: "Total data volume written for HOME during job run time (GiB)"  },
+        headerTooltip: "Total data volume written for HOME during job run time (GiB)"
+      },
       {
         field: "fs_home_Mbr_sum",
         cellDataType: "number",
@@ -514,7 +518,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_home_r_score')",
-        headerTooltip: "Total data volume read for HOME during job run time (GiB)"  },
+        headerTooltip: "Total data volume read for HOME during job run time (GiB)"
+      },
       {
         field: "fs_home_Moc_sum",
         cellDataType: "number",
@@ -522,7 +527,8 @@
         headerName: "HOME OC",
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
-        headerTooltip: "Total number of file open/close operations on HOME during job run time (M)"  },
+        headerTooltip: "Total number of file open/close operations on HOME during job run time (M)"
+      },
       {
         field: "fs_project_Mbw_sum",
         cellDataType: "number",
@@ -531,7 +537,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_project_w_score')",
-        headerTooltip: "Total data volume written for PROJECT during job run time (GiB)"  },
+        headerTooltip: "Total data volume written for PROJECT during job run time (GiB)"
+      },
       {
         field: "fs_project_Mbr_sum",
         cellDataType: "number",
@@ -540,7 +547,8 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_project_r_score')",
-        headerTooltip: "Total data volume read for PROJECT during job run time (GiB)"  },
+        headerTooltip: "Total data volume read for PROJECT during job run time (GiB)"
+      },
       {
         field: "fs_project_Moc_sum",
         cellDataType: "number",
@@ -549,7 +557,7 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         headerTooltip: "Total number of file open/close operations on PROJECT during job run time (M)"
-        },
+      },
       {
         field: "fs_scratch_Mbw_sum",
         cellDataType: "number",
@@ -559,7 +567,7 @@
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_scratch_w_score')",
         headerTooltip: "Total data volume written for SCRATCH during job run time (GiB)"
-        },
+      },
       {
         field: "fs_scratch_Mbr_sum",
         cellDataType: "number",
@@ -569,7 +577,7 @@
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_scratch_r_score')",
         headerTooltip: "Total data volume read for SCRATCH during job run time (GiB)"
-        },
+      },
       {
         field: "fs_scratch_Moc_sum",
         cellDataType: "number",
@@ -578,7 +586,7 @@
         valueFormatter: "(params) => round_number_or_null(params)",
         cellClass: "text-right",
         headerTooltip: "Total number of file open/close operations on SCRATCH during job run time (GiB)"
-        },
+      },
       {
         field: "fs_fastdata_Mbw_sum",
         cellDataType: "number",
@@ -588,7 +596,7 @@
         cellClass: "text-right",
         cellStyle: "(params) => cell_background_color(params,'fs_fastdata_w_score')",
         headerTooltip: "Total data volume written for FASTDATA during job run time (GiB)"
-        },
+      },
       {
         field: "fs_fastdata_Mbr_sum",
         cellDataType: "number",
