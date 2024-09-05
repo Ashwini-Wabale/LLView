@@ -187,7 +187,7 @@
       #       footer_graph_config: "/data/ll/footer_CPU_GPU.json"
       #       ref: [ table ]
       #       data:
-      #         default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Score', 'Reports' ]
+      #         default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
       #  - page:
       #       name: "History"
       #       section: "history_three_weeks"
@@ -200,7 +200,7 @@
       #       scripts: [ "joblist_history.js" ]
       #       functions: [ "init_dates" ]
       #       data:
-      #         default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Score', 'Reports' ]
+      #         default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
        - page:
             name: "Jobs"
             section: "jobs"
@@ -212,7 +212,7 @@
             footer_graph_config: "/data/ll/footer_CPU_GPU.json"
             ref: [ datatable ]
             data:
-              default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Score', 'Reports' ]
+              default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
        - page:
            name: "Projects&Roles"
            section: "roles"

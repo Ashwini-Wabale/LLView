@@ -1020,7 +1020,7 @@ class BenchRepo:
               'xcol': 'date',
               'layout': {
                 'yaxis': {
-                  'title': graphelem
+                  'title': graphelem + (f" [{self._config[benchname]['metrics'][graphelem]['unit']}]" if "unit" in self._config[benchname]['metrics'][graphelem] else "")
                 },
                 'legend': {
                   'x': "1.02",
