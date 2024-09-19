@@ -26,6 +26,12 @@
     home:          "login.php"
     # Field to use to search on other pages (e.g. History) - needs mapjobid_to_day
     search_field:  "JobID"
+    # JSON file on the server with the status of the system 
+    # A link can be added to use when there's no systems menu,
+    # replacing '@@id@@' for the id on the JSON object
+    status: 
+      file: '/status.json'
+      link: 'https://status.jsc.fz-juelich.de/services/@@id@@'
     # System selection on header (display name: 'subfolder')
     # systems: 
     #   SYSTEM1: 'system1'

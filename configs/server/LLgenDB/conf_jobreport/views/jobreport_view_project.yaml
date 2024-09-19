@@ -21,6 +21,12 @@
     home:          "login.php"
     info:          "data/_info/info.json"
     search_field:  "jobid"
+    # JSON file on the server with the status of the system 
+    # A link can be added to use when there's no systems menu,
+    # replacing '@@id@@' for the id on the JSON object
+    status: 
+      file: '/status.json'
+      link: 'https://status.jsc.fz-juelich.de/services/@@id@@'
     data:
         system:     "$systemname"
         permission: "project"

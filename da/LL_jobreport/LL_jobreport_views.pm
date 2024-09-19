@@ -61,7 +61,7 @@ sub process_view {
   my ($dsref);
   my $file=$self->apply_varset($viewref->{filepath},$varsetref);
 
-  foreach my $name ("title","image","home","logo","info","search_field","demo") {
+  foreach my $name ("title","image","home","logo","info","search_field","status","systems","demo") {
     $dsref->{$name}=$self->apply_varset($viewref->{$name},$varsetref) if(exists($viewref->{$name}));
   }
   if(exists($viewref->{data})) {
