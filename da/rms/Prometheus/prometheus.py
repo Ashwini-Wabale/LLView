@@ -97,13 +97,13 @@ def gpu(options: dict, gpus_info) -> dict:
   if gpus_info._token:
     # with token
     headers = {'accept': 'application/json', 'Authorization': gpus_info._token}
-    r = requests.get(url, headers=headers, timeout=(5,10))
+    r = requests.get(url, headers=headers, timeout=(5,10), verify=gpus_info._verify)
   else:
     # with credentials
     credentials = None
     if gpus_info._user and gpus_info._pass:
       credentials = (gpus_info._user, gpus_info._pass)
-    r = requests.get(url, auth=credentials, timeout=(5,10))
+    r = requests.get(url, auth=credentials, timeout=(5,10), verify=gpus_info._verify)
 
   # If current query does not succeed, log error and skip next steps
   if not r.ok:
@@ -119,7 +119,7 @@ def gpu(options: dict, gpus_info) -> dict:
   # Updating the gpus dictionary by adding or removing keys
   for gpuname,gpuinfo in gpus_info.items():
     gpusextra.setdefault(gpuname,{})
-    gpusextra[gpuname]['state'] = 'Running' if gpuinfo['id'] in data and data[gpuinfo['id']] else 'Down'
+    gpusextra[gpuname]['state'] = 'Running' if gpuinfo['id'].rsplit('_', 1)[0] in data and data[gpuinfo['id'].rsplit('_', 1)[0]] else 'Down'
     gpusextra[gpuname]['features'] = f"GPU{gpuinfo['id'][-1:]}"
   return gpusextra
 
@@ -127,13 +127,14 @@ class Info:
   """
   Class that stores and processes information from Slurm output  
   """
-  def __init__(self,hostname="",username=None,password=None,token=None):
+  def __init__(self,hostname="",username=None,password=None,token=None,verify=True):
     self._raw = {}  # Dictionary with parsed raw information
     self._dict = {} # Dictionary with modified information (which is output to LML)
     self._host = os.path.expandvars(hostname)
     self._user = username
     self._pass = password
     self._token = token
+    self._verify = verify
     self.log   = logging.getLogger('logger')
 
   def __add__(self, other):
@@ -206,13 +207,13 @@ class Info:
         if self._token:
           # with token
           headers = {'accept': 'application/json', 'Authorization': self._token}
-          r = requests.get(url, headers=headers, timeout=(5,10))
+          r = requests.get(url, headers=headers, timeout=(5,10), verify=self._verify)
         else:
           # with credentials
           credentials = None
           if self._user and self._pass:
             credentials = (self._user, self._pass)
-          r = requests.get(url, auth=credentials, timeout=(5,10))
+          r = requests.get(url, auth=credentials, timeout=(5,10), verify=self._verify)
 
         # If current query does not succeed, log error and continue to next query
         if not r.ok:
@@ -249,7 +250,7 @@ class Info:
           self._raw[id][name] *= metric['factor']
         # Adding extra keys 
         self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = instance['value'][0]
-        if gpu:
+        if isinstance(gpu,int):
           self._raw[id]['pid'] = pid
           self._raw[id]['id'] = id
           self._raw[id]['feature'] = f"GPU{gpu}"
@@ -559,7 +560,7 @@ def log_continue(log,message):
   return
 
 
-def get_token(username,password,config):
+def get_token(username,password,config,verify):
   """
   Get token to be used in requests
   """
@@ -578,7 +579,7 @@ def get_token(username,password,config):
 
   # Get token endpoint
   log.info(f"Requesting token from POST method via {token_endpoint}\n")
-  token_request = requests.post(token_endpoint, data=data, headers=headers)
+  token_request = requests.post(token_endpoint, data=data, headers=headers, verify=verify)
 
   if not token_request.ok:
     log.error(f'Token request not successful (return code {token_request.status_code})! Creating empty LML...\n')
@@ -781,9 +782,12 @@ def main():
     # Getting credentials for the current server
     username, password = get_credentials(servername,server_config)
 
+    # Getting verification option (Default: True)
+    verify = server_config['verify'] if ('verify' in server_config) else True
+
     token = None
     if 'token' in server_config and len(server_config['token']):
-      token = get_token(username,password,server_config['token'])
+      token = get_token(username,password,server_config['token'],verify)
       if not token:
         log.error(f"Token was defined but could not be obtained. Skipping server {servername}...\n")
         continue
@@ -807,7 +811,8 @@ def main():
                   hostname=server_config['hostname'],
                   username=username,
                   password=password,
-                  token=token
+                  token=token,
+                  verify=verify,
                   )
 
       # Parsing Slurm output
