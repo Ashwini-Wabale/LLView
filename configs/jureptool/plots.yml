@@ -15,67 +15,67 @@ y:
   header: 'nodeid'
   type: 'str'
   name: 'Node'
-# Cores:
-#   _file_header: 'coreusagenodefile'
-#   _datapoints_header: 'cores_ndps'
-#   Physical Cores Usage:
-#     x: 
-#       header: 'coreid'
-#       type: 'int16'
-#       name: 'Core ID'
-#     header: 'usage1_avg'
-#     type: 'float16'
-#     unit: '%'
-#     log: False
-#     note: ''
-#     cmap: 'cmc.hawaii'
-#     lim: [0,100]
-#     description: 'Average physical core usage along the runtime of the job (max. 100%)'
-#   Logical Cores Usage:
-#     x: 
-#       header: 'coreid'
-#       type: 'int16'
-#       name: 'Core ID'
-#     header: 'usage2_avg'
-#     type: 'float16'
-#     unit: '%'
-#     log: False
-#     note: ''
-#     cmap: 'cmc.hawaii'
-#     lim: [0,100]
-#     description: 'Average logical core usage along the runtime of the job (max. 100%)'
+Cores:
+  _file_header: 'coreusagenodefile'
+  _datapoints_header: 'cores_ndps'
+  Physical Cores Usage:
+    x: 
+      header: 'coreid'
+      type: 'int16'
+      name: 'Core ID'
+    header: 'usage1_avg'
+    type: 'float16'
+    unit: '%'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,100]
+    description: 'Average physical core usage along the runtime of the job (max. 100%)'
+  Logical Cores Usage:
+    x: 
+      header: 'coreid'
+      type: 'int16'
+      name: 'Core ID'
+    header: 'usage2_avg'
+    type: 'float16'
+    unit: '%'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,100]
+    description: 'Average logical core usage along the runtime of the job (max. 100%)'
 
 Node:
   _file_header: 'loadmemnodefile'
   _datapoints_header: 'ld_ndps'
   _max_graph_per_page: 3
-  # CPU Usage:
-  #   header: 'usage'
-  #   type: 'float16'
-  #   unit: '%'
-  #   log: False
-  #   note: ''
-  #   cmap: 'cmc.hawaii'
-  #   lim: [0,100]
-  #   description: 'Average core usage among all cores in the nodes (max. 200%)'
-  # Number of Physical Cores Used:
-  #   header: 'used_cores_phys'
-  #   type: 'int16'
-  #   unit: 'cores'
-  #   log: False
-  #   note: ''
-  #   cmap: 'cmc.hawaii'
-  #   lim: [0,'cores']
-  #   description: 'Number of physical cores with usage >25%'
-  # Number of Logical Cores Used:
-  #   header: 'used_cores_logic'
-  #   type: 'int16'
-  #   unit: 'cores'
-  #   log: False
-  #   note: ''
-  #   cmap: 'cmc.hawaii'
-  #   lim: [0,'cores']
-  #   description: 'Number of logical cores with usage >25%'
+  CPU Usage:
+    header: 'usage'
+    type: 'float16'
+    unit: '%'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,100]
+    description: 'Average core usage among all cores in the nodes (max. 200%)'
+  Number of Physical Cores Used:
+    header: 'used_cores_phys'
+    type: 'int16'
+    unit: 'cores'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,'cores']
+    description: 'Number of physical cores with usage >25%'
+  Number of Logical Cores Used:
+    header: 'used_cores_logic'
+    type: 'int16'
+    unit: 'cores'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,'cores']
+    description: 'Number of logical cores with usage >25%'
   Load:
     header: 'load'
     type: 'float16'

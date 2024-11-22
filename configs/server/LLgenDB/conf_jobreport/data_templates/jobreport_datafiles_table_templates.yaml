@@ -87,7 +87,7 @@
       - { name: queuedate,       group: "queued", sort: "D", title: "Queue Date",   desc: "Date job was enqueued"  }
       - { name: runtime,         group: "queued", sort: "N", title: "Runtime",      desc: "Overall runtime"  }
       - { name: starttime,       group: "queued", sort: "D", title: "Start Date (est)",  desc: "Start date (or estimate) of the job"  }
-      - { name: endtime,         group: "queued", sort: "D", title: "End Date (est)", desc: "End date (or estimate) of the job"  }
+      - { name: endtime,         group: "queued", sort: "D", title: "Est. End Date", desc: "Estimated end date of the job (Start Date + Walltime)"  }
       - { name: ArrayJobId,      group: "queued", sort: "N", title: "ArrayJobID",   desc: "Array jobID (Slurm)"  }
       - { name: ArrayTaskId,     group: "queued", sort: "N", title: "ArrayTaskID",  desc: "Array taskID (Slurm)"  }
       - { name: resid,           group: "queued", sort: "S", title: "Reservation",  format: "text-left", desc: "Reservation used by the job"  }
@@ -123,7 +123,7 @@
       - { name: runtime,         group: "queued", sort: "N", title: "Runtime",     desc: "Overall runtime"  }
       
       - { name: starttime,       group: "queued", sort: "D", title: "Start Date (est)", desc: "Start date (or estimate) of the job"  }
-      - { name: endtime,         group: "queued", sort: "D", title: "End Date (est)", desc: "End date (or estimate) of the job"   }
+      - { name: endtime,         group: "queued", sort: "D", title: "Est. End Date", desc:  "Estimated end date of the job (Start Date + Walltime)"   }
       - { name: reason,          group: "queued", sort: "S", title: "Reason",       format: "text-left",  desc: "Reason job could not be scheduled yet"  }
       - { name: dependency,      group: "queued", sort: "S", title: "Dependency",   format: "text-left",  desc: "Slurm job dependency"  }
       - { name: chainid,         group: "queued", sort: "S", title: "ChainID",      desc: "ID of the job chain, computed from dependency information"  }

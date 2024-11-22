@@ -322,7 +322,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       page.ax2.tick_params(axis='y', colors=config['appearance']['colors_cmap'][0])
 
       # Getting plotting curves
-      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Utilization']['header']]
+      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Active SM']['header'] if 'Active SM' in config['plots']['GPU'] else config['plots']['GPU']['Utilization']['header']]
       df_gpu = df['GPU'][cols].groupby([config['plots']['x']['header']], as_index=False).mean()
       df_gpu['datetime'] = pd.to_datetime(df_gpu['ts']+config['appearance']['timezonegap'],unit='s')
       x2 = list(df_gpu['datetime'])

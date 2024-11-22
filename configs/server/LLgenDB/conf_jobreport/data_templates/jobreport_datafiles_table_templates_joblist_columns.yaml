@@ -80,8 +80,8 @@
     name: endtime,
     group: "Scheduler (Ext)",
     sort: "D",
-    title: "End Date (est)",
-    desc: "End date (or estimate) of the job"
+    title: "Est. End Date",
+    desc: "Estimated end date of the job (Start Date + Walltime)"
   }
 - {
     name: lastts,

@@ -12,8 +12,8 @@ data_database:   jobreport
 data_table:      "joblist, jobmetrics, jobscores, pdffiles_reg, htmlfiles_reg"
 data_table_join_col: jobid 
 stat_database:   jobreport_json_stat
-column_convert: 'firstts->hhmmss_sincenow,lastts->hhmmss_sincenow,ts->todate_std_hhmm,runtime->hhmm_short,
-                 wall->hhmm_short, waittime->hhmm_short,
+column_convert: 'firstts->hhmmss_sincenow,lastts->hhmmss_sincenow,ts->todate_std_hhmm,
+                 waittime->hhmm_short,
                  starttime->todate_std_hhmm,endtime->todate_std_hhmm,used_mem_max->MiBtoGiB,pckinout_avg->toMillion,
                  fs_home_Mbw_sum->MiBtoGiB, fs_home_Mbr_sum->MiBtoGiB,
                  fs_project_Mbw_sum->MiBtoGiB, fs_project_Mbr_sum->MiBtoGiB,

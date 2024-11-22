@@ -219,6 +219,18 @@
             ref: [ datatable ]
             data:
               default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
+              options:
+                'Start Date':
+                  'Today': {'Start Date': 'new Date().toISOString().slice(0, 10)'}
+                  'Yesterday': {'Start Date': 'new Date(Date.now() - 86400000).toISOString().slice(0, 10)'}
+                'Est. End Date':
+                  'Tomorrow': {'Est. End Date': 'new Date(Date.now() + 86400000).toISOString().slice(0, 10)'}
+                  'Today': {'Est. End Date': 'new Date().toISOString().slice(0, 10)'}
+                  'Yesterday': {'Est. End Date': 'new Date(Date.now() - 86400000).toISOString().slice(0, 10)'}
+                'State':
+                  'RUNNING': {'State': 'RUNNING'}
+                  'COMPLETED': {'State': 'COMPLETED'}
+                  'FAILED': {'State': 'FAILED'}
        - page:
            name: "Projects&Roles"
            section: "roles"
