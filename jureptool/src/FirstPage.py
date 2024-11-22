@@ -288,7 +288,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       page.ax1.tick_params(axis='y', colors=config['appearance']['colors_cmap'][7])
       
       # Getting plotting curves
-      cols = [config['plots']['x']['header'],config['plots']['Node']['Usage']['header'] if 'Usage' in config['plots']['Node'] else config['plots']['Node']['Load']['header']]
+      cols = [config['plots']['x']['header'],config['plots']['Node']['CPU Usage']['header'] if 'CPU Usage' in config['plots']['Node'] else config['plots']['Node']['Load']['header']]
       df_cpu = df['Node'][cols].groupby([config['plots']['x']['header']], as_index=False).mean()
       df_cpu['datetime'] = pd.to_datetime(df_cpu['ts']+config['appearance']['timezonegap'],unit='s')
       x1 = list(df_cpu['datetime'])
@@ -322,7 +322,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       page.ax2.tick_params(axis='y', colors=config['appearance']['colors_cmap'][0])
 
       # Getting plotting curves
-      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Utilization']['header']]
+      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Active SM']['header'] if 'Active SM' in config['plots']['GPU'] else config['plots']['GPU']['Utilization']['header']]
       df_gpu = df['GPU'][cols].groupby([config['plots']['x']['header']], as_index=False).mean()
       df_gpu['datetime'] = pd.to_datetime(df_gpu['ts']+config['appearance']['timezonegap'],unit='s')
       x2 = list(df_gpu['datetime'])

@@ -74,6 +74,10 @@ sub process_dataset_datatable {
               $coldefs .= "          filter: \"agNumberColumnFilter\",\n";
               $coldefs .= "          filterParams: numberFilterParams,\n";
               $coldefs .= "          floatingFilterComponent: NumberFloatingFilterComponent,\n";
+            } elsif ($subkey eq "cellDataType" &&  $value eq "date") {
+              $coldefs .= "          filter: \"agDateColumnFilter\",\n";
+              $coldefs .= "          filterParams: dateFilterParams,\n";
+              # $coldefs .= "          floatingFilterComponent: NumberFloatingFilterComponent,\n";
             }
           }
           $coldefs .= "        },\n";

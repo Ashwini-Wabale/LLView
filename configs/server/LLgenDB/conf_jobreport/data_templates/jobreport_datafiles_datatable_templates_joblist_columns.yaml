@@ -72,7 +72,7 @@
     children: [
       { 
         field: "starttime",
-        cellDataType: "dateString",
+        cellDataType: "date",
         headerName: "Start Date",
         # minWidth: 125,
         # flex: 2,
@@ -89,9 +89,9 @@
         field: "endtime",
         columnGroupShow: "open",
         cellDataType: "dateString",
-        headerName: "End Date (est)",
+        headerName: "Est. End Date",
         # minWidth: 125,
-        headerTooltip: "End date (or estimate) of the job"
+        headerTooltip: "Estimated end date of the job (Start Date + Walltime)"
       },
       { 
         field: "lastts",
@@ -105,6 +105,7 @@
         columnGroupShow: "open",
         # cellDataType: "timeInterval",
         # valueGetter: (params) => {console.log(params.newValue,params.parseValue(params.newValue)) ; return params.parseValue(params.newValue)},
+        valueFormatter: "(params) => hhmm_short(params)",
         headerName: "Walltime",
         headerTooltip: "Requested walltime"
       },
@@ -113,7 +114,10 @@
         # valueGetter: "(params) => {console.log("ValueGetter",params); return params.data['runtime'];}",
         headerName: "Runtime",
         cellDataType: "timeInterval",
-        # filter: "agNumberColumnFilter",
+        valueFormatter: "(params) => hhmm_short(params)",
+        filter: "agNumberColumnFilter",
+        filterParams: numberFilterParams,
+        floatingFilterComponent: NumberFloatingFilterComponent,
         headerTooltip: "Overall runtime"
       },
       { 

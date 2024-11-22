@@ -126,14 +126,7 @@ sub process_view_page {
     }
   }
   if(exists($pageref->{data})) {
-    if(exists($pageref->{data}->{default_columns})) {
-      foreach my $ref (@{$pageref->{data}->{default_columns}}) {
-        push(@{$ds->{data}->{default_columns}},$ref);
-      }
-    }
-    if(exists($pageref->{data}->{view})) {
-      $ds->{data}->{view}=$pageref->{data}->{view};
-    }
+    $ds->{data}=$pageref->{data};
   }
   if(exists($pageref->{functions})) {
     foreach my $ref (@{$pageref->{functions}}) {

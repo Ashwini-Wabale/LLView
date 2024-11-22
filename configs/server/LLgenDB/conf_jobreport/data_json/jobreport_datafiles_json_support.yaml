@@ -2,75 +2,61 @@
 # Support
 ###############################
 - dataset:
-    name: support_running_json
-    set:        json_support
-    filepath:   '$outputdir/support/running.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    table_cache_par_level: 8
-    selecttimevar:   lastts
-    selecttimerange: TS_NOW-120,TS_NOW+1
-    stat_table: datasetstat_support
-    order:      "jobid DESC"
-    format:     'json'
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
-
-- dataset:
-    name: support_today_json
-    set:        json_support
-    filepath:   '$outputdir/support/today.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    selecttimevar:   lastts
-    selecttimerange: TS_STARTOFTODAY,TS_NOW-120
-    stat_table:  datasetstat_support
-    order:       "jobid DESC"
-    format:      'json'
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
-
-# This entry is used to test fast data tables
-# - dataset:
-#     name: support_all_json
-#     set:        json_support
-#     filepath:   '$outputdir/support/all.json.gz'
-#     sql_where:  'owner!="unknown"'
-#     table_cache: alljobs
-#     max_entries: 5000
-#     selecttimevar:   lastts
-#     selecttimerange: TS_STARTOFTODAY-(21*24*3600),TS_NOW+1
-#     stat_table:  datasetstat_support
-#     order:       "jobid DESC"
-#     format:     'json'
-#     %include "./jobreport_datafiles_json_common_joblist.yaml"
-
-- dataset:
-    name:       support_all_csv
-    set:        csv_support
-    filepath:   '$outputdir/support/all.csv.gz'
-    sql_where:  'owner!="unknown"'
+    name:        support_all_csv
+    set:         csv_support
+    filepath:    '$outputdir/support/all.csv.gz'
+    format:      'csv'
+    create_empty_files: yes
+    sql_where:   'owner!="unknown"'
     column_ts:   'ts'
     # max_entries: 5000
     csv_delimiter: ';'
     renew:       'always'
     order:       "jobid DESC"
     sqldebug:    'yes'
-    format:      'csv'
     stat_table:  datasetstat_support
     %include "./jobreport_datafiles_json_common_joblist.yaml"
 
-- dataset:
-    name: support_days_json
-    set:        json_support
-    FORALL:     'D:(001,002,003,004,005,006,007,008,009,010,011,012,013,014,014,015,016,017,018,019,020,021)'
-    filepath:   '$outputdir/support/jobbyday_$D.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    selecttimevar:   lastts
-    selecttimerange: TS_STARTOFTODAY-($D*24*3600),TS_STARTOFTODAY-(($D-1)*24*3600)
-    stat_table:  datasetstat_support
-    order:       "jobid DESC"
-    format:      'json'
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
+# - dataset:
+#     name: support_running_json
+#     set:        json_support
+#     filepath:   '$outputdir/support/running.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     table_cache_par_level: 8
+#     selecttimevar:   lastts
+#     selecttimerange: TS_NOW-120,TS_NOW+1
+#     stat_table: datasetstat_support
+#     order:      "jobid DESC"
+#     format:     'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
+
+# - dataset:
+#     name: support_today_json
+#     set:        json_support
+#     filepath:   '$outputdir/support/today.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     selecttimevar:   lastts
+#     selecttimerange: TS_STARTOFTODAY,TS_NOW-120
+#     stat_table:  datasetstat_support
+#     order:       "jobid DESC"
+#     format:      'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
+
+# - dataset:
+#     name: support_days_json
+#     set:        json_support
+#     FORALL:     'D:(001,002,003,004,005,006,007,008,009,010,011,012,013,014,014,015,016,017,018,019,020,021)'
+#     filepath:   '$outputdir/support/jobbyday_$D.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     selecttimevar:   lastts
+#     selecttimerange: TS_STARTOFTODAY-($D*24*3600),TS_STARTOFTODAY-(($D-1)*24*3600)
+#     stat_table:  datasetstat_support
+#     order:       "jobid DESC"
+#     format:      'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
 
 - dataset:
     name: support_jobtoday

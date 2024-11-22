@@ -1006,6 +1006,9 @@ jobreport_json_stat:
   - table:
       name: datasetstat_user_threeweeks
       %include "./databases/jobreport_databases_stat_tables.yaml"
+  # - table:
+  #     name: datasetstat_project
+  #     %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_project_running
       %include "./databases/jobreport_databases_stat_tables.yaml"
