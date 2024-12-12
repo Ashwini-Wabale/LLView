@@ -50,6 +50,7 @@ my $opt_archdir=undef;
 my $opt_currentts=undef;
 my $opt_currenttsfile=undef;
 my $opt_systemname=undef;
+my $opt_basename="jobreport";
 
 usage($0) if( ! GetOptions( 
                 'verbose'          => \$opt_verbose,
@@ -64,6 +65,7 @@ usage($0) if( ! GetOptions(
                 'archdir=s'        => \$opt_archdir,
                 'maxprocesses=i'   => \$opt_maxproc,
                 'systemname=s'     => \$opt_systemname,
+                'basename=s'       => \$opt_basename,
                 'currentts=i'      => \$opt_currentts,
                 'currenttsfile=s'  => \$opt_currenttsfile
               ) );
@@ -114,6 +116,7 @@ if ($opt_verbose) {
   printf("%s  tmpdir             = %s\n",$instname,$opt_tmpdir);
   printf("%s  archdir            = %s\n",$instname,$opt_archdir);
   printf("%s  systemname         = %s\n",$instname,$opt_systemname);
+  printf("%s  basename           = %s\n",$instname,$opt_basename);
   printf("%s  opt_currentts      = %s\n",$instname,$opt_currentts) if(defined($opt_currentts));
   printf("%s  opt_currenttsfile  = %s\n",$instname,$opt_currenttsfile) if(defined($opt_currenttsfile));
   printf("%s  currenttime        = %s (%d)\n",$instname,&sec_to_date($currentts),$currentts);
@@ -122,7 +125,7 @@ if ($opt_verbose) {
 # set umask
 umask 0022;
 
-my $jobreport=LML_jobreport->new($opt_verbose,$instname,$caller,$opt_outdir,$opt_updateconfig,$currentts,$opt_systemname);
+my $jobreport=LML_jobreport->new($opt_verbose,$instname,$caller,$opt_outdir,$opt_updateconfig,$currentts,$opt_systemname,$opt_basename);
 if(0) {
   $jobreport->set_options(
   {
@@ -140,7 +143,7 @@ $msg=sprintf("%s openDB                                          in %7.4fs (ts=%
 $jobreport->update_global_vars_in_config($DB,$opt_outdir,$opt_archdir,$opt_dbdir);  
 
 $starttime=time();
-$DB->process_collectDB_update("LLjobreport");  
+$DB->process_collectDB_update("LLjobreport",$opt_basename);  
 $DB->close_dbs();
 $endtime=time();
 $msg=sprintf("%s collect_new_info                                in %7.4fs (ts=%.5f,%.5f,l=1,nr=2)\n",$jobreport->{INSTNAME},$endtime-$starttime,,$starttime,$endtime); logmsg($msg);

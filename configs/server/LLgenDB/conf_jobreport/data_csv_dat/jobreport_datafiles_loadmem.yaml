@@ -66,7 +66,7 @@
 
 - dataset:
     name: pcoreusage_csv
-    set:        loadmem
+    set:        coreusage
     FORALL:     'P,U,J:VAR_project_user_job'
     filepath:   '$outputdir/projects/$P/$U/PCOREusage_${J}.csv'
     columns:        'ts,coreid,usage1_min,usage1_avg,usage1_max,usage2_min,usage2_avg,usage2_max'
@@ -85,7 +85,7 @@
     
 - dataset:
     name: pcoreusage_node_dat
-    set:        loadmem
+    set:        coreusage
     FORALL:     'P,U,J:VAR_project_user_job'
     filepath:   '$outputdir/projects/$P/$U/PCOREusage_${J}_node.dat'
     columns:        'jobid,ts,nodeid,coreid,cnt,usage_avg'
@@ -124,7 +124,7 @@
 
 - dataset:
     name: sysstat_csv
-    set:        loadmem
+    set:        loadsys
     FORALL:     'F:VAR_sysstat_feature_status'
     filepath:   '$outputdir/_sysstat/sysstat_${F}.csv'
     columns:        'ts,count, 
@@ -143,7 +143,7 @@
 
 - dataset:
     name: sysstat_hist_maxmem_csv
-    set:        loadmem
+    set:        loadsys
     FORALL:     'F:VAR_hist_memcls'
     filepath:   '$outputdir/_sysstat/sysstat_hist_maxmem_${F}.csv'
     columns:        'ts,memcls,n_1,n_2,n_3,n_4,n_5,n_6,n_7,n_8,n_9,n_10,n_12,n_16,n_24,n_32,n_48,n_64,n_96,n_128,n_192,n_256,n_384,n_512,n_768,n_1024,n_2048,n_4096,n_8192'
@@ -162,7 +162,7 @@
     
 - dataset:
     name: sysstatminmax_csv
-    set:        loadmem
+    set:        loadsys
     FORALL:     'F:VAR_sysstat_feature_status'
     filepath:   '$outputdir/_sysstat/sysstat_${F}_minmax.csv'
     columns:        'ts,
@@ -183,7 +183,7 @@
 
 - dataset:
     name: sysstat_all_hourly_csv
-    set:        loadmem
+    set:        loadsys
     FORALL:     'F:VAR_sysstat_feature_status_only_all'
     filepath:   '$outputdir/_sysstat/sysstat_${F}_hourly.csv'
     columns:        'ts,count_avg,_time_cnt'
@@ -202,7 +202,7 @@
 
 - dataset:
     name: sysstat_all_span_csv
-    set:        loadmem
+    set:        loadsys
     FORALL:     'F:VAR_sysstat_feature_status_only_all'
     filepath:   '$outputdir/_sysstat/sysstat_${F}_span.csv'
     columns:        'ts,count_avg'
@@ -224,7 +224,7 @@
    
 - dataset:
     name: sysstatoverview_csv
-    set:        loadmem
+    set:        loadsys
     filepath:   '$outputdir/../tmp/data/sysstat/sysstatoverview.csv'
     columns:        'ts,feat,status,count,load_avg,used_cores_avg,used_mem_avg,total_cores_avg,total_mem_avg'
     header:         'ts,feat,status,count,load_avg,used_cores_avg,used_mem_avg,total_cores_avg,total_mem_avg'

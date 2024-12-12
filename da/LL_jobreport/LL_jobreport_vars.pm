@@ -21,6 +21,7 @@ use Time::HiRes qw ( time );
 sub update_vars_from_DB {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
 
   my $config_ref=$DB->get_config();
 
@@ -31,7 +32,7 @@ sub update_vars_from_DB {
     }
   }
   
-  foreach my $varref (@{$config_ref->{jobreport}->{vars}}) {
+  foreach my $varref (@{$config_ref->{$basename}->{vars}}) {
     next if(!exists($varref->{name}));	
     next if(!exists($varref->{type}));	
     next if(!exists($varref->{database}));	

@@ -40,6 +40,7 @@ sub new {
   my $updateconfig = shift;
   my $currentts = shift;
   my $systemname = shift;
+  my $basename = shift;
 
   printf("\t LML_jobreport: new %s\n",ref($proto)) if($debug>=3);
   $self->{VERBOSE}   = $verbose; 
@@ -76,6 +77,9 @@ sub new {
   $self->{DATA_NODEBLOCKSCHEME}=1;
   $self->{DATA_CREATE_ALL_NODEFILES}=0;
 
+  $self->{BASENAME}="jobreport";
+  $self->{BASENAME}=$basename if(defined($basename)); 
+
   $self->{CURRENTTS} = $currentts;
   $self->{DB} = undef;
 
@@ -105,14 +109,15 @@ sub update_global_vars_in_config {
   my $DB=shift;
   my($outdir,$archdir,$dbdir)=@_;
   my $config_ref=$DB->get_config();
+  my $basename=$self->{BASENAME};
   
   $self->{DB}=$DB;
   
-  if(exists($config_ref->{jobreport})) {
-    if(exists($config_ref->{jobreport}->{paths})) {
-      $config_ref->{jobreport}->{paths}->{dbdir}=$outdir if(defined($dbdir));
-      $config_ref->{jobreport}->{paths}->{archdir}=$archdir if(defined($archdir));
-      $config_ref->{jobreport}->{paths}->{outputdir}=$outdir if(defined($outdir));
+  if(exists($config_ref->{$basename})) {
+    if(exists($config_ref->{$basename}->{paths})) {
+      $config_ref->{$basename}->{paths}->{dbdir}=$outdir if(defined($dbdir));
+      $config_ref->{$basename}->{paths}->{archdir}=$archdir if(defined($archdir));
+      $config_ref->{$basename}->{paths}->{outputdir}=$outdir if(defined($outdir));
     }
   }
 }
