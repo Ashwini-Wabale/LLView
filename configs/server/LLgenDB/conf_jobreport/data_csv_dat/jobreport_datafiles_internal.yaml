@@ -73,7 +73,8 @@
     column_ts:      'startts'
     format:         'csv'
     time_aggr:      'span'
-    renew:          'always'
+    # renew:          'always'
+    renew:          'daily(14:00)'
     data_database:   steptimings
     data_table:      steptimings_time_aggr_ts
     stat_database:   jobreport_stat_steptimings

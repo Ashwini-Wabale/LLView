@@ -26,21 +26,22 @@ use LL_jobreport_datasets_constants;
 sub solve_datasets {
   my $self = shift;
   my ($DB,$force)=@_;
+  my $basename=$self->{BASENAME};
 
   my $config_ref=$DB->get_config();
 
   # init instantiated variables
   my $varsetref;
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   my $fl=$self->get_filelist($varsetref->{outputdir});
 
   # find datasets to check files
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $dataset=$datasetref->{dataset};
     
     next if($dataset->{name}!~/(fabric|loadmem|GPU|fsusage)_/);

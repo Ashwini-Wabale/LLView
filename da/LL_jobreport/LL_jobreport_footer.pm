@@ -24,6 +24,7 @@ use LML_da_util qw( check_folder );
 sub create_footerfiles {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
 
   my $starttime=time();
   my $config_ref=$DB->get_config();
@@ -32,15 +33,15 @@ sub create_footerfiles {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # scan all footerfiles
   my $fcount=0;
-  foreach my $fref (@{$config_ref->{jobreport}->{footerfiles}}) {
+  foreach my $fref (@{$config_ref->{$basename}->{footerfiles}}) {
     my $fstarttime=time();
     next if(!exists($fref->{footer}));
     my $fname=$fref->{footer}->{name};

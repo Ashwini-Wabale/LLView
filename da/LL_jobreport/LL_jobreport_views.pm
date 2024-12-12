@@ -24,7 +24,7 @@ use LML_da_util qw( check_folder );
 sub create_views {
   my $self = shift;
   my $DB=shift;
-
+  my $basename=$self->{BASENAME};
   my $starttime=time();
   my $config_ref=$DB->get_config();
 
@@ -32,15 +32,15 @@ sub create_views {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # scan all views
   my $vcount=0;
-  foreach my $vref (@{$config_ref->{jobreport}->{views}}) {
+  foreach my $vref (@{$config_ref->{$basename}->{views}}) {
     my $vstarttime=time();
     next if(!exists($vref->{view}));
     next if(!exists($vref->{view}->{name}));
