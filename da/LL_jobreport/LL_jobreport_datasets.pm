@@ -37,6 +37,7 @@ sub create_datasets {
   my $self = shift;
   my $DB=shift;
   my $MAX_PROCESSES=shift;
+  my $basename=$self->{BASENAME};
 
   my $starttime=time();
   my $config_ref=$DB->get_config();
@@ -45,9 +46,9 @@ sub create_datasets {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
@@ -56,7 +57,7 @@ sub create_datasets {
   my ($sets,@tc_order,$table_cache_first_set);
   
   # scan all datasets in the defintion order
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $subconfig_ref=$datasetref->{dataset};
 
     # get setname and tablecache (-none- if not specified)

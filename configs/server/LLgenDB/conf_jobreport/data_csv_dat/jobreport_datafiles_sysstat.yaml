@@ -25,7 +25,7 @@
     data_database:   sysstatstate
     data_table:      sysstat_time_aggr
     stat_database:   jobreport_stat_sysstat
-    stat_table:      datasetstat
+    stat_table:      datasetstat_env
     
 - dataset:
     name: sysrackpwr_csv
@@ -44,7 +44,7 @@
     data_database:   sysstatstate
     data_table:      rackpwr_time_aggr
     stat_database:   jobreport_stat_sysstat
-    stat_table:      datasetstat
+    stat_table:      datasetstat_pwr
 
 - dataset:
     name: syscorepattern_csv
@@ -59,6 +59,7 @@
     column_ts:      'ts'
     format:         'csv'
     renew:          'always'
+    sqldebug:       'yes'
     data_database:   pcpucoresstate
     data_table:      pcpucores_time_aggr_coreid_span_avg
     stat_database:   jobreport_stat_sysstat

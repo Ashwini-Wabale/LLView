@@ -26,23 +26,24 @@ sub mngt_datasets {
   my $self = shift;
   my ($DB,$journalonly,$journaldir)=@_;
   my $config_ref=$DB->get_config();
+  my $basename=$self->{BASENAME};
 
   $self->{JOURNALONLY}=$journalonly;
   $self->{JOURNALDIR}=$journaldir;
   
-  # print Dumper($config_ref->{jobreport});
+  # print Dumper($config_ref->{$basename});
   
   # init instantiated variables
   my $varsetref;
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # find action types
   my $actions;
-  foreach my $datamngtref (@{$config_ref->{jobreport}->{datamngt}}) {
+  foreach my $datamngtref (@{$config_ref->{$basename}->{datamngt}}) {
     my $subconfig_ref=$datamngtref->{action};
     if(exists($subconfig_ref->{name})) {
       $actions->{ $subconfig_ref->{name} }->{'definition'}=$subconfig_ref;
@@ -50,7 +51,7 @@ sub mngt_datasets {
   }
   
   # find datasets which require an mngt action
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $subconfig_ref=$datasetref->{dataset};
     if(exists($subconfig_ref->{mngt_actions})) {
       foreach my $action (split(/\s*,\s*/,$subconfig_ref->{mngt_actions})) {
@@ -67,7 +68,7 @@ sub mngt_datasets {
   # print Dumper($actions);
 
   # run data mngt actions serial by type
-  foreach my $datamngtref (@{$config_ref->{jobreport}->{datamngt}}) {
+  foreach my $datamngtref (@{$config_ref->{$basename}->{datamngt}}) {
     my $action=$datamngtref->{action}->{name};
     next if(!exists($actions->{$action}));
     
@@ -79,6 +80,7 @@ sub mngt_datasets {
       next;
     }
     $self->mngt_datasets_check($DB, $action_ref, $varsetref) if($action_def->{type} eq "archive");
+    $self->mngt_datasets_check($DB, $action_ref, $varsetref) if($action_def->{type} eq "remove");
     
     if(exists($action_ref->{datasets})) {
       $self->mngt_datasets_execute($DB, $action_ref, $varsetref, FACTION_COMPRESS) if($action_def->{type} eq "compress");
@@ -270,11 +272,12 @@ sub mngt_datasets_check {
       my $realfile=sprintf("%s/%s",$self->{OUTDIR},$ref->{dataset});
 
       if( -f $realfile ) {
-        my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks) = stat($file);
+        my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks) = stat($realfile);
+        print "check: $realfile -> ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks)\n";
         $ref->{status}=FSTATUS_EXISTS;
         $ref->{lastts_saved}=$mtime;
         $ref->{checksum}=0;
-        # printf("%s check_file_state_with_file_system: check status=$ref->{status} lastts=$ref->{lastts_saved} -> $realfile --> exists\n",$self->{INSTNAME});
+        printf("%s check_file_state_with_file_system: check status=$ref->{status} lastts=$ref->{lastts_saved} -> $realfile --> exists\n",$self->{INSTNAME});
         $count_fixed_exists++;
       } else {
         push(@removed_files,$file);
@@ -293,8 +296,8 @@ sub mngt_datasets_check {
     if($count_fixed>0) {
       my $tstarttime=time();
       $self->save_datasetstat_in_DB($dataset->{stat_database},$dataset->{stat_table},$where);
-      # printf("%s check dataset for files: saved datasetstat for $dataset->{name} #%d files exists not on fs, removed from DB, %d files exists, status adapted\n",
-      #         $self->{INSTNAME},$count_fixed-$count_fixed_exists,$count_fixed_exists);
+      printf("%s check dataset for files: saved datasetstat for $dataset->{name} #%d files exists not on fs, removed from DB, %d files exists, status adapted\n",
+              $self->{INSTNAME},$count_fixed-$count_fixed_exists,$count_fixed_exists);
     }
     delete($self->{DATASETSTAT}->{$dataset->{stat_database}}->{$dataset->{stat_table}});
   }
@@ -614,32 +617,33 @@ sub remove_files {
 sub mngt_scan_datasets {
   my $self = shift;
   my ($DB)=@_;
+  my $basename=$self->{BASENAME};
   my $config_ref=$DB->get_config();
   my $limit_ts=$self->{CURRENTTS};
 
   # init instantiated variables
   my $varsetref;
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # find datasets which could have updated files
   my $ds;
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $subconfig_ref=$datasetref->{dataset};
     $ds->{$subconfig_ref->{stat_database}}->{$subconfig_ref->{stat_table}}=$subconfig_ref;
   }
-  foreach my $datasetref (@{$config_ref->{jobreport}->{footerfiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{footerfiles}}) {
     my $subconfig_ref=$datasetref->{footer};
     $ds->{$subconfig_ref->{stat_database}}->{$subconfig_ref->{stat_table}}=$subconfig_ref;
   }
-  foreach my $datasetref (@{$config_ref->{jobreport}->{graphpages}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{graphpages}}) {
     my $subconfig_ref=$datasetref->{graphpage};
     $ds->{$subconfig_ref->{stat_database}}->{$subconfig_ref->{stat_table}}=$subconfig_ref;
   }
-  foreach my $datasetref (@{$config_ref->{jobreport}->{views}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{views}}) {
     my $subconfig_ref=$datasetref->{view};
     $ds->{$subconfig_ref->{stat_database}}->{$subconfig_ref->{stat_table}}=$subconfig_ref;
   }
@@ -647,7 +651,7 @@ sub mngt_scan_datasets {
   # find datasets which require an mngt action
   my $changed_files;
   my $stat;
-  my $where="(mts >= ($limit_ts) OR (status=".FSTATUS_TOBEDELETED.") OR (status=".FSTATUS_TOBECOMPRESSED."))";
+  my $where="(mts >= ($limit_ts) OR (status=".FSTATUS_TOBEDELETED.") OR (status=".FSTATUS_TOBECOMPRESSED.") OR (status=".FSTATUS_DELETED."))";
   foreach my $ds_db (sort(keys(%{$ds}))) {
     foreach my $ds_tab (sort(keys(%{$ds->{$ds_db}}))) {
       my $subconfig_ref=$ds->{$ds_db}->{$ds_tab};
@@ -709,14 +713,16 @@ sub mngt_scan_datasets {
 sub cleanup_datasetstat {
   my $self = shift;
   my($stat_db,$stat_table)=@_;
-
+  my $cnt=0;
   my $ds=$self->{DATASETSTAT}->{$stat_db}->{$stat_table};
   foreach my $key (keys(%{$ds})) {
     # remove entries which are marked to be removed (already archived)
-    if($ds->{$key}->{"status"} == FSTATUS_TOBEDELETED) {
+    if($ds->{$key}->{"status"} == FSTATUS_DELETED) {
       delete($ds->{$key});
+      $cnt++;
     }
   }
+  printf ("%s/%s: deleted %d entries\n",$stat_db,$stat_table, $cnt) if($self->{VERBOSE}>=1);
 }
 
 sub mysystem {

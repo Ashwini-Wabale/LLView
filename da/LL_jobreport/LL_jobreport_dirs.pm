@@ -21,16 +21,17 @@ use Time::HiRes qw ( time );
 sub create_directories {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
 
   my $config_ref=$DB->get_config();
 
-  # print Dumper($config_ref->{jobreport});
+  # print Dumper($config_ref->{$basename});
   
   # init instantiated variables
   my $varsetref;
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
@@ -38,7 +39,7 @@ sub create_directories {
   $self->get_dirstat_from_DB($DB);
   
   # process each dirset
-  foreach my $subconfig_ref (@{$config_ref->{jobreport}->{directories}}) {
+  foreach my $subconfig_ref (@{$config_ref->{$basename}->{directories}}) {
     printf("create_directories: start \n") if($debug);
 
     # print Dumper($subconfig_ref);
@@ -93,7 +94,7 @@ sub process_dirlist {
           print "create_directories: $createpath created\n";
           $self->{DIRSTAT}->{$createpath}->{"status"}=1;
         } else {
-          print "create_directories: $createpath create failed $!\n";
+          print "create_directories: $createpath create failed: $!\n";
           $self->{DIRSTAT}->{$createpath}->{"status"}=0;
         }
       } else {
@@ -110,8 +111,9 @@ sub process_dirlist {
 sub get_dirstat_from_DB {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
   
-  my $dataref=$DB->query("jobreport","dirstat",
+  my $dataref=$DB->query($basename,"dirstat",
                           {
                             type => "hash_values",
                             hash_keys => "dir",
@@ -124,16 +126,17 @@ sub get_dirstat_from_DB {
 sub save_dirstat_in_DB {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
 
   # remove info from table
-  $DB->delete("jobreport","dirstat",
+  $DB->delete($basename,"dirstat",
               {
                 type => 'all_rows'
               });
 
   # add new dirstat to DB table
   my @tabstatcolsref=("dir","lastts_req","lastts_chk","status");
-  my $seq=$DB->start_insert_sequence("jobreport","dirstat",\@tabstatcolsref);
+  my $seq=$DB->start_insert_sequence($basename,"dirstat",\@tabstatcolsref);
   foreach my $key (keys(%{$self->{DIRSTAT}})) {
     next if(!defined($self->{DIRSTAT}->{$key}->{"dir"}));
     next if(!defined($self->{DIRSTAT}->{$key}->{"lastts_req"}));
@@ -143,9 +146,9 @@ sub save_dirstat_in_DB {
                 $self->{DIRSTAT}->{$key}->{"lastts_req"},
                 $self->{DIRSTAT}->{$key}->{"lastts_chk"},
                 $self->{DIRSTAT}->{$key}->{"status"});
-    $DB->insert_sequence("jobreport","dirstat",$seq,\@data  );
+    $DB->insert_sequence($basename,"dirstat",$seq,\@data  );
   }
-  $DB->end_insert_sequence("jobreport","dirstat",$seq);
+  $DB->end_insert_sequence($basename,"dirstat",$seq);
   # print Dumper($self->{DIRSTAT});
 }
   

@@ -32,8 +32,9 @@
     status: 
       file: '/status.json'
       link: 'https://status.jsc.fz-juelich.de/services/@@id@@'
-    # System selection on header (display name: 'subfolder')
+    # System selection on header 
     # systems: 
+    #   (Ex: DISPLAY_NAME: 'webserver_subfolder')
     #   SYSTEM1: 'system1'
     #   SYSTEM2: 'system2'
     data:
