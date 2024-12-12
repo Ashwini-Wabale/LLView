@@ -17,7 +17,7 @@ The files `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/RUNNING_*` can also be remov
 
 When modifications on the configuration of the database (that is, in the YAML files that define the database layout in `$LLVIEW_CONF/server/LLgenDB`) is done, these changes must be applied before LLview can use the new format. If that is not done, errors on DB (e.g. `DBD::SQLite::db (...)`) will be output. 
 
-To fix this problem, the [`updatedb`](server_install.md#update) command can be run:
+To fix this problem, the [`updatedb`](server_install.md#updatedb) command can be run:
 ```
 updatedb         [updates the db with output on screen]
 updatedb log     [updates the db appending the output to the log file $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/checkDB.`date +%Y.%m.%d`.log]

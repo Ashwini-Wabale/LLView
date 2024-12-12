@@ -90,7 +90,7 @@ databases:
   %include "conf_jumonc/jumonc_databases.yaml"
 
   #  DB for Continuous Bechmarking (CB)
-  %include "conf_cb/CB.yaml"
+  # %include "conf_cb/CB.yaml"
 
 
 # config options for jobreporting

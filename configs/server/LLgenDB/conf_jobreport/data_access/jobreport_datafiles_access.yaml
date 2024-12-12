@@ -170,7 +170,7 @@
     name: groupfile_alluser
     set:                 access_project
     FORALL:             'P:VAR_project'
-    filepath:           '$outputdir/sec_files/.htgroups'
+    filepath:           '$outputdir/sec_files/.htgroups_alluser'
     format:             'access'
     columns:            'alluser'
     data_database:       accountmap

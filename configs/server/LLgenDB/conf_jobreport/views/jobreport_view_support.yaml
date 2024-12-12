@@ -291,7 +291,7 @@
                   ref: [ table ]
                   data:
                     default_columns: [ user ]
-       %include "../../conf_cb/tab_cb.yaml"
+      #  %include "../../conf_cb/tab_cb.yaml"
        - page:
            name: "Internal"
            section: "internal"
