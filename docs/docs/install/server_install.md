@@ -11,6 +11,7 @@ The dependencies of LLview Server are:
         - Getopt::Long
         - Time::Local
         - Time::HiRes
+        - Time::Zone
         - FindBin
         - Parallel::ForkManager
         - File::Monitor
@@ -21,7 +22,7 @@ The dependencies of LLview Server are:
         - IO::File
         - POSIX
         - YAML::XS
-        - DBI
+        - DBI, RPC::PlClient (if OracleDB needs to be used)
         - DBD::SQLite
         - Config::IniFiles
         - JSON
@@ -58,7 +59,7 @@ The existing variables are:
 - `$LLVIEW_SHARED`: A shared folder between LLview Server and [LLview Remote](remote_install.md#configuration), where the generated files from Remote will be written and read by the Server (therefore, it must be the same set up in `.llview_remote_rc` in the Remote part).
 - `$LLVIEW_SHUTDOWN`: File to be used to stop LLview's workflow (the cronjob runs, but immediately stops).
 - `$LLVIEW_LOG_DAYS`: Number of days to keep the logs.
-- `$JUREPTOOL_NPROCS`: Number of processors used by JuRepTool (default: 2). As JuRepTool runs in parallel to the main LLview workflow, it is recommended to initially use `export JUREPTOOL_NPROCS=0` to deactivate JuRepTool and only activate it when the full LLview cycle is working.
+- `$JUREPTOOL_NPROCS`: Number of processors used by JuRepTool. As JuRepTool runs in parallel to the main LLview workflow, it is recommended to initially use `export JUREPTOOL_NPROCS=0` to deactivate JuRepTool and only activate it when the full LLview cycle is already working.
 - `$LLVIEW_WEB_DATA`: Folder on the Web Server (accessible via https) where the `data` will be copied to.
 - `$LLVIEW_WEB_IMAGE`: Path of image to be used on the login page, relative to DocumentRoot (starting with `/`) or relative to `$LLVIEW_WEB_DATA` (default: `img/$LLVIEW_SYSTEMNAME.jpg`).
 - `$PYTHON`: This variable is used to launch [JuRepTool](#jureptool). It is important to set the PYTHON variable to use the version with the [dependencies](#dependencies) satisfied.
@@ -87,6 +88,9 @@ The collection and processing of data is done via actions (the first workflow le
         ```
     - <a name="listerrors"></a> Another script provided in `$LLVIEW_HOME/scripts` that can be used to list all error files in the folders is `listerrors`.
 
+
+
+
 #### `dbupdate` action
 
 The `dbupdate` action mainly performs the collection of metrics into SQLite databases (plus other tasks such as archiving). The configuration of the different databases and their columns, types and values are done via the YAML files inside the `$LLVIEW_CONF/server/LLgenDB` folder.
@@ -100,6 +104,23 @@ To be able to set up the correct permissions for the role-based access of LLview
 If needed, Information about the users with support access can be obtained also via the [`supportinput` action](#supportinput-action).
 
 More information about how to create this file [here](accountmap.md).
+
+##### `LMLDBupdate` step
+
+This is where all generated LMLs are processed and put into the databases, as defined in the configurations.
+
+Note: For the SQL commands to work, the databases and tables must exist. They are created according to the configurations using the [`updatedb`](#updatedb) script.
+
+##### `trigger_JobRep` step
+
+Immediately after the data is inserted into the database, the [`jobreport` action](#jobreport-action) is triggered by this step, such that the generation of the files in that action can be done in parallel to the remaining steps of the current one.
+
+##### `combineLML_all` step
+
+In this step, all generated LMLs are combined into a single one to be archived (and they may also be used for a replay feature). This step is done after the [LMLDBupdate step](#lmldbupdate-step) to be done in parallel to the [`jobreport` action](#jobreport-action).
+
+
+
 
 #### `jobreport` action
 
@@ -129,25 +150,39 @@ Finally, the command itself must be updated with the correct values for:
     ```
 **Note:** An initial login may be needed to accept the authenticity of the host (`ssh <login>@<webserver address>` and then `yes` is enough, even if you get "Permission denied" afterwards)
 
+
+
+
+
 #### `icmap` action
 
-To color the nodes in the detailed job reports according to their interconnect group, the information of their cell/rack can be given in an `icmap` file on the form:
+To color the nodes in the detailed job reports according to their interconnect group, the information of their cell/rack can be given in an `icmap` file (usually in the ``${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm` folder) containing a list of nodes with the following format:
     ```
     # nodelist_range[:str]  cell[:int]
     nd[0001-0005,0015-0020]  1
     nd[0006-0015]  2
     (...)
     ```
-This information is then converted into an xml file via the `$LLVIEW_HOME/da/utils/get_hostnodemap.py` script and imported to the database to be used by the reports.
+This information is then converted into an xml file via the `$LLVIEW_HOME/da/utils/get_hostnodemap.py` script, which is then imported to the database to be used by the reports.
+
+
+
 
 #### `supportinput` action
 
 One of the options to set the users that have "Support" access on LLview is via the `supportinput` action. This action watches a file (default in `${LLVIEW_SHARED}/../config/support_input.dat`) that contains a simple list of usernames (one per line). When this file is changed, the file is copied to `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/wservice`. This file is then used in the [`webservice` step of the `dbupdate` action](#webservice-step).
 
 
+
+
 #### `compress`, `archive` and `delete` actions
 
 The actions `compress`, `archive` and `delete` perform maintenance actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
+
+
+
+
+
 
 #### JuRepTool
 
@@ -176,7 +211,7 @@ Fonts can be installed with:
 - Make sure the [dependencies](#dependencies) are satisfied
 - Get LLview:
     ```
-    git clone https://github.com/FZJ-JSC/LLview.git
+    git clone https://github.com/FZJ-JSC/llview.git
     ```
 This is where the `$LLVIEW_HOME` should be defined below, and the instructions use this notation.
 

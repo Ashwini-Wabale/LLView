@@ -12,7 +12,7 @@
 # Note: file .llview_server_rc must be sourced, e.g.:
 # $ source ~/.llview_server_rc
 
-ls -ltr $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/monitor/*errlog $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/*errlog $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/steps/*errlog
+ls -ltr $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/*errlog $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/steps/*errlog
 
 while [ $# -gt 0 ] ; do
   case $1 in

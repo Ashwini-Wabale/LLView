@@ -10,6 +10,7 @@ The functioning of LLview, however - in particular, how the permissions are set 
     - Modules
         - mod_authz_groupfile
         - mod_headers
+        - mod_rewrite
     - Configuration
         - `AllowOverride All` (to allow [`.htaccess` configurations](#htaccess))
 - PHP
@@ -72,11 +73,15 @@ The top-level `.htaccess` is also important to define the decompression of the g
     git clone https://github.com/FZJ-JSC/JURI.git
     ```
 This is where the `$JURI_HOME` should be defined below, and the instructions also use this notation.
-- Link JURI with the data folder: the website (HTML/CSS and JavaScript) are provided by JURI, while the data folder (denoted `$LLVIEW_WEB_DATA`) is coming from LLview Server via the `transferreports` step. 
-These folders must be linked together (i.e., symbolic links will be created in `$LLVIEW_WEB_DATA`) with the script `linkjuri.sh` provided in `$JURI_HOME/utils`:
-    ```
-    $JURI_HOME/utils/linkjuri.sh $JURI_HOME $LLVIEW_WEB_DATA
-    ```
+- Link JURI with the data folder: the website (HTML/CSS and JavaScript) are provided by JURI, while the data is coming from LLview Server via the `transferreports` step.
+These folders must be linked together inside a given parent folder, denoted here by `$LLVIEW_WEB_DATA` (defined, for example, by `~/system`), that will be made accessible via the web. 
+
+Inside `$LLVIEW_WEB_DATA` must be placed:
+    - the `data` folder that is copied/synchronized from `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` (see how to [transfer data from LLview Server](#transfer-of-data-from-llview-server)), 
+    - and the symbolic links for the JURI pages and scripts. These links can be create using the script `linkjuri.sh` provided in `$JURI_HOME/utils`:
+        ```
+        $JURI_HOME/utils/linkjuri.sh $JURI_HOME $LLVIEW_WEB_DATA
+        ```
 - The access setup of the portal can be done on the [`.htaccess`](#htaccess) file on the main folder `$LLVIEW_WEB_DATA` (i.e., the parent of `data/`). An example is given in JURI's repo. 
     **Note:** It is not linked with `linkjuri.sh` as this file may include sensitive data.
 - The linked folder `$LLVIEW_WEB_DATA` can then be exposed to external access, e.g.:
