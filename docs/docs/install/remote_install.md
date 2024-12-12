@@ -53,7 +53,7 @@ Extra definitions can be also exported or modules loaded in this file (for examp
 - Make sure the [dependencies](#dependencies) are satisfied.
 - Get LLview:
     ```
-    git clone https://github.com/FZJ-JSC/LLview.git
+    git clone https://github.com/FZJ-JSC/llview.git
     ```
 This is where the `$LLVIEW_HOME` should be defined below, and the instructions use this notation.
 - Configure:

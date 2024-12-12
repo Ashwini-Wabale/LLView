@@ -534,4 +534,4 @@
           headerTooltip: "Number of runs of the benchmark"
       }
 
-%include "../../conf_cb/template_cb.yaml"
+# %include "../../conf_cb/template_cb.yaml"

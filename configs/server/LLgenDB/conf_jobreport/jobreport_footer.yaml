@@ -97,4 +97,4 @@
     footerset:
        %include "./footers/jobreport_footer_memheatmap.yaml"
 
-%include "../conf_cb/footer_cb.yaml""
+# %include "../conf_cb/footer_cb.yaml"

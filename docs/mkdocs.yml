@@ -43,6 +43,7 @@ nav:
       - About: install/juri_about.md
       - Folder Structure: install/juri_folder.md
       - Installation Instructions: install/juri_install.md
+    - Adding New Metrics: install/addmetrics.md
     - Troubleshooting: install/troubleshooting.md
   # - Description:
   #   - Home: description/index.md

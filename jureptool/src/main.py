@@ -260,6 +260,9 @@ def _ProcessReport(njob,total_jobs,job,config):
         if config['appearance']['maxsec']:
           df_temp.drop(df_temp[df_temp[config['plots']['x']['header']] > df_temp[config['plots']['x']['header']].min()+config['appearance']['maxsec']].index, inplace=True) 
 
+        # Dropping rows with infinity values
+        df_temp = df_temp[~df_temp.isin([np.inf, -np.inf]).any(axis=1)]
+
         # Completing the dataframe by y_x_keys (ts and node)
         # Build the full MultiIndex, set the partial MultiIndex, and reindex.
         full_idx = pd.MultiIndex.from_product([df_temp[col].unique() for col in y_x_keys], names=y_x_keys)
@@ -577,8 +580,16 @@ def _ProcessReport(njob,total_jobs,job,config):
     data['rc']['err_type'] = False
     if "oom-killer" in data['rc']['errmsgs']:
       data['rc']['err_type'] = r"(Out-of-memory)"
-    if "nodeDownAlloc" in data['rc']['errmsgs']:
+    elif "nodeDownAlloc" in data['rc']['errmsgs']:
       data['rc']['err_type'] = r"(Node Error)"
+    elif "LinkDownedCounter" in data['rc']['errmsgs']:
+      # Checking how many HCA link failures there were
+      failures = re.findall(r'LinkDownedCounter = (\d+)', data['rc']['errmsgs'])
+      if all(_ == '1' for _ in failures):
+        data['rc']['err_type'] = r"(Link Failure)"
+      else:
+        # If it's more than one, we can say it was a "Flipping Link" case
+        data['rc']['err_type'] = r"(Flipping Link)"
     error_lines = data['rc']['errmsgs'].split("|")
     error_nodes = set(re.findall(r'\((.*?)\)', data['rc']['errmsgnodes']))
     if (len(error_nodes) != data['rc']['numerrnodes']):
