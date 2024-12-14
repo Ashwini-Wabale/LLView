@@ -28,8 +28,9 @@
     stat_database: jobreport_json_stat
     stat_table:    datasetstat_templates
     format:        'datatable'
+    ag-grid-theme: 'balham' #quartz, balham, material, alpine (with -dark or -auto-dark suffix too)
     columns:
-      %include "./jobreport_datafiles_table_templates_joblist_columns.yaml"
+      %include "./jobreport_datafiles_datatable_templates_joblist_columns.yaml"
 
 - dataset:
     name: template_joblist_history
@@ -86,7 +87,7 @@
       - { name: queuedate,       group: "queued", sort: "D", title: "Queue Date",   desc: "Date job was enqueued"  }
       - { name: runtime,         group: "queued", sort: "N", title: "Runtime",      desc: "Overall runtime"  }
       - { name: starttime,       group: "queued", sort: "D", title: "Start Date (est)",  desc: "Start date (or estimate) of the job"  }
-      - { name: endtime,         group: "queued", sort: "D", title: "End Date (est)", desc: "End date (or estimate) of the job"  }
+      - { name: endtime,         group: "queued", sort: "D", title: "Est. End Date", desc: "Estimated end date of the job (Start Date + Walltime)"  }
       - { name: ArrayJobId,      group: "queued", sort: "N", title: "ArrayJobID",   desc: "Array jobID (Slurm)"  }
       - { name: ArrayTaskId,     group: "queued", sort: "N", title: "ArrayTaskID",  desc: "Array taskID (Slurm)"  }
       - { name: resid,           group: "queued", sort: "S", title: "Reservation",  format: "text-left", desc: "Reservation used by the job"  }
@@ -122,7 +123,7 @@
       - { name: runtime,         group: "queued", sort: "N", title: "Runtime",     desc: "Overall runtime"  }
       
       - { name: starttime,       group: "queued", sort: "D", title: "Start Date (est)", desc: "Start date (or estimate) of the job"  }
-      - { name: endtime,         group: "queued", sort: "D", title: "End Date (est)", desc: "End date (or estimate) of the job"   }
+      - { name: endtime,         group: "queued", sort: "D", title: "Est. End Date", desc:  "Estimated end date of the job (Start Date + Walltime)"   }
       - { name: reason,          group: "queued", sort: "S", title: "Reason",       format: "text-left",  desc: "Reason job could not be scheduled yet"  }
       - { name: dependency,      group: "queued", sort: "S", title: "Dependency",   format: "text-left",  desc: "Slurm job dependency"  }
       - { name: chainid,         group: "queued", sort: "S", title: "ChainID",      desc: "ID of the job chain, computed from dependency information"  }
@@ -274,11 +275,25 @@
       - { name: ts_min,          group: "DBstat",  sort: "D", title: "Min. Date", desc: "Minimum date of entries"   }
       - { name: ts_max,          group: "DBstat",  sort: "D", title: "Max. Date", desc: "Maximum date of entries"   }
       - { name: ts_dur,          group: "DBstat",  sort: "N", title: "Time Span", desc: "Time span between minimum and maximum dates"   }
-      - { name: db,              group: "DBstat",  sort: "S", title: "Database",  desc: "Database name"      }
-      - { name: tab,             group: "DBstat",  sort: "S", title: "Table",     desc: "Table name"      }
+      - { name: db,              group: "DBstat",  sort: "S", title: "Database", format: "text-left", desc: "Database name"      }
+      - { name: tab,             group: "DBstat",  sort: "S", title: "Table", format: "text-left", desc: "Table name"      }
       - { name: tabpath,         group: "DBstat_ext",  sort: "S", title: "Table Path", desc: "Path of the table"      }
       - { name: nrows,           group: "DBstat",  sort: "N", title: "#Rows", desc: "Number of rows stored in table"      }
       - { name: time_aggr_res,   group: "DBstat",  sort: "N", title: "TimeRes", desc: "Time resolution if table is using time_aggr, otherwise -1"      }
+
+- dataset:
+    name: template_DBgraph
+    set:           template
+    filepath:      '$outputdir/LLtemplates/DBgraph.handlebars'
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_templates
+    format:        'template'
+    columns:
+      - { name: db,              group: "DBgraph",  sort: "S", title: "Database",  desc: "Database name"      }
+      - { name: ntabs,           group: "DBgraph",  sort: "N", title: "#tables", desc: "Number of tables in this database"      }
+      - { name: nlinks,          group: "DBgraph",  sort: "N", title: "#links", desc: "Number of links between tables in this database"      } 
+      - { name: LMLattr,         group: "DBgraph",  sort: "S", title: "LML import", desc: "List of attributes used by import from LML files"      } 
+      - { name: ts,              group: "DBgraph",  sort: "D", title: "Last Update", desc: "Date of last update on db graph"   }
 
 - dataset:
     name: template_steptimings
@@ -419,9 +434,9 @@
       - { name: used_cores_min,      group: "minmax",  sort: "N", title: "Used_Cores (min)",  desc: "Minimum used cores", data_format: "round_number_or_null"  }
       - { name: used_cores_avg,      group: "project", sort: "N", title: "Used_Cores (avg)",  desc: "Average used cores", data_format: "round_number_or_null"  }
       - { name: used_cores_max,      group: "minmax",  sort: "N", title: "Used_Cores (max)",  desc: "Maximum used cores", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_min,      group: "minmax",  sort: "N", title: "GPU Usage (min)",  desc: "Minimum GPU usage", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_avg,      group: "project", sort: "N", title: "GPU Usage (avg)",  desc: "Average GPU usage", data_format: "round_number_or_null"  }
-      - { name: gpu_usage_max,      group: "minmax",  sort: "N", title: "GPU Usage (max)",  desc: "Maximum GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_min,      group: "minmax",  sort: "N", title: "GPU Usage (min)",  desc: "Minimum GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_avg,      group: "project", sort: "N", title: "GPU Usage (avg)",  desc: "Average GPU usage", data_format: "round_number_or_null"  }
+      - { name: gpu_util_max,      group: "minmax",  sort: "N", title: "GPU Usage (max)",  desc: "Maximum GPU usage", data_format: "round_number_or_null"  }
 
 
 - dataset:
@@ -433,7 +448,7 @@
     format:        'template'
     columns:
       - { name: pid,             group: "pattern_extra", sort: "N", title: "Pattern ID",      desc: "Unique ID for this pattern" }
-      - { name: pattern,         group: "pattern", sort: "S", title: "Pattern",  desc: "Pattern of core usage",   format: "monospace text-left" }
+      - { name: pattern,         group: "pattern", sort: "S", title: "Pattern",  desc: "Pattern of core usage",   format: "corepattern text-left" }
       - { name: ncores_used,     group: "pattern", sort: "N", title: "#UsedCores",    desc: "Number of used cores (>25%) in jobs using this pattern"  }
       - { name: gpu,             group: "pattern", sort: "S", title: "GPU Node", desc: "Flag for GPU nodes (1) or not (0)" }
       - { name: nodeh,           group: "pattern", sort: "N", title: "Node Hours",   desc: "Total amount of node-hours spent by jobs using this pattern (in the last 3 days)", data_format: "round_number_or_null"  }
@@ -441,3 +456,82 @@
       - { name: min_ts,          group: "pattern", sort: "N", title: "MaxAge",  desc: "Hours since first job with this pattern (in the last 3 days)", data_format: "round_number_or_null"    }
       - { name: max_ts,          group: "pattern", sort: "N", title: "MinAge",  desc: "Hours since last job with this pattern", data_format: "round_number_or_null"     }
       - { name: jobids,          group: "pattern_extra", sort: "S", title: "JobID List",    desc: "Jobs using this pattern (in the last 3 days)", format: "text-left", data_pre: "gen_jobid_list_link "  }
+
+- dataset:
+    name: template_memheatmap
+    set:           template
+    filepath:      '$outputdir/LLtemplates/memheatmap.handlebars'
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_templates
+    format:        'template'
+    columns:
+      - { name: memcls,          group: "heatmap", sort: "S", title: "Memory Class",   desc: "Memory usage up to xx GB" }
+      - { name: n_1,             group: "heatmap", sort: "N", title: "N_1",       desc: "Percentage used by jobs of size 1",     data_format: "percent_or_null", bg_color_map: "n_1 'RdYlGn'" }
+      - { name: n_2,             group: "heatmap", sort: "N", title: "N_2",       desc: "Percentage used by jobs of size 2",     data_format: "percent_or_null", bg_color_map: "n_2 'RdYlGn'" }
+      - { name: n_3,             group: "heatmap", sort: "N", title: "N_3",       desc: "Percentage used by jobs of size 3",     data_format: "percent_or_null", bg_color_map: "n_3 'RdYlGn'" }
+      - { name: n_4,             group: "heatmap", sort: "N", title: "N_4",       desc: "Percentage used by jobs of size 4",     data_format: "percent_or_null", bg_color_map: "n_4 'RdYlGn'" }
+      - { name: n_5,             group: "heatmap", sort: "N", title: "N_5",       desc: "Percentage used by jobs of size 5",     data_format: "percent_or_null", bg_color_map: "n_5 'RdYlGn'" }
+      - { name: n_6,             group: "heatmap", sort: "N", title: "N_6",       desc: "Percentage used by jobs of size 6",     data_format: "percent_or_null", bg_color_map: "n_6 'RdYlGn'" }
+      - { name: n_7,             group: "heatmap", sort: "N", title: "N_7",       desc: "Percentage used by jobs of size 7",     data_format: "percent_or_null", bg_color_map: "n_7 'RdYlGn'" }
+      - { name: n_8,             group: "heatmap", sort: "N", title: "N_8",       desc: "Percentage used by jobs of size 8",     data_format: "percent_or_null", bg_color_map: "n_8 'RdYlGn'" }
+      - { name: n_9,             group: "heatmap", sort: "N", title: "N_9",       desc: "Percentage used by jobs of size 9",     data_format: "percent_or_null", bg_color_map: "n_9 'RdYlGn'" }
+      - { name: n_10,            group: "heatmap", sort: "N", title: "N_10",      desc: "Percentage used by jobs of size 10",    data_format: "percent_or_null", bg_color_map: "n_10 'RdYlGn'" }
+      - { name: n_12,            group: "heatmap", sort: "N", title: "N_12",      desc: "Percentage used by jobs of size 12",    data_format: "percent_or_null", bg_color_map: "n_12 'RdYlGn'" }
+      - { name: n_16,            group: "heatmap", sort: "N", title: "N_16",      desc: "Percentage used by jobs of size 16",    data_format: "percent_or_null", bg_color_map: "n_16 'RdYlGn'" }
+      - { name: n_24,            group: "heatmap", sort: "N", title: "N_24",      desc: "Percentage used by jobs of size 24",    data_format: "percent_or_null", bg_color_map: "n_24 'RdYlGn'" }
+      - { name: n_32,            group: "heatmap", sort: "N", title: "N_32",      desc: "Percentage used by jobs of size 32",    data_format: "percent_or_null", bg_color_map: "n_32 'RdYlGn'" }
+      - { name: n_48,            group: "heatmap", sort: "N", title: "N_48",      desc: "Percentage used by jobs of size 48",    data_format: "percent_or_null", bg_color_map: "n_48 'RdYlGn'" }
+      - { name: n_64,            group: "heatmap", sort: "N", title: "N_64",      desc: "Percentage used by jobs of size 64",    data_format: "percent_or_null", bg_color_map: "n_64 'RdYlGn'" }
+      - { name: n_96,            group: "heatmap", sort: "N", title: "N_96",      desc: "Percentage used by jobs of size 96",    data_format: "percent_or_null", bg_color_map: "n_96 'RdYlGn'" }
+      - { name: n_128,           group: "heatmap", sort: "N", title: "N_128",     desc: "Percentage used by jobs of size 128",   data_format: "percent_or_null", bg_color_map: "n_128 'RdYlGn'" }
+      - { name: n_192,           group: "heatmap", sort: "N", title: "N_192",     desc: "Percentage used by jobs of size 192",   data_format: "percent_or_null", bg_color_map: "n_192 'RdYlGn'" }
+      - { name: n_256,           group: "heatmap", sort: "N", title: "N_256",     desc: "Percentage used by jobs of size 256",   data_format: "percent_or_null", bg_color_map: "n_256 'RdYlGn'" }
+      - { name: n_384,           group: "heatmap", sort: "N", title: "N_384",     desc: "Percentage used by jobs of size 384",   data_format: "percent_or_null", bg_color_map: "n_384 'RdYlGn'" }
+      - { name: n_512,           group: "heatmap", sort: "N", title: "N_512",     desc: "Percentage used by jobs of size 512",   data_format: "percent_or_null", bg_color_map: "n_512 'RdYlGn'" }
+      - { name: n_768,           group: "heatmap", sort: "N", title: "N_768",     desc: "Percentage used by jobs of size 768",   data_format: "percent_or_null", bg_color_map: "n_768 'RdYlGn'" }
+      - { name: n_1024,          group: "heatmap", sort: "N", title: "N_1024",    desc: "Percentage used by jobs of size 1024",  data_format: "percent_or_null", bg_color_map: "n_1024 'RdYlGn'" } 
+      - { name: n_2048,          group: "heatmap", sort: "N", title: "N_2048",    desc: "Percentage used by jobs of size 2048",  data_format: "percent_or_null", bg_color_map: "n_2048 'RdYlGn'" }
+      - { name: n_4096,          group: "heatmap", sort: "N", title: "N_4096",    desc: "Percentage used by jobs of size 4096",  data_format: "percent_or_null", bg_color_map: "n_4096 'RdYlGn'" }
+      - { name: n_8192,          group: "heatmap", sort: "N", title: "N_8192",    desc: "Percentage used by jobs of size 8192",  data_format: "percent_or_null", bg_color_map: "n_8192 'RdYlGn'" }
+      - { name: n_all,           group: "heatmap", sort: "N", title: "N_ALL",     desc: "Percentage used by jobs of any size",   data_format: "percent_or_null", bg_color_map: "n_all 'RdYlGn'" }
+
+- dataset:
+    name: template_CB
+    set:           template
+    filepath:      '$outputdir/LLtemplates/CB.handlebars'
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_templates
+    format:        'datatable'
+    ag-grid-theme: 'balham' #quartz, balham, material, alpine (with -dark or -auto-dark suffix too)
+    columns:
+      - {
+          field: "name",
+          headerName: "Name",
+          headerTooltip: "Benchmark name",
+          pinned: "left",
+      }
+      - {
+          headerName: "Timings",
+          groupId: "Timings",
+          children: [
+            {
+              field: "min_ts",
+              headerName: "Date of First Run", 
+              headerTooltip: "Minimum timestamp of the benchmark",
+              cellDataType: "text",
+            },
+            {
+              field: "max_ts",
+              headerName: "Date of Last Run", 
+              headerTooltip: "Maximum timestamp of the benchmark",
+              cellDataType: "text",
+            },
+          ]
+        }
+      - {
+          field: "count",
+          headerName: "#Runs",
+          headerTooltip: "Number of runs of the benchmark"
+      }
+
+# %include "../../conf_cb/template_cb.yaml"

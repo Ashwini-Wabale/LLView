@@ -29,7 +29,7 @@ def CreateHTML( config,
   <meta charset="UTF-8">
 """
   html += f"""  
-  <link rel="stylesheet" href='{replace_vars(config['appearance']['fontawesome'],config['appearance'])}'>
+  <link rel="stylesheet" href='{replace_vars(config['appearance']['hostname'],config['appearance'])}/css/ext/font-awesome.min.css'>
   <link rel="icon" type="image/svg+xml"
       href="data:image/svg+xml,%3Csvg height='100%25' stroke-miterlimit='10' style='fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;' version='1.1' viewBox='0 0 32 32' width='100%25' xml:space='preserve' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cpath d='M8.02154 13.6133L8.03331 23.6475L10.2411 23.6597L12.4489 23.6718L12.4489 25.7506L12.4489 27.8294L18.7334 27.8294L25.018 27.8294L25.018 26.6379L25.018 25.4464L20.0885 25.4464L15.1589 25.4464L15.1589 24.5587L15.1589 23.6709L17.869 23.6709L20.5791 23.6709L20.5791 22.456L20.5791 21.2412L17.869 21.2412L15.1589 21.2412L15.1589 14.4894L15.1589 7.73754L13.8039 7.73754L12.4489 7.73754L12.4489 14.4894L12.4489 21.2412L11.5844 21.2412L10.72 21.2412L10.72 12.4101L10.72 3.57898L9.36489 3.57898L8.00972 3.57898L8.02154 13.6133' fill='%23023d6b' fill-rule='evenodd' opacity='1' stroke='none'/%3E%3Cpath d='M15.0868 0.0309399C9.2877 0.347224 4.09586 3.83135 1.56139 9.10753C-0.520462 13.4413-0.520462 18.5745 1.56139 22.9083C5.1584 30.3963 13.8239 33.894 21.607 30.9994C25.9088 29.3995 29.3916 25.9168 30.9915 21.615C32.5077 17.538 32.307 12.997 30.4386 9.10753C28.097 4.233 23.5169 0.89078 18.1603 0.147847C17.6781 0.080936 16.1368-0.0254576 15.8598-0.0109727C15.7956-0.0076085 15.4477 0.0112218 15.0868 0.0309399M8.02154 13.6133L8.03331 23.6475L10.2411 23.6597L12.4489 23.6718L12.4489 25.7506L12.4489 27.8294L18.7334 27.8294L25.018 27.8294L25.018 26.6379L25.018 25.4464L20.0885 25.4464L15.1589 25.4464L15.1589 24.5587L15.1589 23.6709L17.869 23.6709L20.5791 23.6709L20.5791 22.456L20.5791 21.2412L17.869 21.2412L15.1589 21.2412L15.1589 14.4894L15.1589 7.73754L13.8039 7.73754L12.4489 7.73754L12.4489 14.4894L12.4489 21.2412L11.5844 21.2412L10.72 21.2412L10.72 12.4101L10.72 3.57898L9.36489 3.57898L8.00972 3.57898L8.02154 13.6133' fill='%23ffffff' fill-rule='evenodd' opacity='1' stroke='none'/%3E%3C/svg%3E" />
 """
@@ -102,6 +102,7 @@ def CreateHTML( config,
   }
   li {
     margin-left: 1rem;
+    white-space: nowrap;
   }
 
   .menu-button {
@@ -152,7 +153,7 @@ def CreateHTML( config,
 
   main {
     display: grid;
-    grid-template-columns: 12em 1fr ;
+    grid-template-columns: 16em 1fr ;
     grid-auto-flow: row;
     width: 100%;
     margin: 0 auto 0 auto;
@@ -195,7 +196,7 @@ def CreateHTML( config,
   }
   .section-toc li.visible > a {
     color: #111;
-    transform: translate(5px); 
+    padding-left: 5px; 
   }
   .section-toc-marker {
     position: absolute;
@@ -431,6 +432,8 @@ def CreateHTML( config,
   var time_plots = null;
   var overview = null;
   var timeline = null;
+  var catch_scroll = true;
+  var repeat;
 """
   html += f"""
   var sections ={{{', '.join([f'{section.replace(f"$","").replace(" ","_")}: null' for section in figs.keys()]) }}};
@@ -545,7 +548,7 @@ def CreateHTML( config,
     var tocItems;
     // Factor of screen size that the element must cross
     // before it's considered visible
-    var TOP_MARGIN = 0.0,
+    var TOP_MARGIN = 0.01,
       BOTTOM_MARGIN = 0.0;
     var pathLength;
     var lastPathStart,
@@ -560,7 +563,7 @@ def CreateHTML( config,
       // Cache element references and measurements
       tocItems = tocItems.map( function( item ) {
         var anchor = item.querySelector( 'a' );
-        var target = document.getElementById( anchor.getAttribute( 'onclick' ).match(/\'(.*)\'/)[1] );
+        var target = document.getElementById( anchor.getAttribute( 'href' ).match(/\'(.*)\'/)[1] );
         return {
           listItem: item,
           anchor: anchor,
@@ -652,7 +655,61 @@ def CreateHTML( config,
         sync_zoom()
       } 
     });
+  }
 
+  // Add scroll event listener to add fragment of current block on URL
+  window.addEventListener( 'scroll', function () {
+    if (!catch_scroll) {return;}
+    let graphs = Array.from(document.querySelectorAll('.block'))
+    let visible = graphs.find((el)=>{return isElementInViewport(el);});
+    if (visible) {
+      let hash = $(visible).attr('id');
+      if (currentHash == hash) {return;}
+      // window.location.hash = hash;
+      // if(history.pushState) { history.pushState(null, null, "#"+hash); } else { window.location.hash = hash; } 
+      history.replaceState(null, null, "#"+hash);
+      currentHash = hash;
+    }
+  }, false );
+
+  // Getting initial position from URL and scrolling to it, if present
+  var currentHash = window.location.hash.substring(1);
+  if (currentHash) scrollIntoView(currentHash);
+
+  // Check if element 'el' is visible in viewport
+  function isElementInViewport (el) {
+    if (typeof jQuery === "function" && el instanceof jQuery) {
+        el = el[0];
+    }
+    var rect = el.getBoundingClientRect();
+    // Added small value above the top, otherwise it was changing the fragment to the graph below
+    return ( rect.top > -3 && rect.top <= (window.innerHeight || document.documentElement.clientHeight) );
+  }
+
+  // Scroll to given '#elementid' when it is ready in page. If not present yet, try every second, waiting for it to be ready
+  function scrollIntoView(elementid) {
+    if(repeat) clearInterval(repeat); // Stopping previous checks
+    catch_scroll = false;
+    let element = document.getElementById(elementid);
+    // If element is ready, scroll imediately
+    if (element) {
+      waitForElement(element).then(function(){
+        element.scrollIntoView({behavior: "instant"});
+      });
+      catch_scroll = true;
+      return;
+    }
+    // Otherwise, check every second
+    repeat = window.setInterval(function() {
+      element = document.getElementById(elementid);
+      if (element) {
+        waitForElement(element).then(function(){
+          element.scrollIntoView({behavior: "instant"});
+        });
+        catch_scroll = true;
+        clearInterval(repeat);
+      }
+    }, 1000)
   }
 
   // Activating synchronisation of zoom between graphs within a section
@@ -667,6 +724,34 @@ def CreateHTML( config,
     if (timeline) {
       timeline.on("plotly_relayout", function(ed) { timeline_sync_zoom(ed); });
     }
+  }
+
+  /**
+   * Wait for an element before resolving a promise
+   * Adapted from https://stackoverflow.com/a/34863951/3142385
+   * @param {Node} element - element to wait for
+   * @param {Integer} timeout - Milliseconds to wait before timing out, or 0 for no timeout
+   */
+  function waitForElement(element, timeout){
+    return new Promise((resolve, reject)=>{
+      var timer = false;
+      if(!!element) return resolve();
+      const observer = new MutationObserver(()=>{
+        if(!!element) {
+          observer.disconnect();
+          if(timer !== false) clearTimeout(timer);
+          return resolve();
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      if(timeout) timer = setTimeout(()=>{
+        observer.disconnect();
+        reject();
+      }, timeout);
+    });
   }
 
   window.addEventListener('load', init);
@@ -690,8 +775,8 @@ def CreateHTML( config,
 
   </script>
 """
-  html += f"  <script src='{replace_vars(config['appearance']['jquery_js'],config['appearance'])}'></script>\n"
-  html += f"  <script src='{replace_vars(config['appearance']['plotly_js'],config['appearance'])}'></script>\n"
+  html += f"  <script src='{replace_vars(config['appearance']['hostname'],config['appearance'])}/js/ext/jquery.min.js'></script>\n"
+  html += f"  <script src='{replace_vars(config['appearance']['hostname'],config['appearance'])}/js/ext/plotly.min.js'></script>\n"
   html += f"""
   <title>Job ID {config['appearance']['jobid']} Report</title>
   </head>
@@ -720,20 +805,20 @@ def CreateHTML( config,
   html += f"""
   <nav id="navmenu" class="section-toc no-print">
     <ul>
-    <li><a href="javascript:void(0);" onclick="document.getElementById('report').scrollIntoView(true);"><b>Job {config['appearance']['jobid']} Report</b></a></li>
+    <li><a href="javascript:scrollIntoView('report')"><b>Job {config['appearance']['jobid']} Report</b></a></li>
 """
-  if overview: html += '<li><a href="javascript:void(0);" onclick="document.getElementById(\'overview\').scrollIntoView(true);">Job-Usage Overview</a></li>\n'
+  if overview: html += '<li><a href="javascript:scrollIntoView(\'overview\')">Job-Usage Overview</a></li>\n'
   for systype, section in figs.items():
     stype = systype.replace("$","").replace(" ","_")
-    html += f'  <li><a href="javascript:void(0);" onclick="document.getElementById(\'{stype}\').scrollIntoView(true);">{systype}</a>\n'
+    html += f'  <li><a href="javascript:scrollIntoView(\'{stype}\')">{systype}</a>\n'
     html += f'  <ul>\n'
     for title in section.keys():
-      html += '    <li><a href="javascript:void(0);" onclick="document.getElementById(\'{}_{}\').scrollIntoView(true);">{}</a></li>\n '.format(stype,title.replace(" ","_"),title)
+      html += '    <li><a href="javascript:scrollIntoView(\'{}_{}\')">{}</a></li>\n '.format(stype,title.replace(" ","_"),title)
     html += f'  </ul>\n'
     html += f'  </li>\n'
-  if nodelist: html += '<li><a href="javascript:void(0);" onclick="document.getElementById(\'nodelist\').scrollIntoView(true);">Nodelist</a></li>\n'
-  if timeline: html += '<li><a href="javascript:void(0);" onclick="document.getElementById(\'timeline\').scrollIntoView(true);">Timeline</a></li>\n'
-  if config['error']: html += '<li><a href="javascript:void(0);" onclick="document.getElementById(\'system_report\').scrollIntoView(true);">System Error Report</a></li>\n'
+  if nodelist: html += '<li><a href="javascript:scrollIntoView(\'nodelist\')">Nodelist</a></li>\n'
+  if timeline: html += '<li><a href="javascript:scrollIntoView(\'timeline\')">Timeline</a></li>\n'
+  if config['error']: html += '<li><a href="javascript:scrollIntoView(\'system_report\')">System Error Report</a></li>\n'
   html += """
   </ul>
   <svg class="section-toc-marker" width="200" height="200">
@@ -746,7 +831,7 @@ def CreateHTML( config,
   html += "  <div>\n"
 
   # First page tables:
-  html += f"""<section id="report">
+  html += f"""<section class="block" id="report">
   {first}
   </section>
 """
@@ -754,11 +839,19 @@ def CreateHTML( config,
   # Overview figure:
   if overview:
     html += f"""
-    <section id="overview" style="margin-top:50px;">
+    <section class="block" id="overview" style="margin-top:50px;">
 """
+    copy_link = { 'name': 'Copy link to this graph', 
+                    'icon': { 'width': 1634, 
+                              'height': 1634, 
+                              'path': 'M 1441 434 q 0 40 -28 68 l -208 208 q -28 28 -68 28 q -42 0 -72 -32 q 3 -3 19 -18.5 t 21.5 -21.5 t 15 -19 t 13 -25.5 t 3.5 -27.5 q 0 -40 -28 -68 t -68 -28 q -15 0 -27.5 3.5 t -25.5 13 t -19 15 t -21.5 21.5 t -18.5 19 q -33 -31 -33 -73 q 0 -40 28 -68 l 206 -207 q 27 -27 68 -27 q 40 0 68 26 l 147 146 q 28 28 28 67 z M 738 1139 q 0 40 -28 68 l -206 207 q -28 28 -68 28 q -39 0 -68 -27 l -147 -146 q -28 -28 -28 -67 q 0 -40 28 -68 l 208 -208 q 27 -27 68 -27 q 42 0 72 31 q -3 3 -19 18.5 t -21.5 21.5 t -15 19 t -13 25.5 t -3.5 27.5 q 0 40 28 68 t 68 28 q 15 0 27.5 -3.5 t 25.5 -13 t 19 -15 t 21.5 -21.5 t 18.5 -19 q 33 31 33 73 z M 1633 434 q 0 -120 -85 -203 l -147 -146 q -83 -83 -203 -83 q -121 0 -204 85 l -206 207 q -83 83 -83 203 q 0 123 88 209 l -88 88 q -86 -88 -208 -88 q -120 0 -204 84 l -208 208 q -84 84 -84 204 t 85 203 l 147 146 q 83 83 203 83 q 121 0 204 -85 l 206 -207 q 83 -83 83 -203 q 0 -123 -88 -209 l 88 -88 q 86 88 208 88 q 120 0 204 -84 l 208 -208 q 84 -84 84 -204 z', 
+                          }, 
+                    'attr': 'help', 
+                    'click': "function() { navigator.clipboard.writeText(`${window.location.href.split('#')[0]}#overview`);}" , 
+                    }
     help_button = { 'name': '1-min average CPU and GPU usage, averaged over all the nodes/GPUs', 
-                    'icon': { 'width': 500, 
-                              'height': 500, 
+                    'icon': { 'width': 512, 
+                              'height': 512, 
                               'path': 'M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 464c-114.7 0-208-93.31-208-208S141.3 48 256 48s208 93.31 208 208S370.7 464 256 464zM256 336c-18 0-32 14-32 32s13.1 32 32 32c17.1 0 32-14 32-32S273.1 336 256 336zM289.1 128h-51.1C199 128 168 159 168 198c0 13 11 24 24 24s24-11 24-24C216 186 225.1 176 237.1 176h51.1C301.1 176 312 186 312 198c0 8-4 14.1-11 18.1L244 251C236 256 232 264 232 272V288c0 13 11 24 24 24S280 301 280 288V286l45.1-28c21-13 34-36 34-60C360 159 329 128 289.1 128z', 
                           }, 
                     'attr': 'help', 
@@ -766,8 +859,8 @@ def CreateHTML( config,
                     }
     datafile=f"{config['appearance']['system']}-{config['appearance']['jobid']}-overview.json"
     download_data_button = {'name': 'Download data', 
-                            'icon': { 'width': 500, 
-                                      'height': 500, 
+                            'icon': { 'width': 514, 
+                                      'height': 514, 
                                       'path': 'M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z', 
                                   }, 
                             'attr': 'download', 
@@ -777,7 +870,7 @@ def CreateHTML( config,
                               full_html=False, 
                               config={'displaylogo': False, 
                                       # 'displayModeBar': True,
-                                      'modeBarButtons': [ [help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d",download_data_button] ], 
+                                      'modeBarButtons': [ [copy_link, help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d",download_data_button] ], 
                                       }, 
                               div_id='overview_plot').replace('"function','function').replace(';}"}','; }}') #.replace('"function(gd)','function(gd)').replace('(gd.data[3])] );}"','(gd.data[3])] );}')
     html += f"""
@@ -794,11 +887,19 @@ def CreateHTML( config,
     for title, graph in section.items():
       id = f"{stype}_{title.replace(' ','_')}"
       html += f"""
-      <section id="{id}">
+      <section class="block" id="{id}">
 """
+      copy_link = { 'name': 'Copy link to this graph', 
+                      'icon': { 'width': 1634, 
+                                'height': 1634, 
+                                'path': 'M 1441 434 q 0 40 -28 68 l -208 208 q -28 28 -68 28 q -42 0 -72 -32 q 3 -3 19 -18.5 t 21.5 -21.5 t 15 -19 t 13 -25.5 t 3.5 -27.5 q 0 -40 -28 -68 t -68 -28 q -15 0 -27.5 3.5 t -25.5 13 t -19 15 t -21.5 21.5 t -18.5 19 q -33 -31 -33 -73 q 0 -40 28 -68 l 206 -207 q 27 -27 68 -27 q 40 0 68 26 l 147 146 q 28 28 28 67 z M 738 1139 q 0 40 -28 68 l -206 207 q -28 28 -68 28 q -39 0 -68 -27 l -147 -146 q -28 -28 -28 -67 q 0 -40 28 -68 l 208 -208 q 27 -27 68 -27 q 42 0 72 31 q -3 3 -19 18.5 t -21.5 21.5 t -15 19 t -13 25.5 t -3.5 27.5 q 0 40 28 68 t 68 28 q 15 0 27.5 -3.5 t 25.5 -13 t 19 -15 t 21.5 -21.5 t 18.5 -19 q 33 31 33 73 z M 1633 434 q 0 -120 -85 -203 l -147 -146 q -83 -83 -203 -83 q -121 0 -204 85 l -206 207 q -83 83 -83 203 q 0 123 88 209 l -88 88 q -86 -88 -208 -88 q -120 0 -204 84 l -208 208 q -84 84 -84 204 t 85 203 l 147 146 q 83 83 203 83 q 121 0 204 -85 l 206 -207 q 83 -83 83 -203 q 0 -123 -88 -209 l 88 -88 q 86 88 208 88 q 120 0 204 -84 l 208 -208 q 84 -84 84 -204 z', 
+                            }, 
+                      'attr': 'help', 
+                      'click': f"function() {{ navigator.clipboard.writeText(`${{window.location.href.split('#')[0]}}#{id}`);}}" , 
+                      }
       help_button = { 'name': config['plots'][systype.replace("$",r"\$")][title]['description'], 
-                      'icon': { 'width': 500, 
-                                'height': 500, 
+                      'icon': { 'width': 512, 
+                                'height': 512, 
                                 'path': 'M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 464c-114.7 0-208-93.31-208-208S141.3 48 256 48s208 93.31 208 208S370.7 464 256 464zM256 336c-18 0-32 14-32 32s13.1 32 32 32c17.1 0 32-14 32-32S273.1 336 256 336zM289.1 128h-51.1C199 128 168 159 168 198c0 13 11 24 24 24s24-11 24-24C216 186 225.1 176 237.1 176h51.1C301.1 176 312 186 312 198c0 8-4 14.1-11 18.1L244 251C236 256 232 264 232 272V288c0 13 11 24 24 24S280 301 280 288V286l45.1-28c21-13 34-36 34-60C360 159 329 128 289.1 128z', 
                             }, 
                       'attr': 'help', 
@@ -807,8 +908,8 @@ def CreateHTML( config,
 
       datafile=f"{config['appearance']['system']}-{config['appearance']['jobid']}-{id.lower()}.json"
       download_data_button = {'name': 'Download data', 
-                              'icon': { 'width': 500, 
-                                        'height': 500, 
+                              'icon': { 'width': 514, 
+                                        'height': 514, 
                                         'path': 'M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z', 
                                     }, 
                               'attr': 'download', 
@@ -818,7 +919,7 @@ def CreateHTML( config,
                                       full_html=False, 
                                       config={'displaylogo': False, 
                                               # 'displayModeBar': True,
-                                              'modeBarButtons': [ [help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d",download_data_button] ], 
+                                              'modeBarButtons': [ [copy_link, help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d",download_data_button] ], 
                                               }, 
                                       div_id=id+('_time_plot' if graph['x']=='ts' else '_plot')).replace('"function','function').replace(';}"}','; }}')
       html += f"""
@@ -829,7 +930,7 @@ def CreateHTML( config,
   if nodelist:
     html += f"""
     <hr class="no-print">
-    <section id="nodelist">
+    <section class="block" id="nodelist">
     <h2>Nodelist</h2>
     {nodelist}
     </section>
@@ -839,11 +940,19 @@ def CreateHTML( config,
   if timeline:
     html += f"""
     <hr class="no-print">
-    <section id="timeline" style="margin-top:50px;">
+    <section class="block" id="timeline" style="margin-top:50px;">
 """
+    copy_link = { 'name': 'Copy link to this graph', 
+                    'icon': { 'width': 1634, 
+                              'height': 1634, 
+                              'path': 'M 1441 434 q 0 40 -28 68 l -208 208 q -28 28 -68 28 q -42 0 -72 -32 q 3 -3 19 -18.5 t 21.5 -21.5 t 15 -19 t 13 -25.5 t 3.5 -27.5 q 0 -40 -28 -68 t -68 -28 q -15 0 -27.5 3.5 t -25.5 13 t -19 15 t -21.5 21.5 t -18.5 19 q -33 -31 -33 -73 q 0 -40 28 -68 l 206 -207 q 27 -27 68 -27 q 40 0 68 26 l 147 146 q 28 28 28 67 z M 738 1139 q 0 40 -28 68 l -206 207 q -28 28 -68 28 q -39 0 -68 -27 l -147 -146 q -28 -28 -28 -67 q 0 -40 28 -68 l 208 -208 q 27 -27 68 -27 q 42 0 72 31 q -3 3 -19 18.5 t -21.5 21.5 t -15 19 t -13 25.5 t -3.5 27.5 q 0 40 28 68 t 68 28 q 15 0 27.5 -3.5 t 25.5 -13 t 19 -15 t 21.5 -21.5 t 18.5 -19 q 33 31 33 73 z M 1633 434 q 0 -120 -85 -203 l -147 -146 q -83 -83 -203 -83 q -121 0 -204 85 l -206 207 q -83 83 -83 203 q 0 123 88 209 l -88 88 q -86 -88 -208 -88 q -120 0 -204 84 l -208 208 q -84 84 -84 204 t 85 203 l 147 146 q 83 83 203 83 q 121 0 204 -85 l 206 -207 q 83 -83 83 -203 q 0 -123 -88 -209 l 88 -88 q 86 88 208 88 q 120 0 204 -84 l 208 -208 q 84 -84 84 -204 z', 
+                          }, 
+                    'attr': 'help', 
+                    'click': "function() { navigator.clipboard.writeText(`${window.location.href.split('#')[0]}#timeline`);}" , 
+                    }
     help_button = { 'name': 'Timeline containing all the steps in a job. A step can be clicked to focus. When zoom-lock is selected, syncs zoom between all graphs.', 
-                    'icon': { 'width': 500, 
-                              'height': 500, 
+                    'icon': { 'width': 512, 
+                              'height': 512, 
                               'path': 'M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM256 464c-114.7 0-208-93.31-208-208S141.3 48 256 48s208 93.31 208 208S370.7 464 256 464zM256 336c-18 0-32 14-32 32s13.1 32 32 32c17.1 0 32-14 32-32S273.1 336 256 336zM289.1 128h-51.1C199 128 168 159 168 198c0 13 11 24 24 24s24-11 24-24C216 186 225.1 176 237.1 176h51.1C301.1 176 312 186 312 198c0 8-4 14.1-11 18.1L244 251C236 256 232 264 232 272V288c0 13 11 24 24 24S280 301 280 288V286l45.1-28c21-13 34-36 34-60C360 159 329 128 289.1 128z', 
                           }, 
                     'attr': 'help', 
@@ -853,7 +962,7 @@ def CreateHTML( config,
                               full_html=False, 
                               config={'displaylogo': False, 
                                       # 'displayModeBar': True,
-                                      'modeBarButtons': [ [help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d"] ], 
+                                      'modeBarButtons': [ [copy_link, help_button, "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d"] ], 
                                       }, 
                               div_id='timeline_plot').replace('"function','function').replace(';}"}','; }}') #.replace('"function(gd)','function(gd)').replace('(gd.data[3])] );}"','(gd.data[3])] );}')
     html += f"""
@@ -864,7 +973,7 @@ def CreateHTML( config,
   if system_report:
     html += f"""
     <hr class="no-print">
-    <section id="system_report">
+    <section class="block" id="system_report">
     <h2>System Error Report</h2>
     {system_report}
     </section>
@@ -1094,8 +1203,8 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
       <td colspan="8"><b>Job GPU Statistics</b></td>
     </tr>
     <tr>
-      <td style="text-align: right;">avg. GPU Usage: </td>
-      <td><b>{data['gpu']['gpu_usage_avg']:.2f}</b> %</td>
+      <td style="text-align: right;">avg. GPU Utilization: </td>
+      <td><b>{data['gpu']['gpu_util_avg']:.2f}</b> %</td>
       <td style="text-align: right;">avg. Mem. Usage Rate: </td>
       <td><b>{float(data['gpu']['gpu_memur_avg']):.2f}</b> %</td>
       <td style="text-align: right;">avg. GPU Temp.: </td>
@@ -1138,7 +1247,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
         <td><b>System Error Report</b></td>
         <td># Msgs: <span style="color: red"><b>{data['rc']['nummsgs']}</b></span></td>
         <td># Nodes: <span style="color: red"><b>{data['rc']['numerrnodes']}</b></span></td>
-        <td colspan="2"><div style='border-bottom: 2px dotted red;' class='tooltip'><a href='#system_report' style='color: red;'><b>{data['rc']['err_type'] if data['rc']['err_type'] else "(Details)"}</b></a><span style='width: 300px;' class='tooltiptextright'>Click for a detailed list of error messages</span></div></td>
+        <td colspan="2"><div style='border-bottom: 2px dotted red;' class='tooltip'><a href="javascript:scrollIntoView('system_report')" style='color: red;'><b>{data['rc']['err_type'] if data['rc']['err_type'] else "(Details)"}</b></a><span style='width: 300px;' class='tooltiptextright'>Click for a detailed list of error messages</span></div></td>
       </tr>
 """
     tables += f"""
@@ -1193,7 +1302,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
           <td style="text-align: center;">{"#GPUs: <b>"+str(data['job']['numgpus'])+"</b>" if gpus else ""}</td>
           <td style="text-align: center;">Last Update: <b>{data['job']['updatetime']}</b></td>
           <td rowspan="2" style="width:6%; padding: 0px; vertical-align:middle;">
-            <a href="{replace_vars(config['appearance']['llview_link'],data['job'])}" class="simple">
+            <a href="{replace_vars(config['appearance']['hostname'],data['job'])}/login.php" class="simple">
             <div style="position: relative;">
               <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 940 555"  height="40px" style="fill-rule:evenodd;" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <g><path style="opacity:0.991" fill="#163b67" d="M 20.5,14.5 C 39.8333,14.5 59.1667,14.5 78.5,14.5C 78.5,140.833 78.5,267.167 78.5,393.5C 90.8333,393.5 103.167,393.5 115.5,393.5C 115.5,297.167 115.5,200.833 115.5,104.5C 134.833,104.5 154.167,104.5 173.5,104.5C 173.5,200.833 173.5,297.167 173.5,393.5C 212.167,393.5 250.833,393.5 289.5,393.5C 289.5,410.833 289.5,428.167 289.5,445.5C 250.833,445.5 212.167,445.5 173.5,445.5C 173.5,457.833 173.5,470.167 173.5,482.5C 243.833,482.5 314.167,482.5 384.5,482.5C 384.5,500.167 384.5,517.833 384.5,535.5C 294.833,535.5 205.167,535.5 115.5,535.5C 115.5,505.5 115.5,475.5 115.5,445.5C 83.5,445.5 51.5,445.5 19.5,445.5C 19.1684,301.763 19.5017,158.097 20.5,14.5 Z"/></g>

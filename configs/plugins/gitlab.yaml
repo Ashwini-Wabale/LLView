@@ -1,0 +1,73 @@
+# Copyright (c) 2023 Forschungszentrum Juelich GmbH.
+# This file is part of LLview. 
+#
+# This is an open source software distributed under the GPLv3 license. More information see the LICENSE file at the top level.
+#
+# Contributions must follow the Contributor License Agreement. More information see the CONTRIBUTING.md file at the top level.
+#
+# Contributors:
+#    Filipe Guimarães (Forschungszentrum Juelich GmbH) 
+
+# Example configuration for a benchmark of 'application'
+application:
+  host: 'https://gitlab.jsc.fz-juelich.de/project/application'
+  token: "some_token" # Token with at minimum "Role: Reporter" and "scope: read_repo"
+  branch: "some_brach" # If the results are not on the master/main branch, it can be changed
+  sources:
+    folders: 
+      - 'folder1'
+      - 'folder2'
+    files:
+      - 'folder3/file1.csv'
+    # Files can be excluded or included (in this order) using regex patterns:
+    exclude:
+      - '.*.json'
+    include:
+      - '.*pattern.*\.csv'
+  # Parameters are the values that are set up for a given run
+  # Each combination will lead to a line in the table, except
+  # when "kind: graph" is given. In this case, each combination
+  # will lead to different curves on the graphs
+  parameters:
+    systemname: # systemname is a mandatory table parameter
+      type: str  # Type str is the default, when it is not given
+      from: filename # Values can be obtained from the filename. In this case, a regex must be given.
+      regex: '(.+?)_.+?\.csv' # The group given in (...) is used for the parameter
+      description: 'System where the benchmark was run' # Description to be shown when hovering over header
+    queue:
+      from: content # from content is the default, when it is not given
+      type: str
+      description: 'Slurm partition'
+    nodes:
+      # Values can also be obtained from calculations of other values. The calculations are based on the header/key names
+      from: "'Distributed Processes'*'Threads per Processes'/'Number of CPUs per Node'"
+      type: int
+      header: nodes
+      kind: graph # Each unique value of this parameter will lead to a curve in the graph (not entries in the table)
+    taskspernode:
+      from: content
+      type: int
+      header: taskspernode # The header/key to be read from the file
+      kind: graph
+    threadspertask:
+      from: content
+      type: int
+      kind: graph
+  # Metrics are the measured values. Each metric have its own graph
+  metrics:
+    ts: # ts is a mandatory variable, as it is used for the x axis on the graphs
+      from: filename
+      regex: '.+?_(.+?)\.csv'
+    runtime:
+      type: float
+      header: runtime[s] # The header/key to be read from the file
+    performance:
+      type: float
+      header: performance[Gflops]
+  # Annotations can be added to the hover information on the graph
+  annotations:
+    jobid:
+      type: str
+    gitcommit:
+      header: 'HPCG git commit'
+      regex: '(^.{0,8}).*' # A regex can be given to convert str variables

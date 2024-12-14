@@ -15,9 +15,10 @@
 - graphpage:
     name:          "sysenv"
     filepath:      "$outputdir/ll/graphpage_sysenv.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 1
     graphs: 
-            
        - name: "system_env_power"
          xcol: "date"
          height: "400px"

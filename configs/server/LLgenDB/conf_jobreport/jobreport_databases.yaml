@@ -127,8 +127,11 @@ jobreport:
         - { name: used_mem_min,    type: mem_t,             LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
         - { name: used_mem_max,    type: mem_t,             LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
         - { name: total_mem_avg,   type: mem_t,             LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
-        - { name: cores_lastts,    type: ts_t,              LLDB_from: pcpucoresstate/pcpucores_aggr_jobid_avg, LLDB_from_lastts: yes, LL_default: -1    }
-        - { name: cores_ndps,      type: count_t,           LLDB_from: pcpucoresstate/pcpucores_aggr_jobid_avg, LL_default: 0 }
+        - { name: currentwatts_avg, type: float_t,          LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
+        - { name: currentwatts_min, type: float_t,          LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
+        - { name: currentwatts_max, type: float_t,          LLDB_from: loadmemstate/loadmem_aggr_by_jobid, LL_default: -1 }  
+        - { name: cores_lastts,     type: ts_t,             LLDB_from: pcpucoresstate/pcpucores_aggr_jobid_avg, LLDB_from_lastts: yes, LL_default: -1    }
+        - { name: cores_ndps,       type: count_t,          LLDB_from: pcpucoresstate/pcpucores_aggr_jobid_avg, LL_default: 0 }
        
         - { name: falastts,        type: ts_t,              LLDB_from: fabricstate/fabric_aggr_by_jobid,   LLDB_from_lastts: yes, LL_default: -1 }
         - { name: fa_ndps,         type: count_t,           LLDB_from: fabricstate/fabric_aggr_by_jobid,   LL_default: 0 }
@@ -145,8 +148,8 @@ jobreport:
         - { name: pckout_min,      type: pck_t,             LLDB_from: fabricstate/fabric_aggr_by_jobid,   LL_default: 0 }
         - { name: pckout_max,      type: pck_t,             LLDB_from: fabricstate/fabric_aggr_by_jobid,   LL_default: 0 }
 
-        - { name: icmaplastts,     type: ts_t,              LLDB_from: fabricstate/fabric_aggr_by_jobid_icmap,   LLDB_from_lastts: yes, LL_default: -1 }
-        - { name: icgroupmap,      type: extralongstr_t,    LLDB_from: fabricstate/fabric_aggr_by_jobid_icmap,   LL_default: "-" }
+        - { name: icmaplastts,     type: ts_t,              LLDB_from: icmapstate/icmap_aggr_by_jobid,   LLDB_from_lastts: yes, LL_default: -1 }
+        - { name: icgroupmap,      type: extralongstr_t,    LLDB_from: icmapstate/icmap_aggr_by_jobid,   LL_default: "-" }
 
         - { name: fs_all_fslastts,       type: ts_t,        LLDB_from: fsusagestate_all/fsusage_aggr_by_jobid/fslastts, LLDB_from_lastts: yes,   LL_default: -1    }
         - { name: fs_all_ndps,           type: count_t,     LLDB_from: fsusagestate_all/fsusage_aggr_by_jobid/fs_ndps,   LL_default: 0 }
@@ -226,26 +229,12 @@ jobreport:
         - { name: gpulastts,       type: ts_t,              LLDB_from: gpustate/gpu_aggr_by_jobid,   LLDB_from_lastts: yes,   LL_default: -1    }
         - { name: gpu_ndps,        type: count_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0 }
         - { name: gpu_numgpus,     type: count_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0 }
-        - { name: gpu_istatus_avg, type: istatus_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0 }
-        - { name: gpu_istatus_min, type: istatus_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_istatus_max, type: istatus_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_eadm_d_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  } 
-        - { name: gpu_eadm_s_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_eaom_d_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_eaom_s_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_evdm_d_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_evdm_s_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_evom_d_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_evom_s_sum,  type: errcnt_t,          LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clk_avg,     type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clk_min,     type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clk_max,     type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clkr_avg,    type: clkr_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clkr_min,    type: clkr_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_clkr_max,    type: clkr_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_link_avg,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_link_min,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_link_max,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_memf_avg,    type: mem_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_memf_min,    type: mem_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_memf_max,    type: mem_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
@@ -258,33 +247,18 @@ jobreport:
         - { name: gpu_memur_avg,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_memur_min,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_memur_max,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pciw_avg,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pciw_min,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pciw_max,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pfst_avg,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pfst_min,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_pfst_max,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pu_avg,      type: power_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pu_min,      type: power_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pu_max,      type: power_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_d_avg,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_d_min,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_d_max,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_s_avg,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_s_min,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtp_s_max,   type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtpd_avg,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtpd_min,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_rtpd_max,    type: num_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_sclk_avg,    type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_sclk_min,    type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_sclk_max,    type: clk_t,             LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_temp_avg,    type: temp_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_temp_min,    type: temp_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_temp_max,    type: temp_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_usage_avg,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_usage_min,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
-        - { name: gpu_usage_max,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_util_avg,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_util_min,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_util_max,   type: rate_t,            LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pcie_tx_avg, type: bytes_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pcie_tx_min, type: bytes_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_pcie_tx_max, type: bytes_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
@@ -297,14 +271,11 @@ jobreport:
         - { name: gpu_nvlink_rx_avg, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_nvlink_rx_min, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpu_nvlink_rx_max, type: bytes_t,         LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_avg,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_min,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
+        - { name: gpu_active_max,  type: float_t,           LLDB_from: gpustate/gpu_aggr_by_jobid,   LL_default: 0  }
         - { name: gpulist,         type: extralongstr_t,    LLDB_from: gpustate/currentjobs_gpulist, LL_default: "" }
         - { name: gpuspec,         type: extralongstr_t,    LLDB_from: gpustate/currentjobs_gpuspec, LL_default: "" }
-        - { name: gpu_node_up_avg,  type: cnt_f_t,          LLDB_from: gpustate/gpu_aggr_by_jobid/node_up_avg,   LL_default: 0  }
-        - { name: gpu_node_up_min,  type: cnt_t,            LLDB_from: gpustate/gpu_aggr_by_jobid/node_up_min,   LL_default: 0  }
-        - { name: gpu_node_up_max,  type: cnt_t,            LLDB_from: gpustate/gpu_aggr_by_jobid/node_up_max,   LL_default: 0  }
-        - { name: gpu_dcgm_up_avg,  type: cnt_f_t,          LLDB_from: gpustate/gpu_aggr_by_jobid/dcgm_up_avg,   LL_default: 0  }
-        - { name: gpu_dcgm_up_min,  type: cnt_t,            LLDB_from: gpustate/gpu_aggr_by_jobid/dcgm_up_min,   LL_default: 0  }
-        - { name: gpu_dcgm_up_max, type: cnt_t,             LLDB_from: gpustate/gpu_aggr_by_jobid/dcgm_up_max,   LL_default: 0  }
 
         - { name: wf_id,           type: jobid_t,           LLDB_from: jobstate/queuedjobs,    LL_default: "" }
         - { name: wf_jid,          type: jobid_t,           LLDB_from: jobstate/queuedjobs,    LL_default: "" }
@@ -395,14 +366,14 @@ jobreport:
                              END AS fs_fastdata_r_score,
 
                              CASE
-                             WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_usage_avg/100.0,1.0), 2)
+                             WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_active_avg,1.0), 2)
                              ELSE 0.5
                              END AS gpu_usage_score,
 
                              CASE
-                               WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
-                               WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)
-                               WHEN (load_avg<0.5*total_cores_avg) THEN ROUND(MIN(load_avg/(0.5*total_cores_avg),1.0), 2)
+                               WHEN (gpu_numgpus>0) AND (usage_avg<1.0) THEN ROUND(0.97*MIN(gpu_active_avg,1.0) + 0.03*usage_avg, 2)
+                               WHEN (gpu_numgpus>0) AND (usage_avg>=1.0) THEN ROUND(0.97*MIN(gpu_active_avg,1.0) + 0.03, 2)
+                               WHEN (usage_avg<1.0) THEN ROUND(MIN(usage_avg,1.0), 2)
                                ELSE 1.0
                              END AS total_score,
 
@@ -417,9 +388,20 @@ jobreport:
                              WHERE jobid IN (select jobid from updatedjobs);
                             # If cpu_usage is available, this is a better score
                             #  CASE
-                            #    WHEN (gpu_numgpus>0) AND (usage_avg<1.0) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03*usage_avg, 2)
-                            #    WHEN (gpu_numgpus>0) AND (usage_avg>=1.0) THEN ROUND(0.97*MIN(gpu_usage_avg/100.0,1.0) + 0.03, 2)
+                            #    WHEN (gpu_numgpus>0) AND (usage_avg<1.0) THEN ROUND(0.97*MIN(gpu_util_avg/100.0,1.0) + 0.03*usage_avg, 2)
+                            #    WHEN (gpu_numgpus>0) AND (usage_avg>=1.0) THEN ROUND(0.97*MIN(gpu_util_avg/100.0,1.0) + 0.03, 2)
                             #    WHEN (usage_avg<1.0) THEN ROUND(MIN(usage_avg,1.0), 2)
+                            #    ELSE 1.0
+                            #  END AS total_score,
+                            # If gpu_active_avg and cpu_usage are not available, this is a better score
+                            #  CASE
+                            #  WHEN (gpu_numgpus>0) THEN ROUND(MIN(gpu_util_avg/100.0,1.0), 2)
+                            #  ELSE 0.5
+                            #  END AS gpu_usage_score,
+                            #  CASE
+                            #    WHEN (gpu_numgpus>0) AND (load_avg<0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_util_avg/100.0,1.0) + 0.03*load_avg/(0.5*total_cores_avg), 2)
+                            #    WHEN (gpu_numgpus>0) AND (load_avg>=0.5*total_cores_avg) THEN ROUND(0.97*MIN(gpu_util_avg/100.0,1.0) + 0.03, 2)
+                            #    WHEN (load_avg<0.5*total_cores_avg) THEN ROUND(MIN(load_avg/(0.5*total_cores_avg),1.0), 2)
                             #    ELSE 1.0
                             #  END AS total_score,
         archive:
@@ -929,8 +911,26 @@ jobreport_stat_sysstat:
       options:
         index: ukey,lastts_saved,name
       %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_pwr
+      options:
+        index: ukey,lastts_saved,name
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_env
+      options:
+        index: ukey,lastts_saved,name
+      %include "./databases/jobreport_databases_stat_tables.yaml"
 
 jobreport_stat_DBstat:
+  tables:
+  - table:
+      name: datasetstat
+      options:
+        index: ukey,lastts_saved,name
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+
+jobreport_stat_DBgraph:
   tables:
   - table:
       name: datasetstat
@@ -984,6 +984,30 @@ jobreport_json_stat:
       name: datasetstat_support
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
+      name: datasetstat_support_queued
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_mapstat
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_alluser
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_user
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allmentors
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allPIs
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allPAs
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_support_allProjects
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
       name: datasetstat_user_running
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
@@ -992,6 +1016,9 @@ jobreport_json_stat:
   - table:
       name: datasetstat_user_threeweeks
       %include "./databases/jobreport_databases_stat_tables.yaml"
+  # - table:
+  #     name: datasetstat_project
+  #     %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_project_running
       %include "./databases/jobreport_databases_stat_tables.yaml"
@@ -1003,6 +1030,15 @@ jobreport_json_stat:
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_templates
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_footer
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_graphpages
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_views
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_job_jureptool
@@ -1032,6 +1068,9 @@ jobreport_json_stat:
       name: datasetstat_dbstat
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
+      name: datasetstat_dbgraph
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
       name: datasetstat_nodeerr
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
@@ -1039,6 +1078,15 @@ jobreport_json_stat:
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_corepattern
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_heatmap
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+
+jobreport_CB_stat:
+  tables:
+  - table:
+      name: datasetstat
       %include "./databases/jobreport_databases_stat_tables.yaml"
 
 jobreport_access_stat:

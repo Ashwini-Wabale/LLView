@@ -47,7 +47,7 @@
                        load_min, load_avg, load_max,
                        usage_min, usage_avg, usage_max,
                        used_cores_min, used_cores_avg, used_cores_max,
-                       gpu_usage_min, gpu_usage_avg, gpu_usage_max
+                       gpu_util_min, gpu_util_avg, gpu_util_max
                        )
                       SELECT 1,1, account, lastts,
                              count(jobid),
@@ -66,7 +66,7 @@
                              MIN(load_min),AVG(load_avg),MAX(load_min),
                              MIN(usage_min),AVG(usage_avg),MAX(usage_max),
                              MIN(used_cores_min),AVG(used_cores_avg),MAX(used_cores_max),
-                             MIN(gpu_usage_min),AVG(gpu_usage_avg),MAX(gpu_usage_max)
+                             MIN(gpu_util_min),AVG(gpu_util_avg),MAX(gpu_util_max)
                       FROM joblist
                       WHERE (lastts >= TS_NOW - intervalmax*60 ) AND (lastts < TS_NOW - intervalmin*60)
                       GROUP BY account,lastts;
@@ -100,9 +100,9 @@
       - { name: used_cores_min,  type: float_t,   time_aggr: MIN }
       - { name: used_cores_avg,  type: float_t,   time_aggr: AVG }
       - { name: used_cores_max,  type: float_t,   time_aggr: MAX }
-      - { name: gpu_usage_min,   type: float_t,   time_aggr: MIN }
-      - { name: gpu_usage_avg,   type: float_t,   time_aggr: AVG }
-      - { name: gpu_usage_max,   type: float_t,   time_aggr: MAX }
+      - { name: gpu_util_min,   type: float_t,   time_aggr: MIN }
+      - { name: gpu_util_avg,   type: float_t,   time_aggr: AVG }
+      - { name: gpu_util_max,   type: float_t,   time_aggr: MAX }
 
 - table:
     name: projstat_per_project_aggr
@@ -120,7 +120,7 @@
                        load_min, load_avg, load_max,
                        usage_min, usage_avg, usage_max,
                        used_cores_min, used_cores_avg, used_cores_max,
-                       gpu_usage_min, gpu_usage_avg, gpu_usage_max
+                       gpu_util_min, gpu_util_avg, gpu_util_max
                        )
                       SELECT account, max(ts),
                              SUM(numjobs_sum),
@@ -131,7 +131,7 @@
                              MIN(load_min),AVG(load_avg),MAX(load_min),
                              MIN(usage_min),AVG(usage_avg),MAX(usage_max),
                              MIN(used_cores_min),AVG(used_cores_avg),MAX(used_cores_max),
-                             MIN(gpu_usage_min),AVG(gpu_usage_avg),MAX(gpu_usage_max)
+                             MIN(gpu_util_min),AVG(gpu_util_avg),MAX(gpu_util_max)
                       FROM projstat_per_project
                       GROUP BY account;
     columns: 
@@ -159,7 +159,7 @@
       - { name: used_cores_min,  type: float_t }
       - { name: used_cores_avg,  type: float_t }
       - { name: used_cores_max,  type: float_t }
-      - { name: gpu_usage_min,   type: float_t }
-      - { name: gpu_usage_avg,   type: float_t }
-      - { name: gpu_usage_max,   type: float_t }
+      - { name: gpu_util_min,   type: float_t }
+      - { name: gpu_util_avg,   type: float_t }
+      - { name: gpu_util_max,   type: float_t }
       

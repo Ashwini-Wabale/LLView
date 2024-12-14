@@ -123,6 +123,7 @@ sub init_convert_functions {
                                 "onlygtnull" => \&onlygtnull,
                                 "as_array"   => \&as_array,
                                 "corepattern" => \&corepattern,
+                                "null_if_empty" => \&null_if_empty
                               };
   return();
 }
@@ -326,30 +327,48 @@ sub bytes_to_mbytes {
 
 sub cut6digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*1000000)/1000000.0);
 }
 
 sub cut5digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*100000)/100000.0);
 }
 
 sub cut4digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*10000)/10000.0);
 }
 
 sub cut3digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*1000)/1000.0);
 }
 
 sub cut2digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*100)/100.0);
 }
 sub cut1digits {
   my ($number)=@_;
+  if($number!~/^[0-9\.]+$/) {
+    return($number); 
+  }
   return(int($number*10)/10.0);
 }
 
@@ -395,6 +414,9 @@ sub jobdays_sincenow {
 sub hourfrac {
   my ($ts,$self)=@_;
   return(0) if(!$ts);
+  if($ts!~/^[0-9\.]+$/) {
+    return($ts); 
+  }
   return(&cut3digits(($ts)/3600.0));
 }
 
@@ -463,13 +485,16 @@ sub wrapstr {
 }
 
 sub corepattern {
-  my ($text,$self)=@_;
-  return($text) if(!$text);
-  my $lh=int(length($text)/2);
-  my $newtext=substr($text,0,$lh)."   ".substr($text,$lh);
-  $newtext=~s/0/_/gs;
-  $newtext=~s/1/X/gs;
-  return($newtext);
+    my ($text,$self)=@_;
+    return($text) if(!$text);
+    my $lh=int(length($text)/2);
+    my @first  = split(//, substr($text,0,$lh));
+    my @second = split(//, substr($text,$lh));
+    my $newtext="";
+    for(my $i=0;$i<=$#first;$i++) {
+	$newtext.="&#xc".$first[$i].$second[$i].";";
+    }
+    return($newtext);
 }
 
 sub hhmmss {
@@ -578,6 +603,17 @@ sub as_array {
     @list = split(/\s*[,; ]\s*/,$string);
   } 
   return(\@list);
+}
+
+sub null_if_empty {
+  my ($number)=@_;
+  if(!defined($number)) {
+    return(0);
+  } elsif($number eq "" ) {
+    return(0);
+  } else {
+    return($number);
+  }
 }
 
 sub systemname {

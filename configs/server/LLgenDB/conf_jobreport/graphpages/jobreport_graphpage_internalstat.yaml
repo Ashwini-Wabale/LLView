@@ -15,6 +15,8 @@
 - graphpage:
     name:          "internalstat"
     filepath:      "$outputdir/ll/graphpage_internalstat.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 2
     graphs: 
        - name: "DBstat_ALL"
@@ -60,12 +62,12 @@
              title: "duration (s)"
          traces:
            - trace:
-             name:   "step_PART2_ALL"
+             name:   "step_DBupdate_ALL"
              ycol: "dt"
              yaxis:  "y"
              type:   "line"
              color:  "#A00000"
-             datapath: "data/_internal/steptimings/step_PART2_ALL.csv"
+             datapath: "data/_internal/steptimings/step_DBupdate_ALL.csv"
 
        - name: "Step_Timings_P4"
          xcol: "date"
@@ -75,12 +77,12 @@
              title: "duration (s)"
          traces:
            - trace:
-             name:   "step_PART4_ALL"
+             name:   "step_JobReport_ALL"
              ycol: "dt"
              yaxis:  "y"
              type:   "line"
              color:  "#A00000"
-             datapath: "data/_internal/steptimings/step_PART4_ALL.csv"
+             datapath: "data/_internal/steptimings/step_JobReport_ALL.csv"
 
        - name: "Step_Timings_DBupdate"
          xcol: "date"
@@ -90,12 +92,12 @@
              title: "duration (s)"
          traces:
            - trace:
-             name:   "step_PART2_LMLDBupdate"
+             name:   "step_DBupdate_LMLDBupdate"
              ycol: "dt"
              yaxis:  "y"
              type:   "line"
              color:  "#A00000"
-             datapath: "data/_internal/steptimings/step_PART2_LMLDBupdate.csv"
+             datapath: "data/_internal/steptimings/step_DBupdate_LMLDBupdate.csv"
 
        - name: "Step_Timings_jobreport"
          xcol: "date"
@@ -105,12 +107,12 @@
              title: "duration (s)"
          traces:
            - trace:
-             name:   "step_PART4_jobreport"
+             name:   "step_JobReport_jobreport"
              ycol: "dt"
              yaxis:  "y"
              type:   "line"
              color:  "#A00000"
-             datapath: "data/_internal/steptimings/step_PART4_jobreport.csv"
+             datapath: "data/_internal/steptimings/step_JobReport_jobreport.csv"
              
        - name: "update_rate"
          xcol: "date"
@@ -155,35 +157,4 @@
              type:   "line"
              color:  "#0000A0"
              datapath: "data/_sysstat/llview_usage.dat"
-             
-       - name: "DCGM_stat"
-         xcol: "date"
-         layout:
-           %include "jobreport_graphpage_layout_range.yaml"
-           yaxis: 
-             title: "number of GPUs"
-         traces:
-           - trace:
-             name:   "#GPUs active"
-             ycol: "numGPUs"
-             yaxis:  "y"
-             type:   "line"
-             color:  "#00A000"
-             datapath: "data/_sysstat/GPU_all.csv"
-           - trace:
-             name:   "#GPUs DCGM up"
-             ycol: "numDCGMup"
-             yaxis:  "y"
-             type:   "line"
-             color:  "#0000A0"
-             datapath: "data/_sysstat/GPU_all.csv"
-           - trace:
-             name:   "#GPUs DCGM down"
-             ycol: "numDCGMdown"
-             yaxis:  "y"
-             type:   "line"
-             color:  "#A00000"
-             datapath: "data/_sysstat/GPU_all.csv"
-             
-            
              

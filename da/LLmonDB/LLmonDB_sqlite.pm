@@ -581,7 +581,7 @@ sub query_hash_values_table {
   # print "query_hash_values_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_hash_values_table(sql: %s...)\n",substr($sql,0,240));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_hash_values_table(table: $table sql: %s...)\n",substr($sql,0,240));
     return(undef);
   }
   $sth->execute();
@@ -611,7 +611,7 @@ sub query_arrayref_of_arrayref_table {
   print "query_arrays_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_arrayref_table(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_arrayref_table(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -641,7 +641,7 @@ sub query_arrayref_of_hashref_table {
   # print "query_arrays_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_hashref_table(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_hashref_table(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -665,7 +665,7 @@ sub query_get_min {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_min(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_min(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -690,7 +690,7 @@ sub query_get_max {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_max(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_max(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -715,7 +715,7 @@ sub query_get_count {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_count(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_count(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   my $rc=$sth->execute();
@@ -760,7 +760,7 @@ sub query_get_execute {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_execute(sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_execute(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   my $rc=$sth->execute();

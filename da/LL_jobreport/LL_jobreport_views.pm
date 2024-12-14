@@ -24,7 +24,7 @@ use LML_da_util qw( check_folder );
 sub create_views {
   my $self = shift;
   my $DB=shift;
-
+  my $basename=$self->{BASENAME};
   my $starttime=time();
   my $config_ref=$DB->get_config();
 
@@ -32,15 +32,15 @@ sub create_views {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # scan all views
   my $vcount=0;
-  foreach my $vref (@{$config_ref->{jobreport}->{views}}) {
+  foreach my $vref (@{$config_ref->{$basename}->{views}}) {
     my $vstarttime=time();
     next if(!exists($vref->{view}));
     next if(!exists($vref->{view}->{name}));
@@ -58,24 +58,29 @@ sub create_views {
 sub process_view {
   my $self = shift;
   my ($vname,$viewref,$varsetref)=@_;
-  my ($ds);
+  my ($dsref);
   my $file=$self->apply_varset($viewref->{filepath},$varsetref);
 
-  foreach my $name ("title","image","home","logo","info","search_field") {
-    $ds->{$name}=$self->apply_varset($viewref->{$name},$varsetref) if(exists($viewref->{$name}));
+  foreach my $name ("title","image","home","logo","info","search_field","status","systems","demo") {
+    $dsref->{$name}=$self->apply_varset($viewref->{$name},$varsetref) if(exists($viewref->{$name}));
   }
   if(exists($viewref->{data})) {
     foreach my $name ("system","permission","view") {
-      $ds->{data}->{$name}=$self->apply_varset($viewref->{data}->{$name},$varsetref) if(exists($viewref->{data}->{$name}));
+      $dsref->{data}->{$name}=$self->apply_varset($viewref->{data}->{$name},$varsetref) if(exists($viewref->{data}->{$name}));
     }
   }
 
   if(exists($viewref->{pages})) {
     foreach my $pref (@{$viewref->{pages}}) {
-      push(@{$ds->{pages}},$self->process_view_page($pref->{page},$varsetref)) if(exists($pref->{page}));
+      push(@{$dsref->{pages}},$self->process_view_page($pref->{page},$varsetref)) if(exists($pref->{page}));
     }
   }
-  
+
+  # get status of datasets from DB
+  my $where="name='".$viewref->{name}."'";
+  $self->get_datasetstat_from_DB($viewref->{stat_database},$viewref->{stat_table},$where);
+  my $ds=$self->{DATASETSTAT}->{$viewref->{stat_database}}->{$viewref->{stat_table}};
+
   # save the JSON file
   my $fh = IO::File->new();
   &check_folder("$file");
@@ -83,8 +88,23 @@ sub process_view {
     print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
-  $fh->print($self->encode_JSON($ds));
+  $fh->print($self->encode_JSON($dsref));
   $fh->close();
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$viewref->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($viewref->{stat_database},$viewref->{stat_table},$where);
+
   # print "process_view: file=$file ready\n";
 
 }
@@ -94,7 +114,7 @@ sub process_view_page {
   my ($pageref,$varsetref)=@_;
   my ($ds);
 
-  foreach my $name ("name", "section", "icon", "context", "href", "default",
+  foreach my $name ("name", "section", "icon", "context", "href", "default", "description",
                     "template", "footer_template", "footer_graph_config", "graph_page_config"
                     ) {
     $ds->{$name}=$self->apply_varset($pageref->{$name},$varsetref) if(exists($pageref->{$name}));
@@ -106,14 +126,7 @@ sub process_view_page {
     }
   }
   if(exists($pageref->{data})) {
-    if(exists($pageref->{data}->{default_columns})) {
-      foreach my $ref (@{$pageref->{data}->{default_columns}}) {
-        push(@{$ds->{data}->{default_columns}},$ref);
-      }
-    }
-    if(exists($pageref->{data}->{view})) {
-      $ds->{data}->{view}=$pageref->{data}->{view};
-    }
+    $ds->{data}=$pageref->{data};
   }
   if(exists($pageref->{functions})) {
     foreach my $ref (@{$pageref->{functions}}) {

@@ -154,7 +154,7 @@
                   color:  "#00B000"
 
 - footersetelem:
-    name: "$FASTDATA"
+    name: "$DATA"
     info: "Job: #JobID#"
     graphs: 
        - graph:

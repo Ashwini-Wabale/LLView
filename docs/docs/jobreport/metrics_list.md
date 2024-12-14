@@ -14,28 +14,33 @@ Here we list the current metrics for each section and detail their meaning.
 
         The abscissa in this graph are the cores instead of the timestamp, and it includes both "Physical" cores (first half) as well as the "Logical" ones (second-half).
 
-=== "CPU"
+=== "Node"
 
-    * **Usage**: 1-min average usage of the CPU across all cores in a node. As the CPU can use simultaneous multithreading (SMT) using physical and logical cores, the value can go up to 200%.
+    * **CPU Usage**: 1-min average usage of the CPU across all cores in a node. As the CPU can use simultaneous multithreading (SMT) using physical and logical cores, the value can go up to 200%.
 
-    * **Physical Cores Used**: Numbers of "Physical cores" with usage above 25% in the last minute. The "Physical cores" represents the first half of the node.
+    * **Physical Cores Used**: Numbers of "Physical cores" with usage above 25% in the last minute. The "Physical cores" in the graphs are represented the first half of the node.
 
-    * **Logical Cores Used**: Numbers of "Logical cores" with usage above 25% in the last minute. The "Logical cores" represents the second half of the node.
+    * **Logical Cores Used**: Numbers of "Logical cores" with usage above 25% in the last minute. The "Logical cores" in the graphs are represented by the second half of the node.
 
     * **Load**: The CPU load is a measure of the amount of computational work that a computer system performs (`1` means a load of 1 core on average). It is a quantity provided by Linux in three numbers: 1-, 5- and 15-min average loads. The load is then collected by LLview via Slurm.  
 
     !!! note
 
-        In the job reports, the `CPU Load` is obtained from Slurm, which at JSC contains the 1-min load average.
+        In the job reports, the `Node: Load` is obtained from Slurm, which at JSC contains the 1-min load average.
 
     * **Memory Usage**: Amount of allocated RAM memory (in GiB) in the node.
 
     !!! note
-        In the job reports, the `Memory Usage` graphs (both for CPU and GPU) is scaled by default
+        In the job reports, the `Node: Memory Usage` graphs (both for CPU and GPU) is scaled by default
         from 0 up to the memory limit of the partition. A swich between Job and System limits can be found on the interactive reports.
 
     !!! danger
         Some system processes may use up to a few GiB of memory on the system, so it is better to plan for 10-15GiB less than the maximum amount.
+
+    * **Current Power**: Current power (in Watts) used in the whole node.
+
+    !!! note
+        The values for the `Node: Current Power` are obtained from the `CurrentWatts` value given by Slurm via `scontrol show nodes`. They are measured every 30s, with LLview collecting them every 1-min (i.e., one measurement is skipped).
 
 === "GPU"
 
@@ -43,8 +48,9 @@ Here we list the current metrics for each section and detail their meaning.
       
     !!! warning
 
-        The `Utilization` graph reflect the usage of at least one kernel on the GPU - it does not contain information of how much occupied it is.
+        The `Utilization` graph reflect the usage of at least one kernel on the GPU - it does not contain information of how much occupied it is. For this reason, it is recommended to check the `Active SM` metric described below.
       
+    * **Active SM**: Average fraction of time at least one warp was active on a multiprocessor, averaged over all multiprocessors.
     * **Memory Usage**: Amount of memory (in GiB) used on the device by the context.
     * **Power**: Current power (in Watts) being used by the GPU.
     * **Temperature**: Current Temperature (in Celsius) on a given GPU. 
@@ -91,6 +97,9 @@ Here we list the current metrics for each section and detail their meaning.
     !!! warning
 
         The `PCIE TX` and `PCIE RX` graphs only include throughput via PCIe bus, i.e., between GPU and CPU.
+
+    * **NVLink TX**: The rate of data transmitted over NVLink in in GiB/s.
+    * **NVLink RX**: The rate of data received over NVLink in GiB/s.
 
 === "I/O (per File System)"
 

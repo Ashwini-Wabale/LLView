@@ -26,7 +26,7 @@ sub DBstat {
   my($dblist,$tmpdir,$MAX_PROCESSES) = @_;
   my($db,$table);
   my($data);
-  my $currentts=time();
+  my $currentts=$self->{CURRENTTS};
   my $currentdate=sec_to_date($currentts);
   printf("$self->{INSTNAME}  LLmonDB: start archive_data at $currentdate\n") if($debug>=3);
 
@@ -115,7 +115,7 @@ sub DBstat {
             "ts", "lastts", "lastts_saved","errmsgts","rc_lastts", "step_lastts",
             "ldlastts", "falastts", "icmaplastts",
             "fs_all_fslastts","fs_project_fslastts", "fs_scratch_fslastts","fs_home_fslastts", "fs_fastdata_fslastts",
-            "gpulastts", "nodeerrts", "startts"
+            "gpulastts", "nodeerrts", "startts", "max_ts", "cores_lastts"
             ) {
           foreach my $colref (@{$columnsref}) {
             if($colref->{name} eq $searchpattern) {

@@ -15,12 +15,18 @@
 - view:
     name:          "user"
     filepath:      "$outputdir/ll/user.json"
-    # title:         "<img src='img/llview_logo.png' alt='LLview logo' style='height: 40px'> Job-reports on <strong>$systemname</strong> - User view"
-    image:         "img/$systemname.jpg"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_views
     logo:          "img/llview_logo_white.svg"
     home:          "login.php"
     info:          "data/_info/info.json"
     search_field:  "jobid"
+    # JSON file on the server with the status of the system 
+    # A link can be added to use when there's no systems menu,
+    # replacing '@@id@@' for the id on the JSON object
+    status: 
+      file: '/status.json'
+      link: 'https://status.jsc.fz-juelich.de/services/@@id@@'
     data:
         system:     "$systemname"
         permission: "user"
@@ -80,7 +86,7 @@
             # functions: [ "select_date" ]
             ref: [ table ]
             data:
-              default_columns: [ info, sched, loadmem, coreusage, network, GPU, "FS_all", final_status, score ]
+              default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
        - page:
             name: "Jobs ended today"
             section: "jobs_ended_today"
@@ -91,7 +97,7 @@
             footer_graph_config: "/data/ll/footer_CPU_GPU.json"
             ref: [ table ]
             data:
-              default_columns: [ info, sched, loadmem, coreusage, network, GPU, "FS_all", final_status, score ]
+              default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
        - page:
             name: "Jobs < 3 weeks"
             section: "jobs_three_weeks"
@@ -102,11 +108,10 @@
             footer_graph_config: "/data/ll/footer_CPU_GPU.json"
             ref: [ table ]
             data:
-              default_columns: [ info, sched, loadmem, coreusage, network, GPU, "FS_all", final_status, score ]
+              default_columns: [ 'JobID', 'General Info', 'Mentor', 'Scheduler', 'Core Usage', 'Load/Memory', 'GPU', 'Status', 'Total Score', 'Reports' ]
        - page:
            name: "Help"
            section: "help"
            icon: "question"
-           href: "https://apps.fz-juelich.de/jsc/llview/docu/"
+           href: "https://llview.fz-juelich.de/docu/"
 
-                 

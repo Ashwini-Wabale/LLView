@@ -27,7 +27,7 @@ This page contains the queued, running and recently finished jobs for all the us
 * **Queue Date**: Date and time the job entered the queue;
 * **Runtime**: Overall runtime (for running jobs);
 * **Start Date (est)**: Date and time the job started (or estimate);
-* **End Date (est)**: Date and time the job ended (or estimate done by start date + requested walltime);
+* **Est. End Date**: Estimated end date of the job (Start Date + requested Walltime);
 * **ArrayJobID**: The JobID of the first element of the job array (Slurm);
 * **ArrayTaskID**: Array index of this particular entry, either a single number of an expression identifying the entries represented by this job record (e.g. "5-1024") (Slurm);
 * **Reservation**: Reservation used by the job.

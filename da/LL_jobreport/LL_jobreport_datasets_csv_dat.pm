@@ -42,9 +42,34 @@ sub process_data_query_and_save_csv_dat {
     printf("$self->{INSTNAME}  --> WARNING: query database %s not known, skipping dataset $dataset->{name}\n",$dataset->{data_database});
     return;
   }
-  if(!exists($self->{TABLES}->{$dataset->{data_database}}->{$dataset->{data_table}})) {
-    printf("$self->{INSTNAME}  --> WARNING: query table %s/%s not known, skipping dataset $dataset->{name}\n",$dataset->{data_database},$dataset->{data_table});
-    return;
+#  if(!exists($self->{TABLES}->{$dataset->{data_database}}->{$dataset->{data_table}})) {
+#    printf("$self->{INSTNAME}  --> WARNING: query table %s/%s not known, skipping dataset $dataset->{name}\n",$dataset->{data_database},$dataset->{data_table});
+#    return;
+#  }
+
+  # check data tables
+  my $from;
+  my $joincol="";
+  my @datatables=split(/\s*,\s*/,$dataset->{data_table});
+  if($#datatables>0) {
+      my @fromlist; my $c=0;
+      if(!exists($dataset->{data_table_join_col})) {
+        print STDERR "LLmonDB:    ERROR, attribute data_table_join_col missing for dataset $dataset->{name}\n";
+        return();
+      } else {
+        $joincol=$dataset->{data_table_join_col};
+      }
+      foreach my $d (@datatables) {
+        $c++;
+        push(@fromlist,sprintf("%s D%d",$d,$c));
+        if($c>1) {
+          $where.=" AND " if($where);
+          $where.=sprintf("D1.%s=D%d.%s",$joincol,$c,$joincol);
+        }
+      }
+      $from = join(",",@fromlist);
+  } else {
+      $from = sprintf("%s D%d",$dataset->{data_table},1);
   }
 
   if(exists($dataset->{time_aggr})) {
@@ -56,6 +81,13 @@ sub process_data_query_and_save_csv_dat {
   # pre-process column_convert
   my $col_convert_by_col=$self->{LL_CONVERT}->init_column_convert_mapping($dataset->{column_convert}) if(exists($dataset->{column_convert}));
   my $col_convert_by_colnum;
+
+  # check delimiter
+  my $delimiter=',';
+  if(exists($dataset->{csv_delimiter})) {
+      $delimiter=$dataset->{csv_delimiter};
+  }
+
   
   # check columns
   my (@cols,@cols_fmt,$format,$header,$tscol,$cnt);
@@ -79,7 +111,8 @@ sub process_data_query_and_save_csv_dat {
       $col_convert_by_colnum->{$cnt}=$col_convert_by_col->{$ccol};
     }
     $cnt++;
-    push(@cols,"D.$c$as"); push(@cols_fmt,"%s");
+    push(@cols,($c eq $joincol)?"D1.$c$as":"$c$as");
+    push(@cols_fmt,"%s");
   }
   
   # predefine format string for printing
@@ -94,7 +127,7 @@ sub process_data_query_and_save_csv_dat {
     if(exists($dataset->{format_str})) {
       $format=$dataset->{format_str} ;
     } else {
-      $format=join(",",@cols_fmt);
+      $format=join($delimiter,@cols_fmt);
     }
     if(exists($dataset->{header})) {
       $header=$dataset->{header};
@@ -114,7 +147,7 @@ sub process_data_query_and_save_csv_dat {
 
   # generate multiple files from one query?
   if(exists($dataset->{column_filemap})) {
-    my $sql=sprintf("SELECT %s FROM %s.%s D INNER JOIN  %s S ON D.%s=S.ukey AND D.%s>S.lastts_saved AND S.NAME=\"%s\" %s ORDER BY S.dataset,D.%s",
+    my $sql=sprintf("SELECT %s FROM %s.%s D1 INNER JOIN  %s S ON D1.%s=S.ukey AND D1.%s>S.lastts_saved AND S.NAME=\"%s\" %s ORDER BY S.dataset,D1.%s",
                     join(",",@cols),
                     $dataset->{data_database},
                     $dataset->{data_table},
@@ -133,7 +166,7 @@ sub process_data_query_and_save_csv_dat {
                                       type => "get_execute",
                                       sql => $sql,
                                       execute => sub {
-                                                $self->write_data_to_multi_file_csv_dat([@_],$format,$ds,$tscol,$header,$col_convert_by_colnum);
+                                                $self->write_data_to_multi_file_csv_dat([@_],$format,$ds,$tscol,$header,$col_convert_by_colnum,$delimiter);
                                               }
                                     });
   # check all files in $ds: if not exists create it 
@@ -158,17 +191,17 @@ sub process_data_query_and_save_csv_dat {
       foreach my $c (split(/\s*,\s*/,$dataset->{order})) {
         $c =~ s/^\s+|\s+$//g;
         ($orderby, $ordertype) = split(' ', $c);
-        push(@order_cols,"D.$orderby $ordertype");
+        push(@order_cols,"D1.$orderby $ordertype");
       }
       $order=sprintf("ORDER BY %s",join(",",@order_cols));
     } else {
-      $order = sprintf("ORDER BY D.%s",$dataset->{column_ts})
+      $order = sprintf("ORDER BY D1.%s",$dataset->{column_ts})
     }
 
     # build and call the query
-    my $sql=sprintf("SELECT %s FROM %s D %s %s;",
+    my $sql=sprintf("SELECT %s FROM %s %s %s;",
                       join(",",@cols),
-                      $dataset->{data_table},
+                      $from,
                       ($where)?"WHERE $where":"",
                       $order
                     );
@@ -183,7 +216,7 @@ sub process_data_query_and_save_csv_dat {
                                               $self->write_data_to_single_file_csv_dat([@_],
                                                           $format,$ds,$tscol,$header,
                                                           $col_convert_by_colnum,
-                                                          $filepath_parsed);
+                                                          $filepath_parsed,$delimiter);
                                                 }
                                   });
     # print "TMPDEB: count=$count\n";
@@ -192,7 +225,7 @@ sub process_data_query_and_save_csv_dat {
       $self->write_data_to_single_file_csv_dat( undef,
                                                 $format,$ds,$tscol,$header,
                                                 $col_convert_by_colnum,
-                                                $filepath_parsed);
+                                                $filepath_parsed,$delimiter);
     }
   }
   
@@ -202,7 +235,7 @@ sub process_data_query_and_save_csv_dat {
 
 sub write_data_to_multi_file_csv_dat {
   my $self = shift;
-  my($dataref,$format,$ds,$tscol,$header,$col_convert)=@_;
+  my($dataref,$format,$ds,$tscol,$header,$col_convert,$delimiter)=@_;
   my $file=shift(@{$dataref});
 
   #  same file as last entry?
@@ -213,7 +246,7 @@ sub write_data_to_multi_file_csv_dat {
     # open new file
     my $openop;
     
-    if($ds->{$file}->{status} == 0) {
+    if($ds->{$file}->{status} == FSTATUS_NOT_EXISTS) {
       $openop=">";
       $self->{COUNT_OP_NEW_FILE}++;
     } else {
@@ -225,8 +258,8 @@ sub write_data_to_multi_file_csv_dat {
       # print STDERR "LLmonDB:    ERROR, cannot open $self->{OUTDIR}/$file\n";
       return();
     }
-    $self->{SAVE_LASTFH}->print($header) if($ds->{$file}->{status} == 0);
-    $ds->{$file}->{status}=1;
+    $self->{SAVE_LASTFH}->print($header) if($ds->{$file}->{status} == FSTATUS_NOT_EXISTS);
+    $ds->{$file}->{status}=FSTATUS_EXISTS;
     $self->{SAVE_LASTFILE}=$file;
     # printf("%s write_data_to_multi_file_csv_dat:      open file %s %s\n",$self->{INSTNAME},$file,$openop);
   }
@@ -236,6 +269,7 @@ sub write_data_to_multi_file_csv_dat {
   } else {
     $ds->{$file}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
   }
+  $ds->{$file}->{mts}=$self->{CURRENTTS}; # last change ts
 
   # convert data
   while ( my ($colnum, $func) = each(%{$col_convert}) ) {
@@ -251,14 +285,16 @@ sub write_data_to_multi_file_csv_dat {
   if($check) {
     return if(!$self->check_printf($file,$format,$dataref));
   }
-
+  for(my $colnum=0;$colnum<$#{$dataref};$colnum++) {
+      $dataref->[$colnum]=~s/$delimiter/\\$delimiter/gs;
+  }
   $self->{SAVE_LASTFH}->printf($format,@{$dataref}) ; 
   $self->{COUNT_OP_WRITE_LINE}++;
 }
 
 sub write_data_to_single_file_csv_dat {
   my $self = shift;
-  my($dataref,$format,$ds,$tscol,$header,$col_convert,$file)=@_;
+  my($dataref,$format,$ds,$tscol,$header,$col_convert,$file,$delimiter)=@_;
 
   #  same file as last entry?
   if( $self->{SAVE_LASTFILE} ne $file ) {
@@ -279,7 +315,7 @@ sub write_data_to_single_file_csv_dat {
       return();
     }
     $self->{SAVE_LASTFH}->print($header);
-    $ds->{$file}->{status}=1;
+    $ds->{$file}->{status}=FSTATUS_EXISTS;
     $self->{SAVE_LASTFILE}=$file;
   }
   return() if(!defined($dataref));
@@ -289,7 +325,7 @@ sub write_data_to_single_file_csv_dat {
   } else {
     $ds->{$file}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
   }
-
+  $ds->{$file}->{mts}=$self->{CURRENTTS}; # last change ts
 
   return() if(!defined($dataref));
   
@@ -302,6 +338,9 @@ sub write_data_to_single_file_csv_dat {
     return if(!$self->check_printf($file,$format,$dataref));
   }
 
+  for(my $colnum=0;$colnum<$#{$dataref};$colnum++) {
+      $dataref->[$colnum]=~s/$delimiter/\\$delimiter/gs;
+  }
   $self->{SAVE_LASTFH}->printf($format,@{$dataref}) ; 
   $self->{COUNT_OP_WRITE_LINE}++;
 }
@@ -314,14 +353,14 @@ sub check_printf {
   my $numfmts = scalar @fmts;
   my $numdata = scalar @{$dataref};
   if($numfmts != $numdata) {
-    printf(STDERR "ERROR: data convert: numfmt=%d numdata=%d (%s) [%s] vs.[%s]\n",$numfmts,$numdata,$file,$myformat,join(",",@{$dataref}));
+    printf(STDERR "ERROR: data convert: #fmts=%d numdata=%d (%s) fmt=[%s] vs. data=[%s]\n",$numfmts,$numdata,$file,$myformat,join(",",@{$dataref}));
     return(0);
   }
   for(my $c=0;$c<=$#fmts;$c++) {
     my $fmt=$fmts[$c];$fmt=~s/[-\d.]+//gs;
     if($fmt=~/%[dfe]/) {
       if($dataref->[$c]!~/^[\d\.\+\-e]+$/) {
-        printf(STDERR "ERROR data convert: fmt#=%d (%s) [%s] vs.[%s]\n",$numfmts,$file,$fmt,$dataref->[$c]);
+        printf(STDERR "ERROR data convert: #fmts=%d fmt#=%d (%s) fmt=[%s] vs. data=[%s]\n",$numfmts,$c+1,$file,$fmt,$dataref->[$c]);
         printf(STDERR "ERROR data convert: %s\n",Dumper($dataref));
       }
     }

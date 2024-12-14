@@ -15,6 +15,8 @@
 - graphpage:
     name:          "sysio"
     filepath:      "$outputdir/ll/graphpage_sysio.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_graphpages
     columns: 1
     graphs: 
        - name: "Read_activity"

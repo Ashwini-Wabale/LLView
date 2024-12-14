@@ -161,9 +161,9 @@ sub adapt_data {
     my $nodeid=$ref->{id};
     if(exists($data->{CINODES_BY_NODEID}->{$nodeid})) {
       $ref->{usage}=$data->{CINODES_BY_NODEID}->{$nodeid}->{usage};
-      $ref->{used_cores}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused}+$data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused};
+      $ref->{used_cores}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused}+(defined($data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused})? $data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused}: 0);
       $ref->{used_cores_phys}=$data->{CINODES_BY_NODEID}->{$nodeid}->{physcoresused};
-      $ref->{used_cores_logic}=$data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused};
+      $ref->{used_cores_logic}=(defined($data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused})? $data->{CINODES_BY_NODEID}->{$nodeid}->{logiccoresused}: 0);
     }
   }
 
@@ -284,7 +284,7 @@ sub adapt_data {
     if(exists($jobref->{queuedate})) {
       my $endwaitts=$currentts;
       if(exists($jobref->{starttime})) {
-        if($jobref->{starttime}) {
+        if($jobref->{starttime} && $jobref->{starttime} ne "Unknown") {
           $endwaitts=LML_da_util::date_to_secj($jobref->{starttime});
         }
       }
@@ -293,7 +293,7 @@ sub adapt_data {
       } 
     }
     if(exists($jobref->{starttime})) {
-      if($jobref->{starttime}) {
+      if($jobref->{starttime} && $jobref->{starttime} ne "Unknown") {
         $jobref->{timetostart}=LML_da_util::date_to_secj($jobref->{starttime})-$currentts;
         delete($jobref->{timetostart}) if($jobref->{timetostart}<0); # already started
         # printf("TMPDEB: timetostart: %d %d -> %d\n",LML_da_util::date_to_secj($jobref->{starttime}),$currentts,LML_da_util::date_to_secj($jobref->{starttime})-$currentts);

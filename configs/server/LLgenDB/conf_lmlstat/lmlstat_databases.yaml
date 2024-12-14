@@ -188,23 +188,19 @@ lmlstat:
         - { name: status,      type: status_t,   LLDB_from: gpustate/gpu, LML_default: 'U' }
         - { name: gpu_clk,     type: clk_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_clkr,    type: clkr_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_eadm_d , type: errcnt_t,   LLDB_from: gpustate/gpu, LML_default: 0 } 
-        - { name: gpu_eadm_s , type: errcnt_t,   LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_evdm_d , type: errcnt_t,   LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_evdm_s , type: errcnt_t,   LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_link   , type: num_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_memf   , type: mem_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_memt   , type: mem_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_memu   , type: mem_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_memur  , type: rate_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_pciw   , type: num_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_pfst   , type: num_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_pu     , type: power_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_sclk   , type: clk_t,      LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_temp   , type: temp_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
-        - { name: gpu_usage  , type: rate_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_util   , type: rate_t,     LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_pcie_tx, type: bytes_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: gpu_pcie_rx, type: bytes_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_nvlink_tx, type: bytes_t,  LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_nvlink_rx, type: bytes_t,  LLDB_from: gpustate/gpu, LML_default: 0 }
+        - { name: gpu_active , type: float_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: ncores,      type: tasks_t,    LLDB_from: gpustate/gpu, LML_default: 0 }
         - { name: features,    type: feature_t,  LLDB_from: gpustate/gpu, LML_default: "-" }
         - { name: state,       type: status_t,   LLDB_from: gpustate/gpu, LML_default: '-' }

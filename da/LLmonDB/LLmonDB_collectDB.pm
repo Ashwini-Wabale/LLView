@@ -29,6 +29,7 @@ my $patwrd="([\^\\s]+)";       # Pattern for Work (all noblank characters)
 sub process_collectDB_update {
   my($self) = shift;
   my($action) = shift;
+  my($scan_db) = shift;
   my($db,$table,$options,$known_tables);
 
   printf("$self->{INSTNAME} LLmonDB: start process_collectDB_update\n") if($debug>=3);
@@ -44,6 +45,9 @@ sub process_collectDB_update {
   
   # find table which need collectDB_update
   foreach $db (sort(keys(%{$self->{CONFIGDATA}->{databases}}))) {
+    if(defined($scan_db)) {
+      next if($db ne $scan_db);
+    }
     foreach my $t (@{$self->{CONFIGDATA}->{databases}->{$db}->{tables}}) {
       my $tableref=$t->{table};
       $table=$tableref->{name};
@@ -52,8 +56,14 @@ sub process_collectDB_update {
         $options=$tableref->{options};
         if( exists($options->{update}) ) {
           if($action=~/LLjobreport/) {
+            my $what=undef;
             if(exists($options->{update}->{LLjobreport})) {
-              my $what=$options->{update}->{LLjobreport};
+              $what=$options->{update}->{LLjobreport};
+            }
+            if(exists($options->{update}->{LLreport})) {
+              $what=$options->{update}->{LLreport};
+            }
+            if(defined($what)) {
               if( $what =~ /update_from_other_db\($patwrd,$patwrd,$patwrd\)/ ) {
                 my($ukey,$stab,$ktab)=($1,$2,$3);
                 

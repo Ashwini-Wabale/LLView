@@ -14,53 +14,87 @@
 - footer:
     name:          "CPU_GPU"
     filepath:      "$outputdir/ll/footer_CPU_GPU.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
-       %include "./footers/jobreport_footer_loadmem.yaml"
-    #    %include "./footers/jobreport_footer_cpuusage.yaml"
-    #    %include "./footers/jobreport_footer_cpucores.yaml"
-    #    %include "./footers/jobreport_footer_memory.yaml"
-    #    %include "./footers/jobreport_footer_gpu.yaml"
-    #    %include "./footers/jobreport_footer_fabric.yaml"
+      #  %include "./footers/jobreport_footer_loadmem.yaml"
+       %include "./footers/jobreport_footer_cpuusage.yaml"
+       %include "./footers/jobreport_footer_cpucores.yaml"
+       %include "./footers/jobreport_footer_memory.yaml"
+       %include "./footers/jobreport_footer_gpu.yaml"
+       %include "./footers/jobreport_footer_fabric.yaml"
     #    %include "./footers/jobreport_footer_fs.yaml"
 
 - footer:
     name:          "sysstat"
     filepath:      "$outputdir/ll/footer_sysstat.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_sysstat.yaml"
 
 - footer:
     name:          "sysrackpwr"
     filepath:      "$outputdir/ll/footer_sysrackpwr.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_sysrackpwr.yaml"
 
 - footer:
     name:          "queuedjobs"
     filepath:      "$outputdir/ll/footer_queuedjobs.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_queuedjobs.yaml"
 
 - footer:
     name:          "DBstat"
     filepath:      "$outputdir/ll/footer_DBstat.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_DBstat.yaml"
 
 - footer:
+    name:          "DBgraph"
+    filepath:      "$outputdir/ll/footer_DBgraph.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
+    footerset:
+       %include "./footers/jobreport_footer_DBgraph.yaml"
+
+- footer:
     name:          "steptimings"
     filepath:      "$outputdir/ll/footer_steptimings.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_steptimings.yaml"
 
 - footer:
     name:          "projstat"
     filepath:      "$outputdir/ll/footer_projstat.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
        %include "./footers/jobreport_footer_projstat.yaml"
 
+# - footer:
+#     name:          "corepattern"
+#     filepath:      "$outputdir/ll/footer_corepattern.json"
+#     stat_database: jobreport_json_stat
+#     stat_table:    datasetstat_footer
+#     footerset:
+#        %include "./footers/jobreport_footer_corepattern.yaml"
+
 - footer:
-    name:          "corepattern"
-    filepath:      "$outputdir/ll/footer_corepattern.json"
+    name:          "memheatmap"
+    filepath:      "$outputdir/ll/footer_memheatmap.json"
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_footer
     footerset:
-       %include "./footers/jobreport_footer_corepattern.yaml"
+       %include "./footers/jobreport_footer_memheatmap.yaml"
+
+# %include "../conf_cb/footer_cb.yaml"

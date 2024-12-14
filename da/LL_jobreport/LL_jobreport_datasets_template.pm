@@ -29,7 +29,10 @@ sub process_dataset_template {
     $file=~s/\$\{$key\}/$value/gs;	$file=~s/\$$key/$value/gs;
   }
   # print "process_dataset_template: file=$file\n";
-  
+
+  # get status of datasets from DB
+  $self->get_datasetstat_from_DB($dataset->{stat_database},$dataset->{stat_table});
+
   my $ds=$self->{DATASETSTAT}->{$dataset->{stat_database}}->{$dataset->{stat_table}};
 
   # scan columns
@@ -42,6 +45,7 @@ sub process_dataset_template {
     my $csort="N";	    $csort=$colref->{sort} if(exists($colref->{sort}));
     my $cgroup="";
     if(exists($colref->{group})) {
+      $colref->{group} =~ s/\s/_/gs;
       $cgroup="group_".$colref->{group};
     }
     my $ctitle=$name;   $ctitle=$colref->{title} if(exists($colref->{title}));
@@ -51,7 +55,7 @@ sub process_dataset_template {
     my $bg_color_map=""; $bg_color_map="{{cell_color ".$colref->{bg_color_map}."}}; " if(exists($colref->{bg_color_map}));
     my $fg_color="";    $fg_color="color: {{{".$colref->{fg_color}."}}}; " if(exists($colref->{fg_color}));
     my $style="";       $style=$colref->{style}."; " if(exists($colref->{style}));
-    my $cdataformat=""; $cdataformat=$colref->{data_format}." " if(exists($colref->{data_format}));
+    my $cdataformat=""; $cdataformat=$colref->{data_format} if(exists($colref->{data_format}));
     my $cdatapre="";    $cdatapre=$colref->{data_pre}." " if(exists($colref->{data_pre}));
     my $cdatapost="";   $cdatapost=" ".$colref->{data_post} if(exists($colref->{data_post}));
     my $noheader=0;     $noheader=$colref->{noheader} if(exists($colref->{noheader}));
@@ -73,7 +77,9 @@ sub process_dataset_template {
     #  filter
     $data_tfilter.="              ";
     if(!$noheader) {
-      $data_tfilter.="<th><input class=\"text-center\" type=\"text\" placeholder=\"filter\"/></th>\n";
+      my $ctitle_escaped = $ctitle;
+      $ctitle_escaped =~ s/\s/_/gs;
+      $data_tfilter.="<th><input class=\"text-center\" type=\"text\" placeholder=\"filter\" id=\"filter_${ctitle_escaped}\"/></th>\n";
     } else {
       $data_tfilter.="<th></th>\n";
     }
@@ -84,7 +90,19 @@ sub process_dataset_template {
     $data_tbody.="              ";
     $data_tbody.="<td ${styles} class=\"${cformat}\">";
     $data_tbody.="<span>" if($bg_color_map || $cellcolor);
-    $data_tbody.="{{{$cdataformat$cdatapre$name$cdatapost}}}";
+    # When data_format is given, it can support different helper functions separated by comma
+    # They are applied from right (first) to left (last). For the Handlebars, it must have the format
+    # {{function3 (function2 (function1 <argument>)))}}
+    my $finalformat = "$cdatapre$name$cdatapost";
+    if ($cdataformat) {
+      my @dataformats = reverse split(',', $cdataformat);
+      foreach my $dataformat (@dataformats) {
+        $finalformat = "(".$dataformat." ".$finalformat.")";
+      }
+      $finalformat = substr($finalformat, 1, -1);
+    }
+    $data_tbody.="{{{$finalformat}}}";
+    # $data_tbody.="{{{$cdataformat$cdatapre$name$cdatapost}}}";
     $data_tbody.="</span>" if($bg_color_map || $cellcolor);
     $data_tbody.="</td>\n";
   }
@@ -125,6 +143,21 @@ sub process_dataset_template {
   }
   $fh->print($data); 
   $fh->close();
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$dataset->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($dataset->{stat_database},$dataset->{stat_table});
+
 }
 
 1;

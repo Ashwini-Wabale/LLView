@@ -24,6 +24,7 @@ use LML_da_util qw( check_folder );
 sub create_footerfiles {
   my $self = shift;
   my $DB=shift;
+  my $basename=$self->{BASENAME};
 
   my $starttime=time();
   my $config_ref=$DB->get_config();
@@ -32,15 +33,15 @@ sub create_footerfiles {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # scan all footerfiles
   my $fcount=0;
-  foreach my $fref (@{$config_ref->{jobreport}->{footerfiles}}) {
+  foreach my $fref (@{$config_ref->{$basename}->{footerfiles}}) {
     my $fstarttime=time();
     next if(!exists($fref->{footer}));
     my $fname=$fref->{footer}->{name};
@@ -56,20 +57,25 @@ sub create_footerfiles {
 sub process_footer {
   my $self = shift;
   my ($fname,$footerref,$varsetref)=@_;
-  my ($ds);
+  my($dsref);
   my $file=$self->apply_varset($footerref->{filepath},$varsetref);
 
   if(0) {
     foreach my $name ("name") {
-      $ds->{$name}=$self->apply_varset($footerref->{$name},$varsetref) if(exists($footerref->{$name}));
+      $dsref->{$name}=$self->apply_varset($footerref->{$name},$varsetref) if(exists($footerref->{$name}));
     }
   }
   if(exists($footerref->{footerset})) {
     foreach my $setref (@{$footerref->{footerset}}) {
-      push(@{$ds},$self->process_footersetelem($setref->{footersetelem},$varsetref)) if(exists($setref->{footersetelem}));
+      push(@{$dsref},$self->process_footersetelem($setref->{footersetelem},$varsetref)) if(exists($setref->{footersetelem}));
     }
   }
-  
+
+  # get status of datasets from DB
+  my $where="name='".$footerref->{name}."'";
+  $self->get_datasetstat_from_DB($footerref->{stat_database},$footerref->{stat_table},$where);
+  my $ds=$self->{DATASETSTAT}->{$footerref->{stat_database}}->{$footerref->{stat_table}};
+
   # save the JSON file
   my $fh = IO::File->new();
   &check_folder("$file");
@@ -77,9 +83,23 @@ sub process_footer {
     print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
-  $fh->print($self->encode_JSON($ds));
+  $fh->print($self->encode_JSON($dsref));
   $fh->close();
   print "process_view: file=$file ready\n";
+
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$footerref->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($footerref->{stat_database},$footerref->{stat_table},$where);
 }
 
 sub process_footersetelem {
@@ -110,11 +130,13 @@ sub process_footersetelemgraph {
 
   # print Dumper($graphref);
 
-  foreach my $name ("name", "xcol", "datapath") {
+  # foreach my $name ("name", "xcol", "datapath") {
+  foreach my $name (keys(%{$graphref})) {
+    next if ($name eq "traces"); # To skip the traces key (that is parsed below)
     $ds->{$name}=$self->apply_varset($graphref->{$name},$varsetref) if(exists($graphref->{$name}));
   }
 
-  $ds->{layout}=$graphref->{layout};
+  # $ds->{layout}=$graphref->{layout};
   
   if(exists($graphref->{traces})) {
     foreach my $traceref (@{$graphref->{traces}}) {
@@ -130,8 +152,8 @@ sub process_footersettrace {
   my ($traceref,$varsetref)=@_;
   my ($ds);
 
-  
-  foreach my $name ("xcol", "ycol", "name", "yaxis", "type", "color", "factor", "map") {
+  # Parse all keys for plotly graphs
+  foreach my $name (keys(%{$traceref})) {
     $ds->{$name}=$self->apply_varset($traceref->{$name},$varsetref) if(exists($traceref->{$name}));
   }
 

@@ -33,6 +33,7 @@ my $opt_desthost ="";
 my $opt_rsyncopts="";
 my $opt_verbose=1;
 my $opt_timings=0;
+my $opt_logfile=undef;
 my $opt_exclude ="";
 my $opt_dump=0;
 usage($0) if( ! GetOptions( 
@@ -47,7 +48,8 @@ usage($0) if( ! GetOptions(
                 'port=s'           => \$opt_port,
                 'desthost=s'       => \$opt_desthost,
                 'rsyncopts=s'      => \$opt_rsyncopts,
-                'exclude=s'        => \$opt_exclude
+                'exclude=s'        => \$opt_exclude,
+                'logfile=s'        => \$opt_logfile
                 ) );
 
 &usage($0) if(!$opt_indir);
@@ -69,6 +71,20 @@ if($opt_verbose) {
   printf("desthost = %s\n",$opt_desthost);
   printf("rsyncopts = %s\n",$opt_rsyncopts);
   printf("exclude   = %s\n",$opt_exclude);
+  printf("logfile   = %s\n",$opt_logfile) if(defined($opt_logfile));
+}
+
+if(defined($opt_logfile)) {
+  $opt_rsyncopts.=" --log-file=$opt_logfile";
+  if ( -f $opt_logfile ) {
+    my $cmd="mv $opt_logfile ${opt_logfile}_last";
+    my $rc=0;
+    printf "executing: %s\n",$cmd if($opt_verbose);
+    system($cmd);$rc=$?;
+    if($rc) {
+      printf STDERR "failed executing: %s rc=%d\n",$cmd,$rc; exit(-1);
+    }
+  }
 }
 
 my $tstart=time;
@@ -81,14 +97,14 @@ my $trun=sprintf("%14.6f",$tend-$tstart);
 print "transfertime: $trun ($tstart,$tend)\n";
 
 sub _ddssh_rsync {
-  my($indir,$outdir,$keyfile,$port,$login,$server,$rsyncopts,$exclude,$verbose)=@_;
+  my($indir,$outdir,$keyfile,$port,$login,$server,$rsyncopts,$exclude,$opt_verbose)=@_;
   my $rc=0;
 
   my $excludeopts="";
   $excludeopts="--exclude \'$exclude\'" if($exclude); 
   my $cmd="rsync -e \"ssh -p $port -i $keyfile\" $rsyncopts $excludeopts $indir $login"."\@"."$server:$outdir";
 
-  printf "executing: %s\n",$cmd if($verbose);
+  printf "executing: %s\n",$cmd if($opt_verbose);
   system($cmd);$rc=$?;
   if($rc) {
     printf STDERR "failed executing: %s rc=%d\n",$cmd,$rc; 

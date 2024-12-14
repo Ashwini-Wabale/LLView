@@ -50,22 +50,25 @@ databases:
   # load, memory, status of nodes 
   %include "conf_cpu/loadmem.yaml"
 
-  # # per core info
-  # %include "conf_cpu/pcpucores.yaml"
+  # per core info
+  %include "conf_cpu/pcpucores.yaml"
 
-#   # interconnect info (fabric)
-#   %include "conf_fabric/fabric.yaml"
+  # interconnect map info
+  %include "conf_fabric/icmap.yaml"
 
-#   # file system usage (fsusage)  
-#   #  %include "conf_fs/fsusage.yaml"
-#   %include "conf_fs/fsusage_per_fs.yaml"
+  # interconnect info (fabric)
+  %include "conf_fabric/fabric.yaml"
 
-#   # GPU usage
-#   %include "conf_gpu/gpu.yaml"
+  # # file system usage (fsusage)  
+  # #  %include "conf_fs/fsusage.yaml"
+  # %include "conf_fs/fsusage_per_fs.yaml"
 
-#   # SYSTEM info
-#   %include "conf_sysstat/sysstat.yaml"
-#   %include "conf_sysstat/nodeerr.yaml"
+  # GPU usage
+  %include "conf_gpu/gpu.yaml"
+
+  # # SYSTEM info
+  # %include "conf_sysstat/sysstat.yaml"
+  # %include "conf_sysstat/nodeerr.yaml"
 
   #  DB for internal statitics of DB usage
   %include "conf_internal/DBstat.yaml"
@@ -83,8 +86,11 @@ databases:
   #  DB for LMLstat
   %include "conf_lmlstat/lmlstat_databases.yaml"
 
-  # #  DB for JuMonC
+  #  DB for JuMonC
   %include "conf_jumonc/jumonc_databases.yaml"
+
+  #  DB for Continuous Bechmarking (CB)
+  # %include "conf_cb/CB.yaml"
 
 
 # config options for jobreporting

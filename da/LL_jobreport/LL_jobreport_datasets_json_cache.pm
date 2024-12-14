@@ -17,6 +17,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 use lib "$FindBin::RealBin/../lib";
 use LML_da_util qw( check_folder );
@@ -361,9 +362,10 @@ sub register_data_for_file_json_cache {
   if($process_file) {
     # update last ts stored to file
     $ds->{$shortfile}->{dataset}=$shortfile;
-    $ds->{$shortfile}->{status}=1;
+    $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
     $ds->{$shortfile}->{name}=$dataset->{name} if(!exists($ds->{$shortfile}->{name}));
     $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+    $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     $self->{COUNT_OP_NEW_FILE}++;
 
     # store fileop operation, to be performed later

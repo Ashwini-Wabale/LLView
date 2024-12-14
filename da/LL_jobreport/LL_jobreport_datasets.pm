@@ -29,6 +29,7 @@ use LL_jobreport_datasets_json_cache;
 use LL_jobreport_datasets_access_cache;
 use LL_jobreport_datasets_template;
 use LL_jobreport_datasets_datatable;
+use LL_jobreport_datasets_constants;
 
 my $TZOFFSET=tz_offset();
 
@@ -36,6 +37,7 @@ sub create_datasets {
   my $self = shift;
   my $DB=shift;
   my $MAX_PROCESSES=shift;
+  my $basename=$self->{BASENAME};
 
   my $starttime=time();
   my $config_ref=$DB->get_config();
@@ -44,9 +46,9 @@ sub create_datasets {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
@@ -55,7 +57,7 @@ sub create_datasets {
   my ($sets,@tc_order,$table_cache_first_set);
   
   # scan all datasets in the defintion order
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $subconfig_ref=$datasetref->{dataset};
 
     # get setname and tablecache (-none- if not specified)
@@ -592,7 +594,7 @@ sub check_filepath {
       # printf("%s check_filepath: renew file, ALWAYS  %s \n",$self->{INSTNAME}, $shortfile );
     }
     if($dataset->{renew}=~/delta/) {
-      $ds->{$shortfile}->{status}=0;
+      $ds->{$shortfile}->{status}=FSTATUS_NOT_EXISTS;
       printf("%s: check_filepath: renew file, DELTA  %s \n",$self->{INSTNAME}, $shortfile );
     }
   }
@@ -604,9 +606,11 @@ sub check_filepath {
     
     if(exists($ds->{$shortfile}->{lastts_saved})) {
       $ds->{$shortfile}->{lastts_saved}=1; # its a file to be renewed
+      $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     } else {
       # its a new new file which may be not written (if there is no data)
       $ds->{$shortfile}->{lastts_saved}=int($self->{CURRENTTS}-365*24*3600); # mark time when this entry was created minus delay
+      $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     }
     $ds->{$shortfile}->{checksum}=0;
     # internal mapping
@@ -620,7 +624,7 @@ sub check_filepath {
     } else {
       $ds->{$shortfile}->{ukey}=-1;
     }
-    $ds->{$shortfile}->{status}=0;
+    $ds->{$shortfile}->{status}=FSTATUS_NOT_EXISTS;
     printf("%s check_filepath:         init ds for %s\n",$self->{INSTNAME},$file) if($file=~/fabric/); # if($debug);
   }
   # printf("%s check_filepath:       end   work on %s\n",$self->{INSTNAME},$dataset->{filepath});
@@ -647,6 +651,7 @@ sub check_filemapping {
     $ds->{$shortfile}->{dataset}=$shortfile;
     $ds->{$shortfile}->{name}=$dataset->{name};
     $ds->{$shortfile}->{lastts_saved}=int($self->{CURRENTTS}); # mark time when this entry was created	
+    $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     $ds->{$shortfile}->{checksum}=0;
     # internal mapping
     if(exists($self->{DATASETSTAT_MAP}->{$dataset->{name}})) {
@@ -659,7 +664,7 @@ sub check_filemapping {
     } else {
       $ds->{$shortfile}->{ukey}=-1;
     }
-    $ds->{$shortfile}->{status}=0;
+    $ds->{$shortfile}->{status}=FSTATUS_NOT_EXISTS;
     #	printf("%s check_filepath:         init ds for %s\n",$self->{INSTNAME},$file) if($debug);
   }
 
@@ -695,6 +700,7 @@ sub check_fileregister {
     $ds->{$shortfile}->{dataset}=$shortfile;
     $ds->{$shortfile}->{name}=$dataset->{name};
     $ds->{$shortfile}->{lastts_saved}=int($self->{CURRENTTS}); # mark time when this entry was created
+    $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     $ds->{$shortfile}->{checksum}=0;
     # internal mapping
     if(exists($self->{DATASETSTAT_MAP}->{$dataset->{name}})) {
@@ -710,11 +716,11 @@ sub check_fileregister {
   }
   if( -f $file ) {
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks) = stat($file);
-    $ds->{$shortfile}->{status}=1;
+    $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
     $ds->{$shortfile}->{lastts_saved}=$mtime;
     $ds->{$shortfile}->{checksum}=0;
   } else {
-    $ds->{$shortfile}->{status}=0;
+    $ds->{$shortfile}->{status}=FSTATUS_NOT_EXISTS;
   }
   # printf("%s check_fileregister:       end   work on %s\n",$self->{INSTNAME},$dataset->{filepath});
   return($shortfile);

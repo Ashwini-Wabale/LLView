@@ -21,6 +21,7 @@ use IO::File;
 use YAML::XS;
 use File::Spec;
 #use YAML::Tiny;
+use JSON;
 
 use lib "$FindBin::RealBin/../lib";
 use LML_da_util qw( check_folder );
@@ -223,7 +224,6 @@ sub load_config {
     $self->print_to($outfile);
   }
   
-  
   # $self->{CONFIGDATA}=YAML::XS::LoadFile( $self->{CONFIGFILE});
   $YAML::XS::Boolean = "JSON::PP";
   $self->{CONFIGDATA}=YAML::XS::Load( $data );
@@ -233,6 +233,20 @@ sub load_config {
     my $outfile=File::Spec->catfile($ENV{LLMONDB_DUMP_CONFIG_TO_DIR},"${cfile}_raw.dump");
     print "LLmonDB_config: LLMONDB_DUMP_CONFIG_TO_DIR: write $outfile\n";
     $self->dump_to($outfile);
+  }
+
+  if($ENV{LLMONDB_DUMP_CONFIG_TO_JSON}) {
+    my $jsonfile = $ENV{LLMONDB_DUMP_CONFIG_TO_JSON};
+    my $json_data = encode_json( $self->{CONFIGDATA} );
+    open(OUT,"> $jsonfile") or die("cannot open $jsonfile for writing, exiting...");
+    print OUT $json_data;
+    close(OUT);
+  }
+  if($ENV{LLMONDB_DUMP_CONFIG_TO_YAML}) {
+    my $yamlfile = $ENV{LLMONDB_DUMP_CONFIG_TO_YAML};
+    open(OUT,"> $yamlfile") or die("cannot open $yamlfile for writing, exiting...");
+    print OUT YAML::XS::Dump($self->{CONFIGDATA});
+    close(OUT);
   }
 
   return(1);

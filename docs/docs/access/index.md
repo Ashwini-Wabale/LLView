@@ -11,4 +11,5 @@ Here you can access LLview on the different systems of the Jülich Supercomputin
 [JUWELS Booster](https://llview.fz-juelich.de/juwels_booster/)  
 [JURECA-DC](https://llview.fz-juelich.de/jurecadc/)  
 [JUSUF](https://llview.fz-juelich.de/jusuf/)  
+[JEDI](https://llview.fz-juelich.de/jedi/)  
 [DEEP](https://llview.fz-juelich.de/deep/)  

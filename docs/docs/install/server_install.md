@@ -6,25 +6,26 @@ The dependencies of LLview Server are:
 
 - Crontab
 - Perl (>5) 
-    - Modules (install with `cpan <ModuleName>`)
+    - Modules (install with `cpanm <ModuleName>`)
         - Data::Dumper
         - Getopt::Long
         - Time::Local
         - Time::HiRes
+        - Time::Zone
         - FindBin
         - Parallel::ForkManager
         - File::Monitor
         - File::Spec
+        - warnings::unused
         - Exporter
         - Storable
         - IO::File
         - POSIX
         - YAML::XS
-        - DBI
+        - DBI, RPC::PlClient (if OracleDB needs to be used)
         - DBD::SQLite
         - Config::IniFiles
         - JSON
-
         - Compress::Zlib
         - Archive::Tar
         - LWP::Simple
@@ -33,18 +34,18 @@ The dependencies of LLview Server are:
         - Tk::NoteBook
         - Tk::Table
         - Cwd
-
-- Python (>3.9) (For JuRepTool)
+- Python (>3.9) (For JuRepTool and plugins for Prometheus and Gitlab)
     - Packages (install with `pip install <PackageName>`)
-        - matplotlib
+        - matplotlib (>3.5.0)
         - numpy
         - pandas
         - pyyaml
         - plotly
         - cmcrameri
+        - requests
     - gzip (if compressed HTML are to be generated with option --gzip, python must have been installed with `gzip` capacities)
 - SQLite3
-- Fonts for JuRepTool
+- [Fonts for JuRepTool](#jureptool_fonts)
     - sans-serif: Liberation Sans or Arial
     - monospace: Liberation Mono or Courier New
 
@@ -56,19 +57,23 @@ The main configuration file of LLview Server is `.llview_server_rc`, that should
 This file export environment variables that will be used by the different scripts of LLview.
 The existing variables are:
 
-- `$LLVIEW_SYSTEMNAME`: Defines the system name
-- `$LLVIEW_HOME`: LLview's home folder, where the repo was cloned
+- `$LLVIEW_SYSTEMNAME`: Defines the system name.
+- `$LLVIEW_HOME`: LLview's home folder, where the repo was cloned.
 - `$LLVIEW_DATA`: Folder in which the data will be stored. It is also possible to use another hard drive or file system (depending on the amount of metrics, this may be recommended). Either the driver is directly mounted and defined in `$LLVIEW_DATA`, or a symbolic link is created:
     ```
     ln -s /externalvolume/ $LLVIEW_DATA
     ```
-- `$LLVIEW_CONF`: Folder with the configuration files (example configuration files is given in `$LLVIEW_HOME/configs`)
-- `JUREPTOOL_NPROCS`: Number of processors used by JuRepTool (default: 2). As JuRepTool runs in parallel to the main LLview workflow, it is recommended to initially use `JUREPTOOL_NPROCS=0` to deactivate JuRepTool and only activate it when the full LLview cycle is working.
-- `$LLVIEW_SHARED`: A shared folder between LLview Server and [LLview Remote](remote_install.md#configuration), where the generated files from Remote will be written and read by the Server (therefore, it must be the same set up in `.llview_remote_rc` in the Remote part)
-- `$LLVIEW_SHUTDOWN`: File to be used to stop LLview's workflow (the cronjob runs, but immediately stops)
-- `$LLVIEW_LOG_DAYS`: Number of days to keep the logs
+- `$LLVIEW_CONF`: Folder with the configuration files (example configuration files is given in `$LLVIEW_HOME/configs`).
+- `$LLVIEW_SHARED`: A shared folder between LLview Server and [LLview Remote](remote_install.md#configuration), where the generated files from Remote will be written and read by the Server (therefore, it must be the same set up in `.llview_remote_rc` in the Remote part).
+- `$LLVIEW_SHUTDOWN`: File to be used to stop LLview's workflow (the cronjob runs, but immediately stops).
+- `$LLVIEW_LOG_DAYS`: Number of days to keep the logs.
+- `$JUREPTOOL_NPROCS`: Number of processors used by JuRepTool. As JuRepTool runs in parallel to the main LLview workflow, it is recommended to initially use `export JUREPTOOL_NPROCS=0` to deactivate JuRepTool and only activate it when the full LLview cycle is already working.
+- `$LLVIEW_WEB_DATA`: Folder on the Web Server (accessible via https) where the `data` will be copied to.
+- `$LLVIEW_WEB_IMAGE`: Path of image to be used on the login page, relative to DocumentRoot (starting with `/`) or relative to `$LLVIEW_WEB_DATA` (default: `img/$LLVIEW_SYSTEMNAME.jpg`).
+- `$PYTHON`: This variable is used to launch [JuRepTool](#jureptool). It is important to set the PYTHON variable to use the version with the [dependencies](#dependencies) satisfied.
+- `$LLVIEW_CONF_FILE`: This variable is used to export the location of the file `.llview_server_rc` itself to be monitored for changes.
 
-Extra definitions can be also exported in this file (for example, to satisfy the [Dependencies](#dependencies)).
+Extra definitions can be also exported or modules loaded in this file (for example, to satisfy the [Dependencies](#dependencies)).
 
 ### Actions
 
@@ -91,13 +96,38 @@ The collection and processing of data is done via actions (the first workflow le
         ```
     - <a name="listerrors"></a> Another script provided in `$LLVIEW_HOME/scripts` that can be used to list all error files in the folders is `listerrors`.
 
+
+
+
 #### `dbupdate` action
 
 The `dbupdate` action mainly performs the collection of metrics into SQLite databases (plus other tasks such as archiving). The configuration of the different databases and their columns, types and values are done via the YAML files inside the `$LLVIEW_CONF/server/LLgenDB` folder.
 
 ##### `webservice` step
 
-To be able to set up the role-based access of LLview (where users will have access only to their own jobs and projects, while mentors can see jobs on all mentored projects and support can see all jobs), information on the user accounts and projects are needed. This is obtained in the `webservice` step of the `dbupdate` action. In the provided example configuration, this information is generated by `$LLVIEW_HOME/da/rms/JSCinternal/get_webservice_accounts.pl` (not-included) that is run at every 15th update via the script `$LLVIEW_HOME/da/utils/exec_every_n_step_or_empty.pl` (included), to avoid too many connections to the database. The output of this step should be put in the file `$LLVIEW_DATA/$LLVIEW_SYSTEMNAME/perm/wservice/accountmap.xml` that contains information to be added in the database. See how to create this file [here](accountmap.md).
+**This is an important step that should be edited in each installation.**
+
+To be able to set up the correct permissions for the role-based access of LLview (where users will have access only to their own jobs and projects, while mentors can see jobs on all mentored projects and support can see all jobs), information on the user accounts and projects are needed. This is obtained in the `webservice` step of the `dbupdate` action. In the provided example configuration, this information is generated by `$LLVIEW_HOME/da/rms/JSCinternal/get_webservice_accounts.pl` (**not-included**) that is run at every 15th update via the script `$LLVIEW_HOME/da/utils/exec_every_n_step_or_empty.pl` (included), to avoid too many connections to the database. The output of this step should be put in the file `$LLVIEW_DATA/$LLVIEW_SYSTEMNAME/perm/wservice/accountmap.xml` that contains information to be added in the database. LLview will then use this information to generate the folders and `.htaccess` for the correct setting of permissions.
+
+If needed, Information about the users with support access can be obtained also via the [`supportinput` action](#supportinput-action).
+
+More information about how to create this file [here](accountmap.md).
+
+##### `LMLDBupdate` step
+
+This is where all generated LMLs are processed and put into the databases, as defined in the configurations.
+
+Note: For the SQL commands to work, the databases and tables must exist. They are created according to the configurations using the [`updatedb`](#updatedb) script.
+
+##### `trigger_JobRep` step
+
+Immediately after the data is inserted into the database, the [`jobreport` action](#jobreport-action) is triggered by this step, such that the generation of the files in that action can be done in parallel to the remaining steps of the current one.
+
+##### `combineLML_all` step
+
+In this step, all generated LMLs are combined into a single one to be archived (and they may also be used for a replay feature). This step is done after the [LMLDBupdate step](#lmldbupdate-step) to be done in parallel to the [`jobreport` action](#jobreport-action).
+
+
 
 
 #### `jobreport` action
@@ -111,7 +141,7 @@ The `transferreports` step inside the `jobreport` action is used to transfer dat
     cd $LLVIEW_DATA/$SYSTEMNAME/perm/
     mkdir keys
     cd keys
-    ssh-keygen -a 100 -t ed25519 -C ‘LLview job report transport from LLview-Server’ -f www_llview_system_jobreport
+    ssh-keygen -a 100 -t ed25519 -C 'LLview job report transport from LLview-Server' -f www_llview_system_jobreport
     ```
 This must be created without any passphrase.
 Then, on the Web Server, the public part of the key must be added in `~/.ssh/authorized_keys` as:
@@ -128,25 +158,57 @@ Finally, the command itself must be updated with the correct values for:
     ```
 **Note:** An initial login may be needed to accept the authenticity of the host (`ssh <login>@<webserver address>` and then `yes` is enough, even if you get "Permission denied" afterwards)
 
-#### `compress` and `archive` actions
 
-The actions `compress` and `archive` perform actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
 
 #### `liveview`
 
 The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
-### JuRepTool
 
-JuRepTool is the LLview module that generates the PDF and HTML reports. It runs in parallel alongside LLview's main workflow, and the generated files are automatically copied and made available on the LLview portal.
+
+#### `icmap` action
+
+To color the nodes in the detailed job reports according to their interconnect group, the information of their cell/rack can be given in an `icmap` file (usually in the ``${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm` folder) containing a list of nodes with the following format:
+    ```
+    # nodelist_range[:str]  cell[:int]
+    nd[0001-0005,0015-0020]  1
+    nd[0006-0015]  2
+    (...)
+    ```
+This information is then converted into an xml file via the `$LLVIEW_HOME/da/utils/get_hostnodemap.py` script, which is then imported to the database to be used by the reports.
+
+
+
+
+#### `supportinput` action
+
+One of the options to set the users that have "Support" access on LLview is via the `supportinput` action. This action watches a file (default in `${LLVIEW_SHARED}/../config/support_input.dat`) that contains a simple list of usernames (one per line). When this file is changed, the file is copied to `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/wservice`. This file is then used in the [`webservice` step of the `dbupdate` action](#webservice-step).
+
+
+
+
+#### `compress`, `archive` and `delete` actions
+
+The actions `compress`, `archive` and `delete` perform maintenance actions that are created on the previous steps on the folder `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions`. They are important to keep the `${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/data` folder clean.
+
+
+
+
+
+
+#### JuRepTool
+
+JuRepTool is the LLview module that generates the PDF and HTML detailed reports. It runs as an action triggered by the file `${LLVIEW_SYSTEMNAME}/tmp/plotlists.dat`, which contains the list of jobs that needs to have their report created. The generated reports are automatically copied and made available on the LLview portal.
 To setup and use JuRepTool:
 
-- Update the config files located under `$LLVIEW_CONF/server/jureptool`. The configuration of the script and plots are given in 4 YAML files:
+- Update the config files located under `$LLVIEW_CONF/jureptool`. The configuration of the script and plots are given in 4 YAML files:
     - `config.yml`: General configuration such as fontsize, page size, colors, etc. (env vars can be used here)
+    **Important**: Here it is important to check the `timezone` and `hostname` options.
     - `system_info.yml`: Information on the system names, queues and sizes (cores, CPU and GPU memory)
+    **Important**: For the reports to be generated, the system name (as defined for LLview) and its queues should be listed here.
     - `plots.yml`: Configuration of sections and the graphs to be plotted in each of them. Keywords from `system_info.yml` may be used in `ylim`.
     - `logging.yml`: Logging information (filename, format, level)
-- Add required fonts (Liberation Sans or Arial, Liberation Mono or Courier New). Liberation fonts are Open Source and can be downloaded from [Liberation Fonts' GitHub](https://github.com/liberationfonts/liberation-fonts/releases).
+- <a name="jureptool_fonts"></a>Add required fonts (Liberation Sans or Arial, Liberation Mono or Courier New). Liberation fonts are Open Source and can be downloaded from [Liberation Fonts' GitHub](https://github.com/liberationfonts/liberation-fonts/releases).
 Fonts can be installed with:
     ```
     mkdir ~/.local/share/fonts/
@@ -161,7 +223,7 @@ Fonts can be installed with:
 - Make sure the [dependencies](#dependencies) are satisfied
 - Get LLview:
     ```
-    git clone https://github.com/FZJ-JSC/LLview.git
+    git clone https://github.com/FZJ-JSC/llview.git
     ```
 This is where the `$LLVIEW_HOME` should be defined below, and the instructions use this notation.
 

@@ -24,44 +24,48 @@ my $data = $ENV{'LLVIEW_DATA'};
 my $conf = $ENV{'LLVIEW_CONF'};
 my $prefix = "crontab_server"; # prefix for log/err files
 
+
 # Defining log and error files
-my $folder="$data/$system/monitor/";
-&check_folder($folder);
-my $logfile = "$folder/$prefix.".&get_date().".log";
-my $errfile = "$folder/$prefix.".&get_date().".errlog";
+my $logs="$data/$system/logs/";
+# Checking if logs folder exist, and if not, creates it
+&check_folder($logs);
+my $logfile = "$logs/$prefix.".&get_date().".log";
+my $errfile = "$logs/$prefix.".&get_date().".errlog";
 
 # Removing older log/err files (older than days defined in $LLVIEW_LOG_DAYS in .llview_server_rc)
 my $logdays = ($ENV{'LLVIEW_LOG_DAYS'} =~ '^[0-9]+$') ? $ENV{'LLVIEW_LOG_DAYS'} : 1;
-&remove_old_logs($folder,$logdays,$logfile);
+&remove_old_logs($logs,$logdays,$logfile);
 
 # If signal file exists, does not run any job
 my $shutdown = $ENV{'LLVIEW_SHUTDOWN'} ? $ENV{'LLVIEW_SHUTDOWN'} : "$ENV{HOME}/HALT_ALL";
 if(-f $shutdown) {
-  my $cmd = qq{cd $folder; echo "[`date +'%D %T'`] Shutdown file $shutdown found. Exiting..." >> $logfile };
+  my $cmd = qq{cd $logs; echo "[`date +'%D %T'`] Shutdown file $shutdown found. Exiting..." >> $logfile };
   system($cmd);
   exit;
 }
 
 # Commands for monitor
-my $searchCmdMonitor = "perl $llview/da/monitor/monitor_file.pl";
-my $startMonitor = "cd $folder; $searchCmdMonitor --config $conf/server/workflows/actions.inp 1>> $logfile 2>> $errfile &";
+my $searchCmdMonitor = "perl $llview/da/monitor/monitor_file.pl --config $conf/server/workflows/actions.inp";
+my $startMonitor = "cd $logs; $searchCmdMonitor 1>> $logfile 2>> $errfile &";
 # Checking if llview monitor is running
 restartProg($searchCmdMonitor, $startMonitor);
 
 
+# (JuRepTool was moved to an action in actions.inp, but this part 
+# was kept here commented out in case it is preferred to be used)
 # Checking if JuReptool is running
-my $jureptool = "$llview/jureptool";
-my $nprocs = ($ENV{'JUREPTOOL_NPROCS'} =~ '^[0-9]+$') ? $ENV{'JUREPTOOL_NPROCS'} : 2;
-if ( $nprocs > 0 ) {
-  # folder used by jureptool for temporary files (lastmod and reports), as well as shutdown file (to shutdown only jureptool)
-  my $folder = "$data/$system/jureptool/";
-  &check_folder($folder);
-  &check_folder("$folder/results/"); # folder required for temporary reports
+# my $jureptool = "$llview/jureptool";
+# my $nprocs = ($ENV{'JUREPTOOL_NPROCS'} =~ '^[0-9]+$') ? $ENV{'JUREPTOOL_NPROCS'} : 2;
+# if ( $nprocs > 0 ) {
+#   # folder used by jureptool for temporary files (lastmod and reports), as well as shutdown file (to shutdown only jureptool)
+#   my $folder = "$data/$system/jureptool/";
+#   &check_folder($folder);
+#   &check_folder("$folder/results/"); # folder required for temporary reports
 
-  my $searchCmdjureptool = "$ENV{PYTHON} $jureptool/src/main.py --configfolder $ENV{LLVIEW_CONF}/server/jureptool --shutdown $ENV{LLVIEW_SHUTDOWN} $folder/shutdown";
-  my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $data/$system/tmp/jobreport/tmp/plotlist.dat --logprefix $data/$system/logs/jureptool 1>> $data/$system/logs/jureptool.log 2>> $data/$system/logs/jureptool.errlog &";  
-  restartProg($searchCmdjureptool, $startjureptool);
-}
+#   my $searchCmdjureptool = "$ENV{PYTHON} $jureptool/src/main.py --configfolder $ENV{LLVIEW_CONF}/jureptool --shutdown $ENV{LLVIEW_SHUTDOWN} $folder/shutdown";
+#   my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $data/$system/tmp/jobreport/tmp/plotlist.dat --logprefix $data/$system/logs/jureptool 1>> $data/$system/logs/jureptool.log 2>> $data/$system/logs/jureptool.errlog &";  
+#   restartProg($searchCmdjureptool, $startjureptool);
+# }
 
 #**************************************************************
 #

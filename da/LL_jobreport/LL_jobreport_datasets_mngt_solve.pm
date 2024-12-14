@@ -16,6 +16,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 # SQL help:
 # restore wrong file in database:
@@ -25,21 +26,22 @@ use Time::HiRes qw ( time );
 sub solve_datasets {
   my $self = shift;
   my ($DB,$force)=@_;
+  my $basename=$self->{BASENAME};
 
   my $config_ref=$DB->get_config();
 
   # init instantiated variables
   my $varsetref;
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   my $fl=$self->get_filelist($varsetref->{outputdir});
 
   # find datasets to check files
-  foreach my $datasetref (@{$config_ref->{jobreport}->{datafiles}}) {
+  foreach my $datasetref (@{$config_ref->{$basename}->{datafiles}}) {
     my $dataset=$datasetref->{dataset};
     
     next if($dataset->{name}!~/(fabric|loadmem|GPU|fsusage)_/);
@@ -77,7 +79,7 @@ sub solve_datasets {
           printf("%s[%05d] fn inconsistence: [st=%d] %s vs %s\n",$self->{INSTNAME},
                   $cnt_fn_inconsistence,$ref->{status},$file,$ref->{dataset});
         }
-        next if($ref->{status}==0);
+        next if($ref->{status}==FSTATUS_NOT_EXISTS);
         my $realfile=sprintf("%s/%s",$self->{OUTDIR},$ref->{dataset});
         if(!exists($fl->{$realfile})) {
           $cnt_not_on_FS++;
@@ -99,19 +101,19 @@ sub solve_datasets {
             $ds->{$shortfile}->{dataset}=$shortfile;
             $ds->{$shortfile}->{name}=$dataset->{name};
             if($shortfile=~/\.gz$/) {
-              $ds->{$shortfile}->{status}=2;
+              $ds->{$shortfile}->{status}=FSTATUS_COMPRESSED;
             } else {
-              $ds->{$shortfile}->{status}=1;
+              $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
             }
             $ds->{$shortfile}->{lastts_saved}=$mtime;
             $ds->{$shortfile}->{checksum}=0;
             $ds->{$shortfile}->{ukey}=$ukey;
 
-            printf("%s[%05d] not_in_DB: [%d,%d,%d,%d] %s %s\n",$self->{INSTNAME},$cnt_not_in_DB,
+            printf("%s[%05d] not_in_DB: [%s,%s,%s,%s] %s %s\n",$self->{INSTNAME},$cnt_not_in_DB,
                     $ds->{$shortfile}->{status},
                     $ds->{$shortfile}->{lastts_saved},
-                    $ds->{$shortfile}->{checksum},
-                    $ds->{$shortfile}->{ukey},
+                    (defined($ds->{$shortfile}->{checksum})?$ds->{$shortfile}->{checksum}:"?"),
+                    (defined($ds->{$shortfile}->{ukey})?$ds->{$shortfile}->{ukey}:"?"),
                     &sec_to_date($ds->{$shortfile}->{lastts_saved}),
                     $shortfile);
           }

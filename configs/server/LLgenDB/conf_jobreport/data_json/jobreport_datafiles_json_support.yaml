@@ -2,56 +2,61 @@
 # Support
 ###############################
 - dataset:
-    name: support_running_json
-    set:        json_support
-    filepath:   '$outputdir/support/running.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    table_cache_par_level: 8
-    selecttimevar:   lastts
-    selecttimerange: TS_NOW-120,TS_NOW+1
-    stat_table: datasetstat_support
-    order: "jobid DESC"
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
-
-- dataset:
-    name: support_today_json
-    set:        json_support
-    filepath:   '$outputdir/support/today.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    selecttimevar:   lastts
-    selecttimerange: TS_STARTOFTODAY,TS_NOW-120
+    name:        support_all_csv
+    set:         csv_support
+    filepath:    '$outputdir/support/all.csv.gz'
+    format:      'csv'
+    create_empty_files: yes
+    sql_where:   'owner!="unknown"'
+    column_ts:   'ts'
+    # max_entries: 5000
+    csv_delimiter: ';'
+    renew:       'always'
+    order:       "jobid DESC"
+    sqldebug:    'yes'
     stat_table:  datasetstat_support
-    order: "jobid DESC"
     %include "./jobreport_datafiles_json_common_joblist.yaml"
 
-# This entry is used to test fast data tables
-- dataset:
-    name: support_all_json
-    set:        json_support
-    filepath:   '$outputdir/support/all.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    max_entries: 500
-    selecttimevar:   lastts
-    selecttimerange: TS_STARTOFTODAY-(21*24*3600),TS_NOW+1
-    stat_table:  datasetstat_support
-    order: "jobid DESC"
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
+# - dataset:
+#     name: support_running_json
+#     set:        json_support
+#     filepath:   '$outputdir/support/running.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     table_cache_par_level: 8
+#     selecttimevar:   lastts
+#     selecttimerange: TS_NOW-120,TS_NOW+1
+#     stat_table: datasetstat_support
+#     order:      "jobid DESC"
+#     format:     'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
 
-- dataset:
-    name: support_days_json
-    set:        json_support
-    FORALL:     'D:(001,002,003,004,005,006,007,008,009,010,011,012,013,014,014,015,016,017,018,019,020,021)'
-    filepath:   '$outputdir/support/jobbyday_$D.json.gz'
-    sql_where:  'owner!="unknown"'
-    table_cache: alljobs
-    selecttimevar:   lastts
-    selecttimerange: TS_STARTOFTODAY-($D*24*3600),TS_STARTOFTODAY-(($D-1)*24*3600)
-    stat_table:      datasetstat_support
-    order: "jobid DESC"
-    %include "./jobreport_datafiles_json_common_joblist.yaml"
+# - dataset:
+#     name: support_today_json
+#     set:        json_support
+#     filepath:   '$outputdir/support/today.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     selecttimevar:   lastts
+#     selecttimerange: TS_STARTOFTODAY,TS_NOW-120
+#     stat_table:  datasetstat_support
+#     order:       "jobid DESC"
+#     format:      'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
+
+# - dataset:
+#     name: support_days_json
+#     set:        json_support
+#     FORALL:     'D:(001,002,003,004,005,006,007,008,009,010,011,012,013,014,014,015,016,017,018,019,020,021)'
+#     filepath:   '$outputdir/support/jobbyday_$D.json.gz'
+#     sql_where:  'owner!="unknown"'
+#     table_cache: alljobs
+#     selecttimevar:   lastts
+#     selecttimerange: TS_STARTOFTODAY-($D*24*3600),TS_STARTOFTODAY-(($D-1)*24*3600)
+#     stat_table:  datasetstat_support
+#     order:       "jobid DESC"
+#     format:      'json'
+#     %include "./jobreport_datafiles_json_common_joblist.yaml"
 
 - dataset:
     name: support_jobtoday
@@ -196,7 +201,7 @@
                      wall_max, runtime_min, runtime_avg, runtime_max, wallusage_min,
                      wallusage_avg, wallusage_max, load_min, load_avg, load_max, usage_min,
                      usage_avg, usage_max, used_cores_min, used_cores_avg, used_cores_max,
-                     gpu_usage_min, gpu_usage_avg, gpu_usage_max'
+                     gpu_util_min, gpu_util_avg, gpu_util_max'
     column_convert: 'ts->todate_std_hhmm,
                      wall_min->hhmmss_short,wall_avg->hhmmss_short,wall_max->hhmmss_short,
                      runtime_min->hhmmss_short,runtime_avg->hhmmss_short,runtime_max->hhmmss_short,
@@ -204,3 +209,21 @@
                      usage_min->toPercent,usage_avg->toPercent,usage_max->toPercent'
     order: "account ASC"
     
+- dataset:
+    name: support_cb_csv
+    set:        csv_cb
+    filepath:   '$outputdir/cb/cb_list.csv.gz'
+    data_database:   CB
+    column_ts:   'max_ts'
+    csv_delimiter: ';'
+    renew:       'always'
+    data_table:      cb_benchmarks
+    stat_table:      datasetstat_support
+    stat_database:   jobreport_json_stat
+    sqldebug:    'yes'
+    format:         'csv'
+    columns:        'name,min_ts,max_ts,count'
+    column_convert: 'min_ts->todate_std_hhmm,max_ts->todate_std_hhmm'
+
+# %include "../../conf_cb/tablecsv_cb.yaml"
+# %include "../../conf_cb/csv_cb.yaml"

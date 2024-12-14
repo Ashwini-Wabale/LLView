@@ -126,7 +126,7 @@ def get_state(job_state: str, reason: str) -> tuple[str, str]:
 
 
 def modify_date(date: str) -> str:
-  return date.replace("T"," ") if date != "Unknown" else ""
+  return date.replace("T"," ")
 
 def modify_state(state: str) -> str:
   """
@@ -184,7 +184,7 @@ def id_to_username(state: str) -> str:
 
   ret = state
   # Getting the username for "CANCELLED by id" messages
-  if match := re.match('^CANCELLED by ([\w]+)$',state):
+  if match := re.match('^CANCELLED by (.+)$',state):
     id = match.group(1)
     rawoutput = check_output(f"id {id}", shell=True, text=True)
     if match := re.match(f'^uid={id}\((.+?)\).*$',rawoutput):
@@ -200,8 +200,8 @@ def sysinfo(options: dict, slurm_info) -> dict:
   
   log = logging.getLogger('logger')
 
-  # Getting basic information from the system (currently only 'cluster' type)
-  log.info("Collecting system information...\n")
+  # Adding basic information from the system (currently only 'cluster' type)
+  log.info("Adding extra information for sysinfo...\n")
 
   import platform
   sysextra = {}
@@ -235,6 +235,9 @@ def nodeinfo(options: dict, nodes_info) -> dict:
   Specific function to add extra items to nodeinfo
   """
   log = logging.getLogger('logger')
+
+  # Getting information from the nodes
+  log.info("Adding extra information for nodeinfo...\n")
 
   nodeextra = {}
 
@@ -297,6 +300,9 @@ def jobinfo(options: dict, jobs_info) -> dict:
   """
   log = logging.getLogger('logger')
 
+  # Getting information from the jobs
+  log.info("Adding extra information for jobinfo...\n")
+
   jobextra = {}
 
   # Updating the jobs dictionary by adding or removing keys
@@ -327,8 +333,13 @@ def jobinfo(options: dict, jobs_info) -> dict:
 
 def stepinfo(options: dict, steps_info) -> dict:
   """
-  Specific function to add extra items to jobinfo
+  Specific function to add extra items to stepinfo
   """
+  log = logging.getLogger('logger')
+
+  # Getting information from the steps
+  log.info("Adding extra information for stepinfo...\n")
+
   stepsextra = {}
   # Updating the jobs dictionary by adding or removing keys
   for stepname,stepinfo in steps_info.items():
@@ -349,8 +360,8 @@ class SlurmInfo:
   Class that stores and processes information from Slurm output  
   """
   def __init__(self):
-    self._dict = {}
-    self._raw = {}
+    self._raw = {}  # Dictionary with parsed raw information
+    self._dict = {} # Dictionary with modified information (which is outputted to LML)
     self.log   = logging.getLogger('logger')
 
   def __add__(self, other):
@@ -451,7 +462,7 @@ class SlurmInfo:
         current_unit = unit[unitname]
         self._raw[current_unit] = {}
         # Adding prefix and type of the unit, when given in the input
-        if stype:
+        if prefix:
           self._raw[current_unit]["__prefix"] = prefix
         if stype:
           self._raw[current_unit]["__type"] = stype
@@ -463,7 +474,8 @@ class SlurmInfo:
 
   def add_value(self,key,value,dict):
     """
-    Function to add (key,value) pair to dict. It is separate to be easier to adapt
+    Function to add (key,value) pair to dict. 
+    This is a separate function to make it easier to adapt some corner cases
     (e.g., to not include empty keys)
     """
     dict[key] = value if value != "(null)" else ""
@@ -638,6 +650,8 @@ class SlurmInfo:
     information of self._dict
     """
     self.log.info(f"Writing LML data to {filename}... ")
+    # Creating folder if it does not exist
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     # Opening LML file
     with open(filename,"w") as file:
       # Writing initial XML preamble
@@ -710,12 +724,14 @@ def get_system_name(options: dict) -> str:
   Options that are tested (first string, then in the dictionary order):
     - direct string 
       systemname: 'system'
+      or
+      systemname: '${LLVIEW_SYSTEMNAME}'
     - file containing system name:
       systemname: 
         file: '/path/to/file'
     - environment variable:
       systemname: 
-        env: 'SYSTEMNAME'
+        env: 'LLVIEW_SYSTEMNAME' # Note that there's no ${...} here
   """
   log = logging.getLogger('logger')
 
@@ -724,7 +740,7 @@ def get_system_name(options: dict) -> str:
   if 'systemname' in options:
     if isinstance(options['systemname'],str):
       # If it's a string, set it as the systemname
-      systemname = options['systemname']
+      systemname = os.path.expandvars(options['systemname'])
     elif isinstance(options['systemname'],dict):
       # If it's a dict, loop over the keys (but only 'file' or 'env' are recognized)
       for key,value in options['systemname'].items():
@@ -853,7 +869,7 @@ def main():
   """
   
   # Parse arguments
-  parser = argparse.ArgumentParser(description="Slurm Adapter for LLview")
+  parser = argparse.ArgumentParser(description="Slurm Plugin for LLview")
   # parser.add_argument("--LMLjobfile",  default="./jumonc_LML.xml", help="Output LML file for information of jobs")
   parser.add_argument("--config",    default=False, help="YAML config file containing the information to be gathered and converted to LML")
   parser.add_argument("--loglevel",  default=False, help="Select log level: 'DEBUG', 'INFO', 'WARNING', 'ERROR' (more to less verbose)")
@@ -885,6 +901,8 @@ def main():
       continue
 
     start_time = time.time()
+
+    log.info(f"Collecting {key}...\n")
 
     # Initializing new object of type given in config
     slurm_info = SlurmInfo()

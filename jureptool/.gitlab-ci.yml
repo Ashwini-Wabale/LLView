@@ -66,9 +66,11 @@ run_tests:
   parallel:
     matrix:
       - TEST:
-        - coreusage    # Test for core-usage graphs
-        - userdefined  # Test for user-defined section (JuMonC)
-        - errormessage # Test with error messages at the end
+        - manysteps     # Test job with many steps
+        - userdefined   # Test for user-defined section (JuMonC)
+        - errormessage  # Test with error messages at the end
+        - parsestepname # Test with step name with \d\+\d ids
+        - escapejobname # Test with job name to be escaped (containing '$')
   tags:
     - linux
   <<: *prepare_test

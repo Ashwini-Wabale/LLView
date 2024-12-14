@@ -2,7 +2,7 @@
 
 ## XML-format
 
-The file `accountmap.xml`, that is generated on the [`webservice` step of the `dbupdate` action](server_install.md#webservice-step), contains the information of the system accounts, their roles and which projects they should have access to.
+The file `accountmap.xml`, that is generated on the [`webservice` step of the `dbupdate` action](server_install.md#webservice-step), contains the information of the system accounts, their roles and which projects they should have access to. This information is used to generate the folders and `.htaccess` for the correct setting of permissions.
 
 A mockup example of this file is the following:
 ```
@@ -100,10 +100,10 @@ Notes:
 
 To simplify the generation of the `accountmap.xml` file, we provide the script `$LLVIEW_HOME/da/utils/mapping_csv_to_xml.py` to be executed with the command:
 ```
-python3 da/utils/mapping_csv_to_xml.py --csv mapping.csv --loglevel DEBUG --xml mapping.xml 
+python3 da/utils/mapping_csv_to_xml.py --csv accountmap.csv --loglevel DEBUG --xml accountmap.xml 
 ```
 
-This script expects a CSV file (`mapping.csv` in the line above) with the following arrangement (the order should be kept):
+This script expects a CSV file (`accountmap.csv` in the line above) with the following arrangement (the order should be kept):
 
 ```
 # username, project_mentor, project_pa, project_pi, project_user, support
@@ -112,4 +112,4 @@ username2, "project3", "", "", "", false
 username3, "", "project1", "project2,project3", "project1,project2,project3", false
 ```
 
-It will then generate a `mapping.xml` file with the contents shown [above](#xml-format).
+It will then generate a `accountmap.xml` file with the contents shown [above](#xml-format).

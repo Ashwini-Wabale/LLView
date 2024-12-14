@@ -16,6 +16,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 sub get_datasetstat_from_DB {
   my $self = shift;
@@ -27,23 +28,10 @@ sub get_datasetstat_from_DB {
                                     type => "hash_values",
                                     hash_keys => "dataset",
                                     where => $where,
-                                    hash_value => "name,ukey,lastts_saved,checksum,status"
+                                    hash_value => "name,ukey,lastts_saved,checksum,status,mts"
                                   });
   $self->{DATASETSTAT}->{$stat_db}->{$stat_table}=$dataref;
   # print "end get_datasetstat_from_DB $stat_db,$stat_table,$where\n";
-}
-
-sub cleanup_datasetstat {
-  my $self = shift;
-  my($stat_db,$stat_table)=@_;
-
-  my $ds=$self->{DATASETSTAT}->{$stat_db}->{$stat_table};
-  foreach my $key (keys(%{$ds})) {
-    # remove entries which are marked to be removed (already archived)
-    if($ds->{$key}->{"status"} == 3) {
-      delete($ds->{$key});
-    }
-  }
 }
 
 sub save_datasetstat_in_DB {
@@ -65,40 +53,46 @@ sub save_datasetstat_in_DB {
                         });
   }
   # add new dirstat to DB table
-  my @tabstatcolsref=("dataset","name","ukey","lastts_saved","checksum","status");
+  my @tabstatcolsref=("dataset","name","ukey","lastts_saved","checksum","status","mts");
   my $seq=$self->{DB}->start_insert_sequence($stat_db,$stat_table,\@tabstatcolsref);
   my $ds=$self->{DATASETSTAT}->{$stat_db}->{$stat_table};
   foreach my $key (keys(%{$ds})) {
     if(!defined($ds->{$key}->{"dataset"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR dataset for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR dataset for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"name"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR name for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR name for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"ukey"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR ukey for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR ukey for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"lastts_saved"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR lastts_saved for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR lastts_saved for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"checksum"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR checksum for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR checksum for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
     if(!defined($ds->{$key}->{"status"})) {
-      print STDERR "[save_datasetstat_in_DB] ERROR status for key $key not defined\n";
+      print STDERR "[save_datasetstat_in_DB] ERROR status for key $key not defined in table $stat_table of db $stat_db\n";
       next; 
     };
+    if(!defined($ds->{$key}->{"mts"})) {
+      print "save_datasetstat_in_DB: ERROR status for key $key not defined in table $stat_table of db $stat_db\n";
+      next; 
+    };
+
     my @data = ($ds->{$key}->{"dataset"},
                 $ds->{$key}->{"name"},
                 $ds->{$key}->{"ukey"},
                 $ds->{$key}->{"lastts_saved"},
                 $ds->{$key}->{"checksum"},
-                $ds->{$key}->{"status"});
+                $ds->{$key}->{"status"},
+                $ds->{$key}->{"mts"});
     $self->{DB}->insert_sequence($stat_db,$stat_table,$seq,\@data  );
   }
   $self->{DB}->end_insert_sequence($stat_db,$stat_table,$seq);

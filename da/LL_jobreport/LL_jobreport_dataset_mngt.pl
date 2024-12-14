@@ -51,6 +51,7 @@ my $opt_currenttsfile=undef;
 my $opt_systemname=undef;
 my $opt_solvestat=0;
 my $opt_force=0;
+my $opt_changedfileslog="changedfiles.log";
 
 usage($0) if( ! GetOptions( 
                 'verbose'          => \$opt_verbose,
@@ -70,7 +71,8 @@ usage($0) if( ! GetOptions(
                 'currentts=i'      => \$opt_currentts,
                 'currenttsfile=s'  => \$opt_currenttsfile,
                 'dump'             => \$opt_dump,
-                'demo'             => \$opt_demo
+                'demo'             => \$opt_demo,
+                'changedfilelog=s' => \$opt_changedfileslog,
                 ) );
 
 
@@ -103,11 +105,12 @@ if ($opt_verbose) {
   printf("%s  tmpdir             = %s\n",$instname,$opt_tmpdir);
   printf("%s  archdir            = %s\n",$instname,$opt_archdir);
   printf("%s  journalonly        = %s\n",$instname,$opt_journalonly);
-  printf("%s  journaldir         = %s\n",$instname,$opt_journaldir); 
+  printf("%s  journaldir         = %s\n",$instname,$opt_journaldir) if(defined($opt_journaldir));; 
   printf("%s  systemname         = %s\n",$instname,$opt_systemname);
   printf("%s  opt_currentts      = %s\n",$instname,$opt_currentts) if(defined($opt_currentts));
   printf("%s  opt_currenttsfile  = %s\n",$instname,$opt_currenttsfile) if(defined($opt_currenttsfile));
   printf("%s  currenttime        = %s\n",$instname,&sec_to_date($currentts));
+  printf("%s  opt_changedfileslog= %s\n",$instname,$opt_changedfileslog) if(defined($opt_changedfileslog));
 }
 
 # set umask
@@ -132,6 +135,18 @@ if(!$opt_solvestat) {
   $jobreport->solve_datasets($DB,$opt_force);  
   printf("%s solve datasets                                  in %7.4fs\n",$jobreport->{INSTNAME},time()-$starttime);
 }
+
+$starttime=time();
+my($changed_files)=$jobreport->mngt_scan_datasets($DB,$opt_journalonly,$opt_journaldir);  
+printf("%s scan  datasets                                   in %7.4fs\n",$jobreport->{INSTNAME},time()-$starttime);
+
+$starttime=time();
+open(OUT,"> $opt_changedfileslog") or die "cannot open $opt_changedfileslog";
+foreach my $dataset (sort(keys(%{$changed_files}))) {
+  print OUT "$dataset\n";
+}
+close(OUT);
+printf("%s wrote changed files log                          in %7.4fs (%s)\n",$jobreport->{INSTNAME},time()-$starttime,$opt_changedfileslog);
 
 $DB->close();  
 

@@ -130,9 +130,13 @@ llongstr_t:
   sql: VARCHAR(2048) NOT NULL DEFAULT '-'
 extralongstr_t:
   sql: VARCHAR(100000) NOT NULL DEFAULT '-'
+extralongstr_n_t:
+  sql: VARCHAR(100000) DEFAULT '-'
 score_t:
   sql: FLOAT(16) NOT NULL DEFAULT 0
 flag_t:
+  sql: INT(1) NOT NULL DEFAULT 0
+bool_t:
   sql: INT(1) NOT NULL DEFAULT 0
 filename_t:
   sql: VARCHAR(512) NOT NULL DEFAULT '-'
@@ -146,6 +150,8 @@ _time_res_t:
   sql: INT(12) NOT NULL DEFAULT -1
 _time_cnt_t:
   sql: INT(8) NOT NULL DEFAULT -1
+str_t:
+  sql: VARCHAR(128) NOT NULL DEFAULT '-'
 int_t:
   sql: INT(16) NOT NULL DEFAULT -1
 float_t:

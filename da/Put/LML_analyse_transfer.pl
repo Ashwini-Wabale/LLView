@@ -59,35 +59,35 @@ while(my $line=<IN>) {
   }
   if($line=~/Number of created files\s*[:=]\s+$patintk/) {
     my($a)=($1);
-    $stat->{$opt_name}->{ncreate}=&modint($a);
+    $stat->{$opt_name}->{ncreate}+=&modint($a);
   } 
   if($line=~/Number of deleted files\s*[:=]\s+$patintk/) {
     my($a)=($1);
-    $stat->{$opt_name}->{ndelete}=&modint($a);
+    $stat->{$opt_name}->{ndelete}+=&modint($a);
   }
   if($line=~/Number of regular files transferred\s*[:=]\s+$patintk/) {
     my($a)=($1);
-    $stat->{$opt_name}->{nregfilestrans}=&modint($a);
+    $stat->{$opt_name}->{nregfilestrans}+=&modint($a);
   }
   if($line=~/Total file size\s*[:=]\s+$patintk bytes/) {
     my($a)=($1);
-    $stat->{$opt_name}->{totalfilesize}=&modint($a);
+    $stat->{$opt_name}->{totalfilesize}+=&modint($a);
   }
   if($line=~/Total transferred file size\s*[:=]\s+$patintk bytes/) {
     my($a)=($1);
-    $stat->{$opt_name}->{totalfilesizetrans}=&modint($a);
+    $stat->{$opt_name}->{totalfilesizetrans}+=&modint($a);
   }
   if($line=~/Total bytes sent\s*[:=]\s+$patintk/) {
     my($a)=($1);
-    $stat->{$opt_name}->{totalbytessent}=&modint($a);
+    $stat->{$opt_name}->{totalbytessent}+=&modint($a);
   }
   if($line=~/Total bytes received\s*[:=]\s+$patintk/) {
     my($a)=($1);
-    $stat->{$opt_name}->{totalbytesrecv}=&modint($a);
+    $stat->{$opt_name}->{totalbytesrecv}+=&modint($a);
   }
   if($line=~/transfertime\s*[:=]\s+$patfp\s+\($patfp,$patfp\)/) {
     my($a,$b,$c)=($1,$2,$3);
-    $stat->{$opt_name}->{transfertime}=&modint($a);
+    $stat->{$opt_name}->{transfertime}+=&modint($a);
     $stat->{$opt_name}->{ts}=$stat->{$opt_name}->{startts}=&modint($b);
     $stat->{$opt_name}->{endts}=&modint($c);
   }

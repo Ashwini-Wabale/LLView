@@ -20,7 +20,7 @@ use Time::HiRes qw( time sleep );
 # Use internal library
 use FindBin;
 use lib "$FindBin::RealBin/../lib";
-use LML_da_util qw( logmsg system_call get_date _max _min );
+use LML_da_util qw( logmsg system_call get_date _max _min check_folder );
 
 my ($action,$actions,$msg,$watchfile2action,$pid2action,$options);
 my $logfile="monitor.".&get_date().".log";
@@ -116,6 +116,17 @@ while(1) {
   ACTION: for my $change (@changes) {
     # Getting action of the current change
     $action=$watchfile2action->{$change->name};
+    
+    # If the change was in the main config file $ENV{LLVIEW_CONF_FILE}, 
+    # stops the monitor for it to be restarted with the (possible) new variables
+    if($change->name eq $ENV{LLVIEW_CONF_FILE}) {
+      $msg=sprintf("MAIN CONFIG file signaled via %s, stopping monitor... (make sure it will be restarted via cronjob or by hand)\n",$ENV{LLVIEW_CONF_FILE}); &logmsg($msg,$logfile);
+      &shutdown_server();
+
+      # exit now
+      $msg=sprintf("Exiting...\n"); &logmsg($msg,$logfile);
+      exit;
+    }
 
     # If the change was in the config file, check if options changed 
     # (in which case, triggers a restart)
@@ -135,8 +146,6 @@ while(1) {
       # exit now
       $msg=sprintf("Exiting...\n"); &logmsg($msg,$logfile);
       exit;
-
-      next ACTION;
     }
 
     # If the change was in an action watchfile, perform respective event
@@ -234,6 +243,11 @@ sub read_actions {
       # Substituting environment variables
       $newparam =~ s/\$\{(\w+)\}/$ENV{$1}/g;
       $newparam =~ s/\$ENV\{(\w+)\}/$ENV{$1}/g;
+      # Check if $newparam is a valid file or directory path
+      if ($newparam =~ /^(\/|[a-zA-Z]:[\/\\]|[.]{1,2}[\/\\])/ && ($newparam =~ m!/\z! || 1)) {
+        # Normalize multiple slashes to a single slash
+        $newparam =~ s|/{2,}|/|g;
+      }
       # Running eventual system calls between `...`
       $newparam =~ s/`(.*?)`/&system_call($1)/ge;
       # Removing leading and trailing quotes
@@ -308,7 +322,7 @@ sub start_server {
     }
   }
 
-  # register signal file  'shutdown_signal_file' for changes
+  # register signal file 'shutdown_signal_file' for changes
   if(exists($options->{auto_shutdown}) && exists($options->{shutdown_signal_file})) {
     if($options->{auto_shutdown}) {
       if(!$options->{auto_shutdown_registered}) {
@@ -324,6 +338,12 @@ sub start_server {
   # are changed)
   $msg=sprintf("Register current config file %s\n",$opt_config); &logmsg($msg,$logfile);
   $monitor->watch($opt_config);
+
+  # register main configuration file LLVIEW_CONF_FILE to be monitored (to update env vars in case they are changed)
+  if(defined($ENV{LLVIEW_CONF_FILE})) {
+    $msg=sprintf("Register main config file %s\n",$ENV{LLVIEW_CONF_FILE}); &logmsg($msg,$logfile);
+    $monitor->watch($ENV{LLVIEW_CONF_FILE});
+  }
 
   # First scan just finds out about the monitored files. No changes will be reported.
   $msg=sprintf("Run first scan\n"); &logmsg($msg,$logfile);
@@ -433,6 +453,7 @@ sub handle_event {
       my $execcmd=$actions->{$action}->{execute};
       $execcmd=~s/^[\"\']//gs; $execcmd=~s/[\"\']$//gs; $execcmd=~s/^[\(]//s; $execcmd=~s/[\)]$//s;
       my $cmd="(cd $actions->{$action}->{execdir}; (".$execcmd.") >> $actions->{$action}->{logfile} 2>&1 )";
+      &check_folder("$actions->{$action}->{execdir}/");
       $msg=sprintf(" CHILD %d start cmd %s\n",$pid,$cmd); &logmsg($msg,$actions->{$action}->{logfile});
       $rc = system($cmd);
       $rc = $rc >> 8?$rc >> 8:0;

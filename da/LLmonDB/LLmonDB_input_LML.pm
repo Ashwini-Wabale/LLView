@@ -68,6 +68,7 @@ sub process_LMLdata {
 
   printf("$self->{INSTNAME} LLmonDB: start with job-DB:  %s\n",defined($self->{DBcontains_map_data})?$self->{DBcontains_map_data}:"-none-") if($self->{VERBOSE});
   printf("$self->{INSTNAME} LLmonDB: found other DBs:    %s\n",join(", ",@DBs)) if($self->{VERBOSE});
+  printf("$self->{INSTNAME} LLmonDB: available cap.:     %s\n",join(", ",sort(keys(%{$cap})))) if($self->{VERBOSE});
 
   my $stepnr=1;
   
@@ -414,10 +415,11 @@ sub update_table {
             }
           }
           foreach my $subsql (split(/\s*;\s*/,$self->replace_vars($sql))) {
+            my $stime=time();
             my $rc=$dbobj->execute_sql($subsql);
             $cnt=$rc; # count only last operation
             if($sqldebug) {
-              printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$subsql);
+              printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d %4.2fs SQL: %s\n",$table,$rc,time()-$stime,$subsql);
             }
           }
           if(exists($options->{update}->{sql_update_contents}->{aggr_by_time_resolutions})) {
@@ -436,6 +438,7 @@ sub update_table {
   }
   
   foreach my $up_table (@trig_tables) {
+    next if($up_table eq $table); # avoid infinite loop if a table has input + triggered update methods
     $self->update_table($dbobj,$db,$up_table,$LMLminlastinsert,$LMLmaxlastinsert);
   }
   
@@ -484,7 +487,7 @@ sub update_table_aggr_by_time {
     # print "$self->{INSTNAME} update_table_aggr_by_time: res=$res sql_del=$sql_del\n";
     my $rc=$dbobj->execute_sql($sql_del);
     if($sqldebug) {
-      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$sql_del);
+      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d SQL: %s\n",$table,$rc,$sql_del);
     }
     my $sql_ins;
     if(@keyvars) {
@@ -509,7 +512,7 @@ sub update_table_aggr_by_time {
     # print "$self->{INSTNAME} update_table_aggr_by_time: res=$res sql_ins=$sql_ins\n"; 
     $rc=$dbobj->execute_sql($sql_ins);
     if($sqldebug) {
-      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d (SQL: %s)\n",$table,$rc,$sql_ins);
+      printf("$self->{INSTNAME} LLmonDB:     call sql_update_contents on %s: lines changed=%4d SQL: %s\n",$table,$rc,$sql_ins);
     }
   }
   return();

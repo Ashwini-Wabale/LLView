@@ -24,7 +24,7 @@ use LML_da_util qw( check_folder );
 sub create_graphpages {
   my $self = shift;
   my $DB=shift;
-
+  my $basename=$self->{BASENAME};
   my $starttime=time();
   my $config_ref=$DB->get_config();
 
@@ -32,15 +32,15 @@ sub create_graphpages {
   ################################
   my $varsetref;
   $varsetref->{"systemname"}=$self->{SYSTEM_NAME};
-  if(exists($config_ref->{jobreport}->{paths})) {
-    foreach my $p (keys(%{$config_ref->{jobreport}->{paths}})) {
-      $varsetref->{$p}=$config_ref->{jobreport}->{paths}->{$p};
+  if(exists($config_ref->{$basename}->{paths})) {
+    foreach my $p (keys(%{$config_ref->{$basename}->{paths}})) {
+      $varsetref->{$p}=$config_ref->{$basename}->{paths}->{$p};
     }
   }
 
   # scan all graphpages
   my $fcount=0;
-  foreach my $gpref (@{$config_ref->{jobreport}->{graphpages}}) {
+  foreach my $gpref (@{$config_ref->{$basename}->{graphpages}}) {
     my $fstarttime=time();
     next if(!exists($gpref->{graphpage}));
     my $fname=$gpref->{graphpage}->{name};
@@ -56,10 +56,16 @@ sub create_graphpages {
 sub process_graphpage {
   my $self = shift;
   my ($fname,$gpref,$varsetref)=@_;
-  my ($ds);
+  my ($dsref);
   my $file=$self->apply_varset($gpref->{filepath},$varsetref);
 
-  $ds=$gpref;
+  $dsref=$gpref;
+
+  # get status of datasets from DB
+  my $where="name='".$gpref->{name}."'";
+  $self->get_datasetstat_from_DB($gpref->{stat_database},$gpref->{stat_table},$where);
+  my $ds=$self->{DATASETSTAT}->{$gpref->{stat_database}}->{$gpref->{stat_table}};
+
   
   # save the JSON file
   my $fh = IO::File->new();
@@ -68,8 +74,22 @@ sub process_graphpage {
     print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
-  $fh->print($self->encode_JSON($ds));
+  $fh->print($self->encode_JSON($dsref));
   $fh->close();
+  # register file
+  my $shortfile=$file;$shortfile=~s/$self->{OUTDIR}\///s;
+  # update last ts stored to file
+  $ds->{$shortfile}->{dataset}=$shortfile;
+  $ds->{$shortfile}->{name}=$gpref->{name};
+  $ds->{$shortfile}->{ukey}=-1;
+  $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
+  $ds->{$shortfile}->{checksum}=0;
+  $ds->{$shortfile}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
+
+  # save status of datasets in DB 
+  $self->save_datasetstat_in_DB($gpref->{stat_database},$gpref->{stat_table},$where);
+
 }
 
 1;

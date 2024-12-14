@@ -147,12 +147,15 @@ def _ProcessReport(njob,total_jobs,job,config):
       if(data['gpu']['gpulist']=="0"):
         log.warning("No GPU information yet - report skipped!")
         return    # skip job without the GPU list
-      data['gpu']['gpu_usage_avg'] = float(data['gpu']['gpu_usage_avg'])
+      data['gpu']['gpu_util_avg'] = float(data['gpu']['gpu_util_avg'])
       gpus = True
   except (ValueError,KeyError):
     data['job']['numgpus'] = 0
     num_gpus = 0
     gpus = False
+
+  # Escaping job name
+  data['job']['name'] = re.escape(data['job']['name'])
 
   # Configuring plots (from plots.yml)
   sections = [_ for _ in config['plots'] if _ not in ['x','y']]
@@ -240,12 +243,12 @@ def _ProcessReport(njob,total_jobs,job,config):
         # This is then a User-defined/Custom section
         # Then we add the given file "as is" to df_custom
         if not graphs:
-          df_temp = pd.read_csv(file, delim_whitespace=True, comment='#', names=header, index_col=False)
+          df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False)
         else:
           # Else, get the headers given on the graph list
           icols = [header.index(_) for _ in cols.keys()]
           # Reading database
-          df_temp = pd.read_csv(file, delim_whitespace=True, comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
+          df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
 
         # Getting header title for timestamp and nodelist
         y_x_keys = [key for key in {**y_headers, **x_headers}.keys()]
@@ -257,15 +260,19 @@ def _ProcessReport(njob,total_jobs,job,config):
         if config['appearance']['maxsec']:
           df_temp.drop(df_temp[df_temp[config['plots']['x']['header']] > df_temp[config['plots']['x']['header']].min()+config['appearance']['maxsec']].index, inplace=True) 
 
-        # Completing the dataframe by ts and node
+        # Dropping rows with infinity values
+        df_temp = df_temp[~df_temp.isin([np.inf, -np.inf]).any(axis=1)]
+
+        # Completing the dataframe by y_x_keys (ts and node)
         # Build the full MultiIndex, set the partial MultiIndex, and reindex.
         full_idx = pd.MultiIndex.from_product([df_temp[col].unique() for col in y_x_keys], names=y_x_keys)
-        df_temp = df_temp.set_index(y_x_keys).reindex(full_idx)
-        df_temp = df_temp.groupby(level=y_x_keys[0]).fillna(value=(np.nan if '_fill_with' not in config['plots'][section] else config['plots'][section]['_fill_with'])).reset_index()
+        df_temp = df_temp.set_index(y_x_keys).reindex(full_idx).fillna(value=(np.nan if '_fill_with' not in config['plots'][section] else config['plots'][section]['_fill_with'])).reset_index()
+        # df_temp = df_temp.groupby(level=y_x_keys[0]).fillna(value=(np.nan if '_fill_with' not in config['plots'][section] else config['plots'][section]['_fill_with'])).reset_index()
+        # Alternative way of filling the dataframe by y_x_keys (ts and node)
         # df_temp = df_temp.set_index(y_x_keys)\
-        #                          .unstack(level=y_x_keys[1])\
+        #                          .unstack(level=y_x_keys[1], fill_value=0.0)\
         #                          .stack(level=y_x_keys[1], dropna=False)
-        # df_temp = df_temp.groupby(level=y_x_keys[1]).fillna(0.0).reset_index()
+        # df_temp = df_temp.groupby(level=y_x_keys[1]).reset_index()
 
         # Creating datetime entry (for plotting)
         # df_temp['datetime']= pd.to_datetime(df_temp['ts']+config.timezonegap,unit='s')
@@ -513,9 +520,10 @@ def _ProcessReport(njob,total_jobs,job,config):
   nsteps_last = 0
   # If data for steps is present
   if rows:
-    timeline_df = pd.DataFrame(rows, columns=step_details.keys()).apply(pd.to_numeric,errors='ignore').fillna(0)
+    timeline_df = pd.DataFrame(rows, columns=step_details.keys()).fillna(0)
+    timeline_df[['beg','end','nnodes','ntasks','ncpus']] = timeline_df[['beg','end','nnodes','ntasks','ncpus']].apply(pd.to_numeric)
     if 'ntasks' in timeline_df:
-      timeline_df['ntasks'] = timeline_df['ntasks'].astype('int')
+      timeline_df['ntasks'] = timeline_df['ntasks'].fillna(0).astype('int')
     # Getting only the first 'max_steps_in_timeline' rows of dataframe (defined in the config file)
     if( 'max_steps_in_timeline' in config['appearance'] and config['appearance']['max_steps_in_timeline'] > -1 ):
       timeline_df = timeline_df.head(config['appearance']['max_steps_in_timeline'])
@@ -527,12 +535,16 @@ def _ProcessReport(njob,total_jobs,job,config):
     #   proj_end = timeline_df['end'].max()
     proj_end = datetime.datetime.timestamp(datetime.datetime.strptime(data['job']['updatetime'], '%Y-%m-%d %H:%M:%S'))
     timeline_df.loc[timeline_df['end']<0,'end'] = proj_end
-    timeline_df['start_time'] = timeline_df['beg'].apply(lambda x: datetime.datetime.utcfromtimestamp(int(x)+config['appearance']['timezonegap'])) 
-    timeline_df['end_time'] = timeline_df['end'].apply(lambda x: datetime.datetime.utcfromtimestamp(int(x+config['appearance']['timezonegap']))) 
+    timeline_df['start_time'] = timeline_df['beg'].apply(lambda x: datetime.datetime.fromtimestamp(int(x+config['appearance']['timezonegap']),datetime.timezone.utc)) 
+    timeline_df['end_time'] = timeline_df['end'].apply(lambda x: datetime.datetime.fromtimestamp(int(x+config['appearance']['timezonegap']),datetime.timezone.utc)) 
     timeline_df['duration'] = timeline_df['end_time']-timeline_df['start_time']
     timeline_df[['color','edgecolor','colorhtml','edgecolorhtml']] = timeline_df['st'].apply(lambda x: add_color(x))
-    # Sorting the dataframe
-    timeline_df = pd.concat([timeline_df[timeline_df['step']=='job'],timeline_df[timeline_df['step']=='batch'],timeline_df[timeline_df['step']=='interactive'],timeline_df[(timeline_df['step']!='job') & (timeline_df['step']!='batch') & (timeline_df['step']!='interactive')].sort_values('step', key=lambda x: x.astype(int))],axis=0).reset_index(drop=True)
+    # Escaping job names
+    timeline_df['name'] = timeline_df['name'].apply(lambda x: re.escape(str(x)))
+    # Removing `+0` (or maybe `+\d`) part of the step name (hetjobs? array?)
+    timeline_df['step']=timeline_df['step'].str.split("+").str[0]
+    # Removing the first lines (job, batch, extern, interactive) to sort the dataframe, and then reinserting (concatenating) them
+    timeline_df = pd.concat([timeline_df[timeline_df['step']=='job'],timeline_df[timeline_df['step']=='batch'],timeline_df[timeline_df['step']=='extern'],timeline_df[timeline_df['step']=='interactive'],timeline_df[(timeline_df['step']!='job') & (timeline_df['step']!='batch') & (timeline_df['step']!='extern') & (timeline_df['step']!='interactive')].sort_values('step', key=lambda x: x.astype(int))],axis=0).reset_index(drop=True)
     # Calculating number of pages using configured max_timeline_steps_per_page
     config['timeline']['steps_per_page'] = config['appearance']['max_timeline_steps_per_page']
     config['timeline']['npages'] = int((config['timeline']['nsteps']-1)/config['timeline']['steps_per_page'])+1
@@ -568,8 +580,16 @@ def _ProcessReport(njob,total_jobs,job,config):
     data['rc']['err_type'] = False
     if "oom-killer" in data['rc']['errmsgs']:
       data['rc']['err_type'] = r"(Out-of-memory)"
-    if "nodeDownAlloc" in data['rc']['errmsgs']:
+    elif "nodeDownAlloc" in data['rc']['errmsgs']:
       data['rc']['err_type'] = r"(Node Error)"
+    elif "LinkDownedCounter" in data['rc']['errmsgs']:
+      # Checking how many HCA link failures there were
+      failures = re.findall(r'LinkDownedCounter = (\d+)', data['rc']['errmsgs'])
+      if all(_ == '1' for _ in failures):
+        data['rc']['err_type'] = r"(Link Failure)"
+      else:
+        # If it's more than one, we can say it was a "Flipping Link" case
+        data['rc']['err_type'] = r"(Flipping Link)"
     error_lines = data['rc']['errmsgs'].split("|")
     error_nodes = set(re.findall(r'\((.*?)\)', data['rc']['errmsgnodes']))
     if (len(error_nodes) != data['rc']['numerrnodes']):
@@ -804,7 +824,7 @@ def log_init(config):
     oh.addFilter(_ExcludeErrorsFilter())
     log.addHandler(oh)  # add the handler to the logger so records from this process are handled
 
-    eh = TimedRotatingFileHandler(config['logprefix']+".err",'midnight',1)
+    eh = TimedRotatingFileHandler(config['logprefix']+".errlog",'midnight',1)
     eh.suffix = "%Y.%m.%d.errlog"
     eh.extMatch = re.compile(r"^.\d{4}.\d{2}.\d{2}.errlog$")
     eh.setLevel('ERROR')
@@ -851,14 +871,14 @@ def main():
   parser.add_argument("--nomove", default=False, action="store_true" , help="Don't copy files to final location")
   parser.add_argument("--nohtml", default=False, action="store_true" , help="Deactivate generation of HTML")
   parser.add_argument("--gzip", default=False, action="store_true" , help="Compress HTML using gzip")
-  parser.add_argument("--plotlyjs", default='cdn', help="Location of the 'plotly.min.js' file (default: 'cdn')")
+  # parser.add_argument("--plotlyjs", default='cdn', help="Location of the 'plotly.min.js' file (default: 'cdn')")
   parser.add_argument("--maxjobs", default=10000, type=int, help="Maximum number of jobs to process (default: MAXJOBS=10000)")
   parser.add_argument("--maxsec", default=0, type=int, help="Filter date range with maximum seconds range (default: no filter)")
   parser.add_argument("--shutdown", nargs="+", default=["./shutdown"], help="File(s) that triggers the script to shutdown")
   parser.add_argument("--nprocs", default=4, type=int, help="Number of process to run in parallel (default: NPROCS=4)")
   parser.add_argument("--loglevel", default=False, help="Select log level: 'DEBUG', 'INFO', 'WARNING', 'ERROR' (more to less verbose)")
   parser.add_argument("--logprefix", help="Prefix for the daily log and errlog files (default: None)")
-  parser.add_argument("--configfolder", default=os.path.dirname(os.path.realpath(__file__))+"/../../configs/server/jureptool", help="Folder with YAML configuration files (default: src/../../configs/server/jureptool)")
+  parser.add_argument("--configfolder", default=os.path.dirname(os.path.realpath(__file__))+"/../../configs/jureptool", help="Folder with YAML configuration files (default: src/../../configs/jureptool)")
   parser.add_argument("--outfolder", default="./results", help="Folder to store temporary and demo PDFs")
   parser.add_argument("--semail", default="", help="Sender email to use in case of errors (default: None)")
   parser.add_argument("--remail", default="", help="Receiver email to use in case of errors (default: None)")
@@ -873,8 +893,8 @@ def main():
   config['appearance']['gradient'] = np.outer(np.arange(0, 1, 0.01), np.ones(1))
   config['appearance']['traffic_light_cmap'] = LinearSegmentedColormap.from_list("", ["tab:red","gold","tab:green"])
   config['appearance']['maxsec'] = args.maxsec
-  if 'plotly_js' not in config['appearance']:
-    config['appearance']['plotly_js'] = args.plotlyjs
+  # if 'plotly_js' not in config['appearance']:
+  #   config['appearance']['plotly_js'] = args.plotlyjs
 
   # Configuration
   config['file'] = []
@@ -890,7 +910,7 @@ def main():
   config['maxjobs'] = args.maxjobs
   config['nprocs'] = args.nprocs
   config['outfolder'] = args.outfolder
-  
+
   # Systems configurations
   config['system'] = parse_config_yaml(f"{args.configfolder}/system_info.yml")
   # Plots configurations
@@ -941,6 +961,9 @@ def main():
   elif args.semail or args.remail:
     log.error("Email configuration requires both sender (--semail) and receiver email (--remail)")
     exit()
+
+  # Creating output folder where temporary reports are created
+  os.makedirs(config['outfolder'], exist_ok = True)
 
   # Infinite loop to process modified plotlist files (daemon mode)
   while True:

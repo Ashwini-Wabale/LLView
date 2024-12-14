@@ -35,7 +35,7 @@ def dict_to_lml(csvdict: dict, xmlfile: str):
     file.write(f"{2*' '}<objects>\n" )
     # Looping over the roles
     for role,entries in csvdict.items():
-      digits = int(math.log10(len(entries)))
+      digits = int(math.log10(len(entries)))+1
       i = 0
       # Looping over the entries in each role
       for entry in entries:
@@ -47,7 +47,7 @@ def dict_to_lml(csvdict: dict, xmlfile: str):
     file.write(f"{2*' '}<information>\n")
     # Looping over the roles
     for role,entries in csvdict.items():
-      digits = int(math.log10(len(entries)))
+      digits = int(math.log10(len(entries)))+1
       i = 0
       # Looping over the entries in each role
       for entry in entries:
@@ -62,7 +62,7 @@ def dict_to_lml(csvdict: dict, xmlfile: str):
         # if ts:
         #   file.write(" <data key={:24s} value=\"{}\"/>\n".format('\"ts\"',ts))
 
-      file.write(f"{4*' '}</info>\n")
+        file.write(f"{4*' '}</info>\n")
 
     file.write(f"{2*' '}</information>\n" )
     file.write("</lml:lgui>\n" )
@@ -75,7 +75,7 @@ def csv_to_dict(csvfile: str) -> dict:
 
     username, mentored projects, administered projects (PA), leadered projects (PI), joined projects (User), Support (true or false)
   
-  Lines starting with '#' and empty lines are skipped. It returns the in a dictionary form:
+  Lines starting with '#' and empty lines are skipped. It returns a dictionary in the form:
 
   'mentor': [list of dicts with mentors (each containing the mentored projects)],
   'pa': [list of dicts with PAs (each containing the administered projects)],
@@ -211,12 +211,10 @@ def main():
   """
   
   # Parse arguments
-  parser = argparse.ArgumentParser(description="Slurm Adapter for LLview")
-  # parser.add_argument("--LMLjobfile",  default="./jumonc_LML.xml", help="Output LML file for information of jobs")
+  parser = argparse.ArgumentParser(description="LLview's account map conversion tool (CSV to XML)")
   parser.add_argument("--csv",     required=True, help="Input CSV to be converted")
   parser.add_argument("--xml",     required=True, help="Output XML")
   parser.add_argument("--loglevel",default=False, help="Select log level: 'DEBUG', 'INFO', 'WARNING', 'ERROR' (more to less verbose)")
-  # parser.add_argument("--PAT_NODES", default=False,      help="Pattern of node names to gather information from")
 
   args = parser.parse_args()
 

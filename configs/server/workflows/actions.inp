@@ -29,10 +29,10 @@ shutdown_signal_file=${LLVIEW_SHUTDOWN}
 # Workflow for Database Update
 [dbupdate]
 active=1
-watchfile=${LLVIEW_SHARED}/remote/datafiles.xml.ready
+watchfile=${LLVIEW_SHARED}/datafiles.xml.ready
 execute="${LLVIEW_HOME}/da/LML_da.pl -par -maxprocesses 8 -nostep -conf ${LLVIEW_CONF}/server/workflows/LML_da_dbupdate.conf >> logs/dbupdate`date +.%Y.%m.%d`.log 2>> logs/dbupdate`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_dbupdate`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_dbupdate`date +.%Y.%m.%d`.log"
 
 # Workflow for Live View (using LLview's 'client' part)
 [liveview]
@@ -48,7 +48,25 @@ active=1
 watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/jobreport_start.ready
 execute="${LLVIEW_HOME}/da/LML_da.pl -par -maxprocesses 8 -nostep -conf ${LLVIEW_CONF}/server/workflows/LML_da_jobreport.conf >> logs/jobreport`date +.%Y.%m.%d`.log 2>> logs/jobreport`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_jobreport`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_jobreport`date +.%Y.%m.%d`.log"
+
+# Workflow for JuRepTool
+[jureptool]
+active=1
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/plotlist.dat
+execute="if [[ ${JUREPTOOL_NPROCS} =~ ^[0-9]+$ && ${JUREPTOOL_NPROCS} > 0 ]] ; then (nice -n 19 ${PYTHON} ${LLVIEW_HOME}/jureptool/src/main.py --configfolder ${LLVIEW_CONF}/jureptool --shutdown ${LLVIEW_SHUTDOWN} ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/jureptool/shutdown --nohtml --gzip --nprocs ${JUREPTOOL_NPROCS} --loglevel DEBUG ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/plotlist.dat --logprefix ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool >> ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool.log 2>> ${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/jureptool.errlog); fi"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/jureptool
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_jureptool`date +.%Y.%m.%d`.log"
+
+# Workflow to create the interconnect mapping file
+# The generated file 'icnodemap_new.xml' has to be copied in the 'da_icmap' step of 'dbupdate' action
+# (which has to be activated)
+[icmap]
+active=0
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/icmap
+execute="${PYTHON} ${LLVIEW_HOME}/da/utils/get_hostnodemap.py --map perm/icmap --xml tmp/icnodemap_new.xml >> logs/icmap`date +.%Y.%m.%d`.log 2>> logs/icmap`date +.%Y.%m.%d`.errlog;"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_icmap`date +.%Y.%m.%d`.log"
 
 # Workflow for Job Reporting clean up: perform delayed action on jobreport files (compress)
 [compress]
@@ -56,7 +74,7 @@ active=1
 watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions/mngt_actions_compress_lastts.dat
 execute="${LLVIEW_HOME}/da/LL_jobreport/LL_jobreport_dataset_mngt_perform_actions.pl --type=compress --journaldir ./tmp/jobreport/tmp/mngtactions --parallel 8 >> logs/compress`date +.%Y.%m.%d`.log 2>> logs/compress`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_compress`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_compress`date +.%Y.%m.%d`.log"
 
 # Workflow for Job Reporting clean up: perform delayed action on jobreport files (archive)
 [archive]
@@ -64,7 +82,15 @@ active=1
 watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions/mngt_actions_tar_lastts.dat
 execute="${LLVIEW_HOME}/da/LL_jobreport/LL_jobreport_dataset_mngt_perform_actions.pl -v --type=tar --journaldir ./tmp/jobreport/tmp/mngtactions --parallel 8 >> logs/archive`date +.%Y.%m.%d`.log 2>> logs/archive`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_archive`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_archive`date +.%Y.%m.%d`.log"
+
+# Workflow for Job Reporting clean up: perform delayed action on jobreport files (delete)
+[delete]
+active=1
+watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/tmp/jobreport/tmp/mngtactions/mngt_actions_delete_lastts.dat
+execute="${LLVIEW_HOME}/da/LL_jobreport/LL_jobreport_dataset_mngt_perform_actions.pl -v --type=delete --journaldir ./tmp/jobreport/tmp/mngtactions --parallel 8 >> logs/delete`date +.%Y.%m.%d`.log 2>> logs/delete`date +.%Y.%m.%d`.errlog;"
+execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_delete`date +.%Y.%m.%d`.log"
 
 # Example workflow that runs everytime the second reaches 30 ('watchtime')
 [timetest]
@@ -72,7 +98,7 @@ active=0
 watchtime=30
 execute="echo 'test watchtime' >> logs/time`date +.%Y.%m.%d`.log 2>> logs/time`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_time`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_time`date +.%Y.%m.%d`.log"
 
 # Example workflow that runs every 300s ('inverval')
 [interval]
@@ -80,7 +106,7 @@ active=0
 interval=300
 execute="echo 'test interval' >> logs/interval`date +.%Y.%m.%d`.log 2>> logs/interval`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_interval`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_interval`date +.%Y.%m.%d`.log"
 
 # Cleaning the logs every 24h (24*60*60=86400)
 [cleanlogs]
@@ -88,13 +114,13 @@ active=1
 interval=86400
 execute="perl ${LLVIEW_HOME}/da/utils/remove_old_logs.pl ./logs >> logs/cleanlogs`date +.%Y.%m.%d`.log 2>> logs/cleanlogs`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_cleanlogs`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_cleanlogs`date +.%Y.%m.%d`.log"
 
 # Workflow: copying of support list for mapping
 [supportinput]
 active=1
-watchfile=${LLVIEW_SHARED}/../config/support_input.dat
-execute="cp ${LLVIEW_SHARED}/../config/support_input.dat ./"
+watchfile=${LLVIEW_SHARED}/../config/support_input_test.dat
+execute="cp ${LLVIEW_SHARED}/../config/support_input_test.dat ./support_input.dat"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/wservice
-logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/monitor/monitor_supportinput`date +.%Y.%m.%d`.log"
+logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_supportinput`date +.%Y.%m.%d`.log"
 

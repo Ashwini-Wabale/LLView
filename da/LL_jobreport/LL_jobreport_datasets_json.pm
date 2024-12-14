@@ -18,6 +18,7 @@ use strict;
 use Data::Dumper;
 use Time::Local;
 use Time::HiRes qw ( time );
+use LL_jobreport_datasets_constants;
 
 use lib "$FindBin::RealBin/../lib";
 use LML_da_util qw( check_folder );
@@ -254,11 +255,12 @@ sub write_data_to_file_json {
 
   # update last ts stored to file
   $ds->{$file}->{dataset}=$file;
-  $ds->{$file}->{status}=1;
+  $ds->{$file}->{status}=FSTATUS_EXISTS;
   $ds->{$file}->{name}=$dataset->{name} if(!exists($ds->{$file}->{name}));
   $ds->{$file}->{ukey}=-1 if(!exists($ds->{$file}->{ukey}));
   $ds->{$file}->{checksum}=0 if(!exists($ds->{$file}->{checksum}));
   $ds->{$file}->{lastts_saved}=$self->{CURRENTTS}; # due to lack of time dependent data
+  $ds->{$file}->{mts}=$self->{CURRENTTS}; # last change ts
   
   $self->{COUNT_OP_NEW_FILE}++;
 
@@ -313,7 +315,7 @@ sub collect_data_for_file_json_multi_file {
       $self->{SAVE_LASTFILE}=$file;
     }
   } else {
-    print STDERR "collect_data_for_file_json_multi_file ($dataset->{name}): WARNING $skey not in known files, skipping entry\n";
+    print "collect_data_for_file_json_multi_file ($dataset->{name}): WARNING $skey not in known files, skipping entry\n";
     return();
   }
   

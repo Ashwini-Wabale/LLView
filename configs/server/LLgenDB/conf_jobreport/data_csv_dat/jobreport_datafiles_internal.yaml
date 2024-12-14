@@ -16,7 +16,7 @@
     columns:        'ts,nrows'
     # sqldebug:       'yes'     
     header:         'date,nrows'
-    column_convert: 'ts->todate_1'
+    column_convert: 'ts->todate_1,nrows->null_if_empty'
     column_filemap: 'T:tabpath'
     format_str:      '%s,%d'
     column_ts:      'ts'
@@ -27,6 +27,24 @@
     stat_database:   jobreport_stat_DBstat
     stat_table:      datasetstat
 
+- dataset:
+    name: DBgraph_csv
+    set:        DBgraph
+    FORALL:     'D:VAR_DB'
+    filepath:   '$outputdir/_internal/DBtab/DBgraph_${{D}}_mermaid.md'
+    columns:        'graph'
+    header:         ''
+    column_filemap: 'D:db'
+    column_ts:      'ts'
+    format_str:      '%s'
+    format:         'dat'
+    renew:          'always'
+    sqldebug:       'yes'
+    data_database:   DBstat
+    data_table:      LMLDBgraph
+    stat_database:   jobreport_stat_DBgraph
+    stat_table:      datasetstat
+    
 - dataset:
     name: DBstatALL_csv
     set:        DBstatALL
@@ -55,7 +73,8 @@
     column_ts:      'startts'
     format:         'csv'
     time_aggr:      'span'
-    renew:          'always'
+    # renew:          'always'
+    renew:          'daily(14:00)'
     data_database:   steptimings
     data_table:      steptimings_time_aggr_ts
     stat_database:   jobreport_stat_steptimings
