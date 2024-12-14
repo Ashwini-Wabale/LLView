@@ -45,8 +45,8 @@ if(-f $shutdown) {
 }
 
 # Commands for monitor
-my $searchCmdMonitor = "perl $llview/da/monitor/monitor_file.pl";
-my $startMonitor = "cd $logs; $searchCmdMonitor --config $conf/server/workflows/actions.inp 1>> $logfile 2>> $errfile &";
+my $searchCmdMonitor = "perl $llview/da/monitor/monitor_file.pl --config $conf/server/workflows/actions.inp";
+my $startMonitor = "cd $logs; $searchCmdMonitor 1>> $logfile 2>> $errfile &";
 # Checking if llview monitor is running
 restartProg($searchCmdMonitor, $startMonitor);
 

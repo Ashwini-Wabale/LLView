@@ -29,7 +29,7 @@ shutdown_signal_file=${LLVIEW_SHUTDOWN}
 # Workflow for Database Update
 [dbupdate]
 active=1
-watchfile=${LLVIEW_SHARED}/remote/datafiles.xml.ready
+watchfile=${LLVIEW_SHARED}/datafiles.xml.ready
 execute="${LLVIEW_HOME}/da/LML_da.pl -par -maxprocesses 8 -nostep -conf ${LLVIEW_CONF}/server/workflows/LML_da_dbupdate.conf >> logs/dbupdate`date +.%Y.%m.%d`.log 2>> logs/dbupdate`date +.%Y.%m.%d`.errlog;"
 execdir=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}
 logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_dbupdate`date +.%Y.%m.%d`.log"
@@ -52,6 +52,7 @@ logfile="${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/logs/monitor_jureptool`date +.%Y.%m
 
 # Workflow to create the interconnect mapping file
 # The generated file 'icnodemap_new.xml' has to be copied in the 'da_icmap' step of 'dbupdate' action
+# (which has to be activated)
 [icmap]
 active=0
 watchfile=${LLVIEW_DATA}/${LLVIEW_SYSTEMNAME}/perm/icmap
