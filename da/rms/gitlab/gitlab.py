@@ -1010,7 +1010,7 @@ class BenchRepo:
                 'color':  color if color != '#ffff99' else next(colors), # Skipping yellow color
                 'line': { 'width': 2 },
                 'where': traceelem
-              }|({ 'onhover': {key: {'name': key} for key in self._annotations[benchname]}
+              }|({ 'onhover': [{key: {'name': key}} for key in self._annotations[benchname]]
               } if self._annotations[benchname] else {})
             }
             traces.append(trace)          

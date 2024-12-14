@@ -116,7 +116,7 @@ while(1) {
   ACTION: for my $change (@changes) {
     # Getting action of the current change
     $action=$watchfile2action->{$change->name};
-
+    
     # If the change was in the main config file $ENV{LLVIEW_CONF_FILE}, 
     # stops the monitor for it to be restarted with the (possible) new variables
     if($change->name eq $ENV{LLVIEW_CONF_FILE}) {
@@ -243,6 +243,11 @@ sub read_actions {
       # Substituting environment variables
       $newparam =~ s/\$\{(\w+)\}/$ENV{$1}/g;
       $newparam =~ s/\$ENV\{(\w+)\}/$ENV{$1}/g;
+      # Check if $newparam is a valid file or directory path
+      if ($newparam =~ /^(\/|[a-zA-Z]:[\/\\]|[.]{1,2}[\/\\])/ && ($newparam =~ m!/\z! || 1)) {
+        # Normalize multiple slashes to a single slash
+        $newparam =~ s|/{2,}|/|g;
+      }
       # Running eventual system calls between `...`
       $newparam =~ s/`(.*?)`/&system_call($1)/ge;
       # Removing leading and trailing quotes
@@ -448,7 +453,7 @@ sub handle_event {
       my $execcmd=$actions->{$action}->{execute};
       $execcmd=~s/^[\"\']//gs; $execcmd=~s/[\"\']$//gs; $execcmd=~s/^[\(]//s; $execcmd=~s/[\)]$//s;
       my $cmd="(cd $actions->{$action}->{execdir}; (".$execcmd.") >> $actions->{$action}->{logfile} 2>&1 )";
-      &check_folder($actions->{$action}->{execdir});
+      &check_folder("$actions->{$action}->{execdir}/");
       $msg=sprintf(" CHILD %d start cmd %s\n",$pid,$cmd); &logmsg($msg,$actions->{$action}->{logfile});
       $rc = system($cmd);
       $rc = $rc >> 8?$rc >> 8:0;
