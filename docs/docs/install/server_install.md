@@ -133,7 +133,7 @@ The `transferreports` step inside the `jobreport` action is used to transfer dat
     cd $LLVIEW_DATA/$SYSTEMNAME/perm/
     mkdir keys
     cd keys
-    ssh-keygen -a 100 -t ed25519 -C ‘LLview job report transport from LLview-Server’ -f www_llview_system_jobreport
+    ssh-keygen -a 100 -t ed25519 -C 'LLview job report transport from LLview-Server' -f www_llview_system_jobreport
     ```
 This must be created without any passphrase.
 Then, on the Web Server, the public part of the key must be added in `~/.ssh/authorized_keys` as:
