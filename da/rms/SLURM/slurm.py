@@ -23,7 +23,7 @@ from copy import deepcopy
 from subprocess import check_output
 
 def expand_NodeList(nodelist: str) -> str:
-  """
+  r"""
   Split node list by commas only between groups of nodes, not within groups
   Returns all complete node names separated by a single space
   Regex notes:
@@ -32,8 +32,8 @@ def expand_NodeList(nodelist: str) -> str:
     General Documentation https://docs.python.org/3/library/re.html#regular-expression-syntax
   """
   expandedlist = ""
-  for nodelist in re.findall('([^\[]+(?:\[[\d,-]*\])?),?',nodelist):
-    match = re.findall( "(.+?)\[(.*?)\]|(.+)", nodelist)[0]
+  for nodelist in re.findall(r'([^\[]+(?:\[[\d,-]*\])?),?',nodelist):
+    match = re.findall( r"(.+?)\[(.*?)\]|(.+)", nodelist)[0]
     if match[2] == nodelist:
       # single node
       expandedlist += f"{nodelist} "
@@ -61,7 +61,7 @@ def remove_duplicate(id: str) -> str:
   """
   Remove duplicate values from id
   """
-  match = re.match('(\d+)-(\d+)$',id)
+  match = re.match(r'(\d+)-(\d+)$',id)
   return match.group(1) if match else id
 
 def remove_key(value: str) -> str:
@@ -75,15 +75,15 @@ def remove_id_num(id: str) -> str:
   """
   Remove id number (inside parenthesis)
   """
-  return re.match('(.+)\(\d+\)$',id).group(1)
+  return re.match(r'(.+)\(\d+\)$',id).group(1)
 
 def to_seconds(time: str) -> int:
   """
   Transform different time formats to number of seconds (integer)
   """
   ret = time
-  patint = '([\+\-]?[\d]+)'
-  if match := re.match(f'\({patint} seconds\)',time):
+  patint = r'([\+\-]?[\d]+)'
+  if match := re.match(fr'\({patint} seconds\)',time):
     ret = int(match.group(1))
   elif match := re.match(f'{patint} minutes',time):
     ret = int(match.group(1))*60
@@ -187,7 +187,7 @@ def id_to_username(state: str) -> str:
   if match := re.match('^CANCELLED by (.+)$',state):
     id = match.group(1)
     rawoutput = check_output(f"id {id}", shell=True, text=True)
-    if match := re.match(f'^uid={id}\((.+?)\).*$',rawoutput):
+    if match := re.match(fr'^uid={id}\((.+?)\).*$',rawoutput):
         ret = f"CANCELLED by {match.group(1)}";  
     else: 
       log.error(f"Error getting username of uid {id}\n")
@@ -221,8 +221,8 @@ def sysinfo(options: dict, slurm_info) -> dict:
         for line in file:
           line = line.strip('\n')
           # Skip initial lines starting with '*'
-          if re.match("^\*+$",line) or re.match("^\*\*",line): continue
-          line = re.sub("^\*\s+|\s+\*$","",line)
+          if re.match(r"^\*+$",line) or re.match(r"^\*\*",line): continue
+          line = re.sub(r"^\*\s+|\s+\*$","",line)
           line = line.replace('"','&quot;') # Escaping double quotes on the xml
           sysextra[sysinfoid]['motd'] += line+"\\n"
     except FileNotFoundError:
@@ -244,7 +244,7 @@ def nodeinfo(options: dict, nodes_info) -> dict:
   # Updating the nodes dictionary by adding or removing keys
   for nodename,nodeinfo in nodes_info.items():
     # Adding gpus information for GPU nodes (which include 'Gres' key)
-    if ('Gres' in nodeinfo) and (match := re.search('gpu:(\d)',nodeinfo['Gres'])):
+    if ('Gres' in nodeinfo) and (match := re.search(r'gpu:(\d)',nodeinfo['Gres'])):
       nodeinfo['gpus'] = match.group(1)
 
   # Gathering information about the partitions
@@ -275,7 +275,7 @@ def nodeinfo(options: dict, nodes_info) -> dict:
   # Adding Used Memory information
   systemname = ""
   for nodename,nodeinfo in nodes_info.items():
-    if (re.match('^\d+$',nodeinfo['RealMemory'])) and (re.match('^\d+$',nodeinfo['FreeMem'])): 
+    if (re.match(r'^\d+$',nodeinfo['RealMemory'])) and (re.match(r'^\d+$',nodeinfo['FreeMem'])): 
       # Getting reserved memory:
       if ('mem_reserved' in options):
         if isinstance(options['mem_reserved'],float) or isinstance(options['mem_reserved'],int):
@@ -344,12 +344,12 @@ def stepinfo(options: dict, steps_info) -> dict:
   # Updating the jobs dictionary by adding or removing keys
   for stepname,stepinfo in steps_info.items():
     # Obtaining 'jobid' and 'step' from stepname and adding to steps_info
-    match = re.match('^([\d\_\+]+)\.?(.*)$',stepname)
+    match = re.match(r'^([\d\_\+]+)\.?(.*)$',stepname)
     stepsextra.setdefault(stepname,{})
     stepsextra[stepname]['jobid'] = match.group(1)
     stepsextra[stepname]['step'] = match.group(2) if match.group(2) else 'job'
     # Obtaining 'rc' and 'signr' from ExitCode and adding to steps_info
-    match = re.match('^(\d*):?(\d*)$',stepinfo['ExitCode'])
+    match = re.match(r'^(\d*):?(\d*)$',stepinfo['ExitCode'])
     stepsextra[stepname]['rc'] = match.group(1) if match.group(1) else '-'
     stepsextra[stepname]['signr'] = match.group(2) if match.group(2) else '-'
   return stepsextra
@@ -445,9 +445,9 @@ class SlurmInfo:
         self.log.warning(rawoutput.split("\n")[0]+"\n")
         return
       # Getting unit to be parsed from first keyword
-      unitname = re.match("(\w+)",rawoutput).group(1)
+      unitname = re.match(r"(\w+)",rawoutput).group(1)
       self.log.debug(f"Parsing units of {unitname}...\n")
-      units = re.findall(f"({unitname}[\s\S]+?)\n\n",rawoutput)
+      units = re.findall(fr"({unitname}[\s\S]+?)\n\n",rawoutput)
       for unit in units:
         self.parse_unit_block(unit, unitname, prefix, stype)
     else:
@@ -456,7 +456,7 @@ class SlurmInfo:
         self.log.warning(f"No output units from command {cmd}\n")
         return
       # Getting unit to be parsed from first keyword
-      unitname = re.match("(\w+)",rawoutput).group(1)
+      unitname = re.match(r"(\w+)",rawoutput).group(1)
       self.log.debug(f"Parsing units of {unitname}...\n")
       for unit in units:
         current_unit = unit[unitname]
@@ -518,11 +518,12 @@ class SlurmInfo:
       else:  # If not, split on ":"
         key,value = line.split(":",1)
       # Here must be all fields that can contain '=' and ' ', otherwise it may break the workflow below 
-      if key in ['Comment','Reason','Command','WorkDir','StdErr','StdIn','StdOut','TRES','OS']: 
+      if key in ['Comment','Extra','Reason','Command','WorkDir','StdErr','StdIn','StdOut','TRES','OS']: 
         self.add_value(key,value,self._raw[current_unit])
         continue
       # Now the pairs are separated by space
       for pair in line.split(' '):
+        print('pair=',pair)
         if len(splitted := pair.split('=',1)) == 2: # Checking if line is splittable on "=" sign
           key,value = splitted
         else:  # If not, split on ":"
