@@ -30,6 +30,9 @@ The dependencies of LLview Server are:
         - Archive::Tar
         - LWP::Simple
         - LWP::UserAgent
+        - LWP::Protocol::https
+        - SVG
+        - SVG::TT::Graph::Line
         - Tk
         - Tk::NoteBook
         - Tk::Table
