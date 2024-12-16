@@ -2,6 +2,45 @@
 
 A simplified package of LLview is also available Open Source on GitHub. [See more](public.md)
 
+Developments on the internal releases of LLview are not following the new implementations as the public one. New fixes and improvements done on the internal releases are brought periodically to the public release, but not vice-versa. The versions of the internal "releases" are kept in place for simplicity.
+A single version of JURI is used for both internal and public versions of LLview.
+
+### 2.3.2 (December 16, 2024)
+
+
+<h4> Added </h4>
+
+- Automatic archiving (in tests, not yet ported to the public release)
+- Possibility to give system status information to be shown on the webportal
+- JuRepTool: Added 'link failure' error recognition
+- JURI: Added possibility for links to status page (and current status) on all headers (file containing status should be updated externally, e.g. via cronjob)
+- JURI: Added possibility to link to user profile (e.g.: JuDoor)
+- JURI: Added possibility to open login page in another window/tab when using middle mouse or ctrl+click on "home" button
+- JURI: Add a check if user of 'loginasuser' exists or not
+- JURI: Added 'jump to project' field on login
+- JURI: Added graph for slider (used at the moment for 'Queue Analysis')
+
+<h4> Changed </h4>
+
+- Internal improvements
+- JuRepTool: Activated Core metrics by default for JuRepTool reports (must be deactivated if those metrics are not available)
+- JURI: Compressed external js libraries and added js.gz to `.htaccess`
+- JURI: Removed deflate from `.htaccess`
+- JURI: Turned off cache on `.htaccess` to avoid large memory consumption
+- JURI: Improved style when viewwidth is reduced
+- JURI: Made username in project page clickable
+
+
+<h4> Fixed </h4>
+
+- Fixed filter for admin jobs on `plotlists.dat` (files were not created, but jobs were being added for JuRepTool)
+- JuRepTool: Fixed 'CPU Usage' in Overview graph
+- JuRepTool: Removed rows containing 'inf' values
+- JURI: Fixed link of 'jump to jobid' field
+- JURI: Fixed buttons when loginasuser is used
+- JURI: Fixed column show/hide
+
+
 ### 2.2.4 (April 3, 2024)
 
 <h4> Added </h4>

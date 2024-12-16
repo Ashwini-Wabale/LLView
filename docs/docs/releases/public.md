@@ -1,5 +1,64 @@
 # LLview Public Releases
 
+### 2.3.2-base (December 16, 2024)
+
+<h4> Added </h4>
+
+- Improved Gitlab plugin (that runs now by default only every 15min), including possibility to give units of metric
+- Improvements on Prometheus plugin: possibility to authenticate with token, added min/max to metrics, possibility to turn off verification on requests
+- Possibility to give system status information to be shown on the webportal
+- Added pre-set options for grid
+- JuRepTool: Added 'link failure' error recognition
+- JURI: Added possibility for links to status page (and current status) on all headers (file containing status should be updated externally, e.g. via cronjob)
+- JURI: Added possibility to link to user profile (e.g.: JuDoor)
+- JURI: Added parsing of pre-set filter options and button besides the top search (max. filters per column: 3)
+- JURI: Added possibility to open login page in another window/tab when using middle mouse or ctrl+click on "home" button
+- JURI: Add a check if user of 'loginasuser' exists or not
+- JURI: Added 'jump to project' field on login
+- JURI: Added helper function to convert number to hhmm
+- JURI: Added graph for slider (used at the moment for coming 'Queue Analysis')
+
+
+<h4> Changed </h4>
+
+- Improved default columns shown on tables (description, conversions, etc)
+- Decrease the default amount of cores used in different steps, to avoid using too much memory
+- Deactivated all but basic Slurm queries by default (and commented out CB in config)
+- Unified 'monitor' logs now also located in the 'logs' folder
+- Improved documentation (including a first version of how to add new metrics)
+- Changed `onhover` to use list/array instead of dict/object in gitlab plugin (so order is kept)
+- Adapted `serverAll` search command to be able to use 2 systems in one server
+- Changes from production: internal improvements
+- JuRepTool: Activated Core metrics by default for JuRepTool reports (must be deactivated if those metrics are not available)
+- JURI: Improved grid columns sizing
+- JURI: Automatically open grid column group when a hidden column uses a filter
+- JURI: Compressed external js libraries and added js.gz to `.htaccess`
+- JURI: Removed deflate from `.htaccess`
+- JURI: Turned off cache on `.htaccess` to avoid large memory consumption
+- JURI: Improved style when viewwidth is reduced
+- JURI: Improved filters (especially for dates)
+- JURI: Made username in project page clickable
+- Other small improvements
+
+<h4> Fixed </h4>
+
+- Fixes for absent logic cores (for systems without SMT)
+- Fixed columns when grid is not used (including defaults)
+- Fixed filter for admin jobs on `plotlists.dat` (files were not created, but jobs were being added for JuRepTool)
+- Create temporary `.htgroups_all` user to avoid building up support when there's a problem
+- Fixes in `monitor_file.pl`:  folders not recognized in when given with 2 slashes, folders not created when slash at the end missing
+- JuRepTool: Fixed error output to be also .errlog, to be listed in `listerrors`
+- JuRepTool: Fixed 'CPU Usage' in Overview graph
+- JuRepTool: Removed rows containing 'inf' values
+- JURI: Fixed grid filter size
+- JURI: Fixed link of 'jump to jobid' field
+- JURI: Fixed buttons when loginasuser is used
+- JURI: Fixed column show/hide
+- JURI: Fixed grid filter containing '-' that is not a range
+- Other small fixes
+
+
+
 ### 2.3.1-base (July 10, 2024)
 
 Prometheus plugin and GitLab plugin for Continuous Benchmarks! Many fixes and improvements, some of which are listed below.
