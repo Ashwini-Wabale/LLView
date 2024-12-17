@@ -15,6 +15,15 @@ sysinfo:
   prefix: 'sys'
   # apply: 'built-in'
 
+accountinfo:
+  cmd: 'squeue -o "%u|%a"'
+  LML: './slurmaccounts_LML.xml'
+  type: 'usermap'
+  prefix: 'U'
+  mapping:
+    ACCOUNT: 'projects'
+    USER: 'id'
+
 nodeinfo:
   cmd: 'scontrol show node --detail --all'
   LML: './nodes_LML.xml'
@@ -168,7 +177,7 @@ stepinfo: # One entry per step
   
   # If a timestamp file is given, the query should be made in a given period
   # This is set by the flags '-S <start_time> -E <end_time>' and the file
-  # 'timestampfile' stores the last timestamp for which information was obtained
+  # 'timestamp['file']' stores the last timestamp for which information was obtained
   timestamp:
     file: './jobs_step_last_timestamp.dat'
     ts_delay: 30

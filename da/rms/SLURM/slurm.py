@@ -230,6 +230,29 @@ def sysinfo(options: dict, slurm_info) -> dict:
   return sysextra
 
 
+def accountinfo(options: dict, accounts_info) -> dict:
+  """
+  Specific function to modify accounts, and add extra items to accountinfo
+  """
+  accountextra = {}
+  accountmodified = {}
+
+  # Updating the accounts dictionary by adding or removing keys
+  for accountname,accountinfo in accounts_info.items():
+    accountmodified.setdefault(accountinfo['USER'],{})
+
+    for key,value in accountinfo.items():
+      if key not in accountmodified[accountinfo['USER']]:
+        accountmodified[accountinfo['USER']][key] = value
+      elif key == 'ACCOUNT':
+        accountmodified[accountinfo['USER']][key] += f",{value}"
+
+  # Modifying the accounts_info to the one based on username
+  accounts_info._dict = accountmodified
+
+  return accountextra
+
+
 def nodeinfo(options: dict, nodes_info) -> dict:
   """
   Specific function to add extra items to nodeinfo
@@ -404,7 +427,7 @@ class SlurmInfo:
     """
     return not bool(self._dict)
 
-  def parse(self, cmd, timestamp="", prefix="", stype=""):
+  def parse(self, cmd, timestamp="", prefix="", stype="", delimiter="|"):
     """
     This function parses the output of Slurm commands
     and returns them in a dictionary
@@ -451,7 +474,7 @@ class SlurmInfo:
       for unit in units:
         self.parse_unit_block(unit, unitname, prefix, stype)
     else:
-      units = list(csv.DictReader(rawoutput.splitlines(), delimiter='|'))
+      units = list(csv.DictReader(rawoutput.splitlines(), delimiter=delimiter))
       if len(units) == 0:
         self.log.warning(f"No output units from command {cmd}\n")
         return
@@ -460,14 +483,20 @@ class SlurmInfo:
       self.log.debug(f"Parsing units of {unitname}...\n")
       for unit in units:
         current_unit = unit[unitname]
-        self._raw[current_unit] = {}
+        self._raw.setdefault(current_unit,{})
         # Adding prefix and type of the unit, when given in the input
         if prefix:
           self._raw[current_unit]["__prefix"] = prefix
         if stype:
           self._raw[current_unit]["__type"] = stype
         for key,value in unit.items():
-          self.add_value(key,value,self._raw[current_unit])
+          # If the value exist, join with new one separated by comma
+          # Unless the value is the current_unit, since that does not need acumulation
+          if key in self._raw[current_unit] and value != current_unit: 
+            value_to_add = f"{self._raw[current_unit][key]},{value}"
+          else:
+            value_to_add = value
+          self.add_value(key,value_to_add,self._raw[current_unit])
 
     self._dict |= self._raw
     return
@@ -650,7 +679,7 @@ class SlurmInfo:
     Create LML output file 'filename' using
     information of self._dict
     """
-    self.log.info(f"Writing LML data to {filename}... ")
+    self.log.info(f"Writing LML data to {filename} ... ")
     # Creating folder if it does not exist
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     # Opening LML file
@@ -916,7 +945,8 @@ def main():
                         options['cmd'],
                         timestamp=options['timestamp'] if 'timestamp' in options else '',
                         prefix=options['prefix'] if 'prefix' in options else 'i',
-                        stype=options['type'] if 'type' in options else 'item'
+                        stype=options['type'] if 'type' in options else 'item',
+                        delimiter=options['delimiter'] if 'delimiter' in options else '|',
                         )
 
     # Modifying SLURM output with functions
