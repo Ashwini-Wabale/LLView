@@ -169,7 +169,6 @@
 - dataset:
     name: groupfile_alluser
     set:                 access_project
-    FORALL:             'P:VAR_project'
     filepath:           '$outputdir/sec_files/.htgroups_alluser'
     format:             'access'
     columns:            'alluser'
@@ -188,7 +187,6 @@
 - dataset:
     name: groupfile_support
     set:                 access_project
-    FORALL:             'P:VAR_project'
     filepath:           '$outputdir/sec_files/.htgroups_support'
     format:             'access'
     columns:            'support'
@@ -256,6 +254,7 @@
     stat_database:       jobreport_access_stat
     stat_table:          datasetstat_support_access
     filemode:            new 
+    pre_rows:           'Header set Access-Control-Allow-Origin "*"\nHeader set Access-Control-Allow-Headers "*"\nHeader set Access-Control-Allow-Methods "GET"\n'
     rows:               'AddType text/x-handlebars-template .handlebars\nRequire all granted\n' 
 
 - dataset:
