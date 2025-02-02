@@ -105,9 +105,9 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       page.fig.text(0.350,0.792,data["num_datapoints"]["gpu_ndps"], ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
 
     page.fig.text(0.435,0.907,"Job Performance Metrics", ha='left',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.690,0.905,"min.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.780,0.905,"avg.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.870,0.905,"max.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.690,0.905,"Min.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.780,0.905,"Avg.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.870,0.905,"Max.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
 
     if data['num_datapoints']['cores_ndps']>0:
       # If Usage metrics is available
@@ -184,9 +184,9 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     page.fig.text(0.071,0.752,"Job I/O Statistics", ha='left', fontweight='bold')
     page.fig.text(0.320,0.750,"Total Data Write", ha='right', fontsize=config['appearance']['smallfont'])
     page.fig.text(0.450,0.750,"Total Data Read", ha='right', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.610,0.750,"max. Data Rate/Node Write", ha='right', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.770,0.750,"max. Data Rate/Node Read", ha='right', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.930,0.750,"max. Open-Close Rate/Node", ha='right', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.610,0.750,"Max. Data Rate/Node Write", ha='right', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.770,0.750,"Max. Data Rate/Node Read", ha='right', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.930,0.750,"Max. Open-Close Rate/Node", ha='right', fontsize=config['appearance']['smallfont'])
     posy = 0.738
     
     for fs in ['home','project','scratch','fastdata']:
@@ -210,29 +210,43 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
       posy -= 0.012
 
     if gpus:
+      if 'Active SM' in config['plots']['GPU']:
+        # If ActiveSM metrics is available
+        data['gpu']['ycol'] = config['plots']['GPU']['Active SM']['header']
+        data['gpu']['usage_avg'] = data['gpu']['gpu_active_avg']
+        data['gpu']['usage_or_util_text'] = 'Avg. GPU Active SM'
+        data['gpu']['overview_label'] = 'GPU Active SM (%)'
+        # Range is defined below, as at this point, the values are not yet defined
+      else:
+        data['gpu']['ycol'] = config['plots']['GPU']['Utilization']['header']
+        # Values to use on the colorbar on the right of the overview plot
+        data['gpu']['usage_avg'] = data['gpu']['gpu_util_avg']
+        data['gpu']['usage_or_util_text'] = 'Avg. GPU Utilization'
+        data['gpu']['overview_label'] = 'GPU Utilization (%)'
+        # Range is defined below, as at this point, the values are not yet defined
       page.fig.text(0.071,0.680,"Job GPU Statistics", ha='left', fontweight='bold')
-      page.fig.text(0.190,0.667,"avg. GPU Utilization:  ", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.190,0.667,f"{data['gpu']['gpu_util_avg']:.2f}", ha='left', fontweight='bold')
+      page.fig.text(0.190,0.667,f"{data['gpu']['usage_or_util_text']}:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.190,0.667,f"{data['gpu']['usage_avg']:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.245,0.667,"%", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.410,0.667,"avg. Mem. Usage Rate:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.410,0.667,"Avg. Mem. Usage Rate:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.410,0.667,f"{float(data['gpu']['gpu_memur_avg']):.2f}", ha='left', fontweight='bold')
       page.fig.text(0.460,0.667,"%", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.610,0.667,"avg. GPU Temp.:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.610,0.667,"Avg. GPU Temp.:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.610,0.667,f"{float(data['gpu']['gpu_temp_avg']):.2f}", ha='left', fontweight='bold')
       page.fig.text(0.670,0.667,"°C", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.830,0.667,"avg. GPU Power:  ", ha='right', fontsize=config['appearance']['smallfont']) 
+      page.fig.text(0.830,0.667,"Avg. GPU Power:  ", ha='right', fontsize=config['appearance']['smallfont']) 
       page.fig.text(0.830,0.667,f"{float(data['gpu']['gpu_pu_avg'])/1000.0:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.899,0.667,"W", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.190,0.655,"max. Clk Stream/Mem:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.190,0.655,"Max. Clk Stream/Mem:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.190,0.655,f"{float(data['gpu']['gpu_sclk_max']):.0f}/{float(data['gpu']['gpu_clk_max']):.0f}", ha='left', fontweight='bold')
       page.fig.text(0.284,0.655,"MHz", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.410,0.655,"max. Mem. Usage:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.410,0.655,"Max. Mem. Usage:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.410,0.655,f"{float(data['gpu']['gpu_memu_max'])/1024.0/1024.0:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.492,0.655,"MiB", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.610,0.655,"max. GPU Temp.:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.610,0.655,"Max. GPU Temp.:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.610,0.655,f"{float(data['gpu']['gpu_temp_max']):.2f}", ha='left', fontweight='bold')
       page.fig.text(0.670,0.655,"\260C", ha='right', fontsize=config['appearance']['smallfont'])
-      page.fig.text(0.830,0.655,"max. GPU Power:  ", ha='right', fontsize=config['appearance']['smallfont'])
+      page.fig.text(0.830,0.655,"Max. GPU Power:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.830,0.655,f"{float(data['gpu']['gpu_pu_max'])/1000.0:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.899,0.655,"W", ha='right', fontsize=config['appearance']['smallfont'])
     if finished:
@@ -311,18 +325,18 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     # GPU
     if (gpus and int(data['num_datapoints']['gpu_ndps'])>1):
       # GPU Average usage bar
-      AverageUsageBar(0.920,0.365,"GPU",page.fig,config,data['gpu']['gpu_util_avg'])
+      AverageUsageBar(0.920,0.365,"GPU",page.fig,config,data['gpu']['usage_avg'])
 
       # Setting up GPU axis
       page.ax2 = page.fig.add_axes([0.130,0.365, 0.740,0.180], frame_on=False, sharex=page.ax1, zorder=4)
       page.ax2.yaxis.tick_right()
       page.ax2.yaxis.set_label_position('right') 
-      page.ax2.set_ylabel("GPU Utilization (%)",fontsize=config['appearance']['smallfont'], color=config['appearance']['colors_cmap'][0])
+      page.ax2.set_ylabel(data['gpu']['overview_label'],fontsize=config['appearance']['smallfont'], color=config['appearance']['colors_cmap'][0])
       page.ax2.set_ylim([0,100])
       page.ax2.tick_params(axis='y', colors=config['appearance']['colors_cmap'][0])
 
       # Getting plotting curves
-      cols   = [config['plots']['x']['header'],config['plots']['GPU']['Active SM']['header'] if 'Active SM' in config['plots']['GPU'] else config['plots']['GPU']['Utilization']['header']]
+      cols   = [config['plots']['x']['header'],data['gpu']['ycol']]
       df_gpu = df['GPU'][cols].groupby([config['plots']['x']['header']], as_index=False).mean()
       df_gpu['datetime'] = pd.to_datetime(df_gpu['ts']+config['appearance']['timezonegap'],unit='s')
       x2 = list(df_gpu['datetime'])
@@ -330,13 +344,13 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
 
       # Plotting
       p2 = page.ax2.step(x2,y2, color=config['appearance']['colors_cmap'][0], marker='s', ms=2, where='mid', zorder=6)
-      legends["Average GPU Utilization"] = p2[0]
+      legends[data['gpu']['usage_or_util_text']] = p2[0]
       page.ax2.tick_params(axis='x', bottom=False, labelbottom=False)
         
     # Add legends
     if (p1 or p2):
       ax = (page.ax2 if p2 else page.ax1)
-      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if ('gpu' in data) and (data['gpu']['gpu_util_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
+      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if ('gpu' in data) and (data['gpu']['usage_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
       leg.set_zorder(100)
       page.ax1.set_xlim(time_range)
       page.ax1.xaxis.set_major_formatter(DateFormatter('%d/%m/%y\n%H:%M:%S'))
