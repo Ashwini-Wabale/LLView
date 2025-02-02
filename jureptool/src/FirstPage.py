@@ -350,7 +350,7 @@ def FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpu
     # Add legends
     if (p1 or p2):
       ax = (page.ax2 if p2 else page.ax1)
-      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if ('gpu' in data) and (data['gpu']['usage_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
+      leg = ax.legend(legends.values(), legends.keys(),fontsize=config['appearance']['smallfont'],ncol=1,loc=('center right' if gpus and (data['gpu']['usage_avg'] > 60) else 'lower center'), facecolor='white', labelspacing=0.3, handletextpad=0.2, columnspacing=0.4)
       leg.set_zorder(100)
       page.ax1.set_xlim(time_range)
       page.ax1.xaxis.set_major_formatter(DateFormatter('%d/%m/%y\n%H:%M:%S'))
