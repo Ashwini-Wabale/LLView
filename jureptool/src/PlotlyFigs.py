@@ -130,7 +130,7 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             "size": 12,
                         })
   if x2:
-    int_usage = int(data['gpu']['gpu_util_avg'])
+    int_usage = int(data['gpu']['usage_avg'])
     img = np.arange(int_usage).reshape((int_usage, 1))
     fig.add_trace(go.Heatmap(z=img, 
                             showscale=False, 
@@ -157,11 +157,11 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
     for time,value in zip(x2,y2):
       delta_comp = (time - time_range[0]).components
       delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
-      hovertext.append(f"Time: {time} ({delta})<br />Avg. GPU Utilization: {value:.2f}")
+      hovertext.append(f"Time: {time} ({delta})<br />{data['gpu']['usage_or_util_text']}: {value:.2f}")
 
     fig.add_trace(go.Scatter( x=x2,
                               y=y2, 
-                              name = 'Average GPU Utilization',
+                              name = data['gpu']['usage_or_util_text'],
                               legendgroup = 'gpu',
                               line = {"shape": 'hvh', "color":f"rgb{color}"},
                               mode="lines+markers",
@@ -174,12 +174,12 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                                 ),
                                 ),
                                 1, 2, secondary_y=True)
-    fig['layout']['yaxis3'].update(dict( title="GPU Utilization (%)",
+    fig['layout']['yaxis3'].update(dict( title=data['gpu']['overview_label'],
                                           color = f"rgb{color}",
                                           tickcolor = f"rgb{color}",
                                           range=[0,110],
                                           ))
-    fig.add_annotation( text = "<b>Average<br>GPU Utilization</b>",
+    fig.add_annotation( text = f"<b>{data['gpu']['usage_or_util_text'].replace('Avg. ','Average<br>')}</b>",
                         x = 0.0,
                         y = 100,
                         xanchor='center',
@@ -194,7 +194,7 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             "family": "'Liberation Sans','Arial',sans-serif",
                             "size": 14,
                         })
-    fig.add_annotation( text = f"<b>{data['gpu']['gpu_util_avg']:.1f}%</b>",
+    fig.add_annotation( text = f"<b>{data['gpu']['usage_avg']:.1f}%</b>",
                         x = 0.0,
                         y = 75,
                         xref = "x3",
@@ -579,6 +579,10 @@ def CreatePlotlyFig(config,
   if report['log'][graph]:
     fig['layout'][f'yaxis1'].update(dict(type="log", dtick=np.log10(report['log'][graph]), range=[np.log10(i) for i in report['lim'][graph]], tickvals=cticks))
 
+  # Adding horizontal line(s)
+  for line in report['lines'][graph]:
+    fig.add_hline(y=line, line_dash="dash", line_color="red", row=1, col=1)
+
   #(1,2) - TEXT INFO
   fig['layout'][f'xaxis2'].update(dict(range=[0.0,1.0], ticks="", fixedrange=True, showticklabels=False))
   fig['layout'][f'yaxis2'].update(dict(range=[0.0,1.0], ticks="", fixedrange=True, showticklabels=False))
@@ -771,6 +775,9 @@ def CreatePlotlyFig(config,
   if report['log'][graph]:
     fig['layout'][f'xaxis4'].update(dict(type="log", dtick=np.log10(report['log'][graph]), range=[np.log10(i) for i in report['lim'][graph]], tickvals=cticks))
 
+  # Adding vertical line(s)
+  for line in report['lines'][graph]:
+    fig.add_vline(x=line, line_dash="dash", line_color="red", row=2, col=2)
 
   return fig
 

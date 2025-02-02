@@ -223,6 +223,10 @@ def CreateFullReport(pdf,data,config,page_num,report,time_range):
       handles, labels = page.axes[top,0].get_legend_handles_labels()
       page.axes[top,0].legend([(p2, p1c, psc) ], ["max\navg\nmin"],fontsize=config['appearance']['tinyfont'], facecolor='white', loc='lower right', fancybox=True,scatteryoffsets=[0.5])
 
+      # Adding horizontal line(s)
+      for line in report['lines'][graph]:
+        page.axes[top,0].axhline(y=line,color='r', linestyle='--')
+
       # SETTING LIMITS AND TICKS (Y FROM COLORBAR)
       if x_header == 'ts':
         page.axes[top,0].set_xlim([ts.timestamp()+config['appearance']['timezonegap'] for ts in time_range])
@@ -272,6 +276,9 @@ def CreateFullReport(pdf,data,config,page_num,report,time_range):
       p2 = page.axes[bottom,1].fill_betweenx(np.concatenate((y_node[0]-1,y_node,y_node[-1]+1), axis=None), np.concatenate((errmin_node.iloc[0],errmin_node,errmin_node.iloc[-1]), axis=None),np.concatenate((errmax_node.iloc[0],errmax_node,errmax_node.iloc[-1]), axis=None), color=config['appearance']['minmax_color'],step='mid',zorder=2)
       ps = page.axes[bottom,1].scatter(x_node,y_node,marker='o',s=1,c=x_node,cmap=report['cmap'][graph],norm=norm,zorder=4)
 
+      # Adding vertical line(s)
+      for line in report['lines'][graph]:
+        page.axes[bottom,1].axvline(x=line,color='r', linestyle='--')
 
       # SETTING LIMITS AND TICKS (X FROM COLORBAR)
       page.axes[bottom,1].set_ylim(y_node.min()-0.5,y_node.max()+0.5)
