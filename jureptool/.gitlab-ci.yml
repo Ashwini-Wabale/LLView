@@ -73,6 +73,7 @@ run_tests:
         - escapejobname # Test with job name to be escaped (containing '$')
   tags:
     - linux
+    - private
   <<: *prepare_test
   script:
     - cd ${CI_TEST_FOLDER}
