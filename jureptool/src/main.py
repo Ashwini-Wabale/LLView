@@ -149,6 +149,7 @@ def _ProcessReport(njob,total_jobs,job,config):
         return    # skip job without the GPU list
       data['gpu']['gpu_util_avg'] = float(data['gpu']['gpu_util_avg'])
       data['gpu']['gpu_active_avg'] = float(data['gpu']['gpu_active_avg'])
+      data['gpu']['usage_avg'] = 0.0
       gpus = True
   except (ValueError,KeyError):
     data['job']['numgpus'] = 0
