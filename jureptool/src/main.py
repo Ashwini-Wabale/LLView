@@ -323,7 +323,7 @@ def _ProcessReport(njob,total_jobs,job,config):
         to_plot[page_num]['cmap']    = []
         to_plot[page_num]['lim']     = []
         to_plot[page_num]['log']     = []
-        to_plot[page_num]['lines']    = []
+        to_plot[page_num]['lines']   = []
         to_plot[page_num]['x']       = []
         to_plot[page_num]['xlabel']  = []
         to_plot[page_num]['y']       = []
@@ -406,6 +406,7 @@ def _ProcessReport(njob,total_jobs,job,config):
     to_plot_extra[section]['cmap']   = []
     to_plot_extra[section]['lim']    = []
     to_plot_extra[section]['log']    = []
+    to_plot_extra[section]['lines']  = []
     to_plot_extra[section]['x']      = []
     to_plot_extra[section]['xlabel'] = []
     to_plot_extra[section]['y']      = []
@@ -422,6 +423,7 @@ def _ProcessReport(njob,total_jobs,job,config):
       to_plot_extra[section]['cmap'].append('cmc.hawaii')
       to_plot_extra[section]['lim'].append([minimums[idx], maximums[idx]])
       to_plot_extra[section]['log'].append(False)
+      to_plot_extra[section]['lines'].append([])
       to_plot_extra[section]['colorplot'].append(True)
       to_plot_extra[section]['note'].append('')
       to_plot_extra[section]['unified'].append(True)
@@ -430,7 +432,6 @@ def _ProcessReport(njob,total_jobs,job,config):
       to_plot_extra[section]['xlabel'].append(config['plots'][section]['x']['name'] if ('x' in config['plots'][section] and 'name' in config['plots'][section]['x']) else config['plots']['x']['name'] if 'name' in config['plots']['x'] else "")
       to_plot_extra[section]['y'].append(config['plots']['y']['header'])
       to_plot_extra[section]['ylabel'].append(config['plots'][section]['y']['name'] if ('y' in config['plots'][section] and 'name' in config['plots'][section]['y']) else config['plots']['y']['name'] if 'name' in config['plots']['y'] else "")
-
 
     config['plots'][section]['Custom'] = {}
     config['plots'][section]['Custom']['description'] = "User-defined graphs:\n{}".format('\n '.join([ f"{_}: {descs[idx]}" for idx,_ in enumerate(graphs) ]))
