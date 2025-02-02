@@ -1070,9 +1070,9 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
     <td ><b><i>Runtime: </i>{data['job']['runtimehm']}</b> </td>
     <td colspan="2" class="rborder">&rarr; {data['job']['runtimeperc']}% of Wall: {data['job']['wallhm']} </td>
     <td><b>Job Performance Metrics</b></td>
-    <td style="text-align: center;">min.</td>
-    <td style="text-align: center;">avg.</td>
-    <td style="text-align: center;">max.</td>
+    <td style="text-align: center;">Min.</td>
+    <td style="text-align: center;">Avg.</td>
+    <td style="text-align: center;">Max.</td>
     <td></td>
   </tr>
   <tr>
@@ -1172,9 +1172,9 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
     <td><b>Job I/O Statistics</b></td>
     <td colspan="2">Total Data Write</td>
     <td colspan="2">Total Data Read</td>
-    <td colspan="2">max. Data Rate/Node Write</td>
-    <td colspan="2">max. Data Rate/Node Read</td>
-    <td colspan="2">max. Open-Close Rate/Node</td>
+    <td colspan="2">Max. Data Rate/Node Write</td>
+    <td colspan="2">Max. Data Rate/Node Read</td>
+    <td colspan="2">Max. Open-Close Rate/Node</td>
   </tr>
 """
   for fs in ['home','project','scratch','fastdata']:
@@ -1203,23 +1203,23 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
       <td colspan="8"><b>Job GPU Statistics</b></td>
     </tr>
     <tr>
-      <td style="text-align: right;">avg. GPU Utilization: </td>
-      <td><b>{data['gpu']['gpu_util_avg']:.2f}</b> %</td>
-      <td style="text-align: right;">avg. Mem. Usage Rate: </td>
+      <td style="text-align: right;">{data['gpu']['usage_or_util_text']}: </td>
+      <td><b>{data['gpu']['usage_avg']:.2f}</b> %</td>
+      <td style="text-align: right;">Avg. Mem. Usage Rate: </td>
       <td><b>{float(data['gpu']['gpu_memur_avg']):.2f}</b> %</td>
-      <td style="text-align: right;">avg. GPU Temp.: </td>
+      <td style="text-align: right;">Avg. GPU Temp.: </td>
       <td><b>{float(data['gpu']['gpu_temp_avg']):.2f}</b> &deg;C</td>
-      <td style="text-align: right;">avg. GPU Power: </td>
+      <td style="text-align: right;">Avg. GPU Power: </td>
       <td><b>{float(data['gpu']['gpu_pu_avg'])/1000.0:.2f}</b> W</td>
     </tr>
     <tr>
-      <td style="text-align: right;">max. Clk Stream/Mem: </td>
+      <td style="text-align: right;">Max. Clk Stream/Mem: </td>
       <td><b>{float(data['gpu']['gpu_sclk_max']):.0f}/{float(data['gpu']['gpu_clk_max']):.0f}</b> MHz</td>
-      <td style="text-align: right;">max. Mem. Usage: </td>
+      <td style="text-align: right;">Max. Mem. Usage: </td>
       <td><b>{float(data['gpu']['gpu_memu_max'])/1024.0/1024.0:.2f}</b> MiB</td>
-      <td style="text-align: right;">max. GPU Temp.: </td>
+      <td style="text-align: right;">Max. GPU Temp.: </td>
       <td><b>{float(data['gpu']['gpu_temp_max']):.2f}</b> &deg;C</td>
-      <td style="text-align: right;">max. GPU Power: </td>
+      <td style="text-align: right;">Max. GPU Power: </td>
       <td><b>{float(data['gpu']['gpu_pu_max'])/1000.0:.2f}</b> W</td>
     </tr>
     </table>

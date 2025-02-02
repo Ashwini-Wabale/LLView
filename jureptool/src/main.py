@@ -148,6 +148,7 @@ def _ProcessReport(njob,total_jobs,job,config):
         log.warning("No GPU information yet - report skipped!")
         return    # skip job without the GPU list
       data['gpu']['gpu_util_avg'] = float(data['gpu']['gpu_util_avg'])
+      data['gpu']['gpu_active_avg'] = float(data['gpu']['gpu_active_avg'])
       gpus = True
   except (ValueError,KeyError):
     data['job']['numgpus'] = 0
@@ -175,13 +176,28 @@ def _ProcessReport(njob,total_jobs,job,config):
           config['plots'][section][graph]['lim'] = [ config['system'][data['job']['system'].upper()][ data['job']['queue'] ][_] if isinstance(_, str) else _ for _ in config['plots'][section][graph]['lim'] ]
       else:
         config['plots'][section][graph]['lim'] = False
+      # If lines are given, check if it is a list (such that more than one can be added)
+      if 'lines' in config['plots'][section][graph] and not isinstance(config['plots'][section][graph]['lines'],list):
+        config['plots'][section][graph]['lines'] = [float(config['plots'][section][graph]['lines'])]
 
+  # Parsing comments from SBATCH
   # Check if line plots were chosen
   data['colorplot'] = True
-  if 'comment' in data['job'] and 'llview_plot_lines' in data['job']['comment']:
-    # Choose line_plots instead of colorplots (from slurm comment?)
-    if (gpus and num_gpus<=16) or (not gpus and num_cpus<=16):
-      data['colorplot'] = False
+  if 'comment' in data['job']:
+    if 'llview_plot_lines' in data['job']['comment']:
+      # Choose line_plots instead of colorplots (from slurm comment)
+      if (gpus and num_gpus<=16) or (not gpus and num_cpus<=16):
+        data['colorplot'] = False
+    if 'llview_calibrate' in data['job']['comment']:
+      for calib_test in data['job']['comment'].split(':')[1:]:
+        key, value = calib_test.split('=',1)
+        section,graph,header = key.replace('_',' ').split('-',2)
+        if 'lines' not in config['plots'][section][graph]:
+          # If no value for 'lines' is given in options, add it
+          config['plots'][section][graph]['lines'] = [float(value)]
+        else:
+          # If lines are given (already transformed to list above), add new one to the list
+          config['plots'][section][graph]['lines'].append(float(value))
 
   # Tick properties
   rcParams['xtick.top'] = 'on'
@@ -306,6 +322,7 @@ def _ProcessReport(njob,total_jobs,job,config):
         to_plot[page_num]['cmap']    = []
         to_plot[page_num]['lim']     = []
         to_plot[page_num]['log']     = []
+        to_plot[page_num]['lines']    = []
         to_plot[page_num]['x']       = []
         to_plot[page_num]['xlabel']  = []
         to_plot[page_num]['y']       = []
@@ -341,6 +358,10 @@ def _ProcessReport(njob,total_jobs,job,config):
           to_plot[page_num]['cmap'].append(config['plots'][section][_]['cmap'])
           to_plot[page_num]['lim'].append(config['plots'][section][_]['lim'])
           to_plot[page_num]['log'].append(config['plots'][section][_]['log'])
+          if 'lines' in config['plots'][section][_]:
+            to_plot[page_num]['lines'].append(config['plots'][section][_]['lines'])
+          else:
+            to_plot[page_num]['lines'].append([])
           # Defining the header and label to be used for x, depending if they are defined in graph, section or main only (in this priority order)
           if 'x' in config['plots'][section][_]:
             to_plot[page_num]['x'].append(config['plots'][section][_]['x']['header'])
