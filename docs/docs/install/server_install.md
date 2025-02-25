@@ -165,13 +165,10 @@ Finally, the command itself must be updated with the correct values for:
 
 
 #### `liveview`
-<<<<<<< HEAD
-=======
 
 The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
 ### JuRepTool
->>>>>>> ec7ceb7 (Initial modifications for liveview: added action and small docu changes)
 
 The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
 
