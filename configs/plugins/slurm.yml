@@ -13,6 +13,7 @@ sysinfo:
   motd: '/etc/motd'
   type: 'system'
   prefix: 'sys'
+  apply_function: sysinfo
   # apply: 'built-in'
 
 accountinfo:
@@ -20,15 +21,31 @@ accountinfo:
   LML: './slurmaccounts_LML.xml'
   type: 'usermap'
   prefix: 'U'
+  apply_function: accountinfo
   mapping:
     ACCOUNT: 'projects'
     USER: 'id'
+
+prioinfo:
+  # Transforming the sprio output into csv-like output using '|' as delimiter
+  cmd: "sprio | sed -r -e 's/^[[:space:]]+//g' -e 's/[[:space:]]+/|/g'"
+  LML: './jobprio_LML.xml'
+  type: 'prio'
+  prefix: 'p'
+  mapping:
+    JOBID: "jobid"
+    AGE: "prioage"
+    FAIRSHARE: "fairshare"
+    JOBSIZE: "priosize"
+    QOS: "prioqos"
+    NICE: "prionice"
 
 nodeinfo:
   cmd: 'scontrol show node --detail --all'
   LML: './nodes_LML.xml'
   type: 'node'
   prefix: 'nd'
+  apply_function: nodeinfo
   systemname: ${LLVIEW_SYSTEMNAME}
     # env: LLVIEW_SYSTEMNAME # Note that there's no ${...} here
     # file: /path/to/file
@@ -66,6 +83,7 @@ jobinfo:
   # include:
   #   Partition: 'dc-gpu'
   prefix: 'j'
+  apply_function: jobinfo
   modify_after_parse:
     NodeList: expand_NodeList
     SchedNodeList: expand_NodeList
@@ -173,7 +191,7 @@ classesinfo:
     MaxWall: 'to_hours'
 
 stepinfo: # One entry per step
-  cmd: 'sacct -P -a -o JobIDRaw,State,Exitcode,Start,End,time,JobName%30,Partition,User,Account,NNodes,NTasks,NCPUS,NodeList%30 -s BF,CA,CD,DL,F,NF,OOM,RQ,RS,RV,S,TO,R'
+  cmd: 'sacct -P -a -o JobIDRaw,State,Exitcode,Start,End,time,JobName%30,Partition,User,Account,NNodes,NTasks,NCPUS,NodeList%30,AveCPUFreq,AvePages,ConsumedEnergyRaw -s BF,CA,CD,DL,F,NF,OOM,RQ,RS,RV,S,TO,R'
   
   # If a timestamp file is given, the query should be made in a given period
   # This is set by the flags '-S <start_time> -E <end_time>' and the file
@@ -184,6 +202,7 @@ stepinfo: # One entry per step
   LML: './jobs_step_LML.xml'
   type: 'step'
   prefix: 's'
+  apply_function: stepinfo
   mapping:
     jobid: 'jobid'
     step: 'step'
@@ -201,5 +220,14 @@ stepinfo: # One entry per step
     Partition: 'partition'
     User: 'user'
     Account: 'account'
+    ConsumedEnergyRaw: 'FinalConsumedEnergyStep'
+    # AveCPUFreq: 'AveCPUFreq'
+    AvePages: 'AvePages'
   modify_after_parse:
     State: 'id_to_username'
+  add:
+    - foreach: 'jobid'
+    # Substitutions are done using sed to avoid rewriting (or accumulating) values in the same key
+      cmd: "sstat $$jobid$$ -P -a -o JobID,ConsumedEnergyRaw | sed -e 's/JobID/JobIDRaw/' -e 's/ConsumedEnergyRaw/ConsumedEnergy/'"
+      mapping:
+        ConsumedEnergy: 'ConsumedEnergy'

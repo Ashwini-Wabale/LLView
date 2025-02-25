@@ -272,7 +272,7 @@ def nodeinfo(options: dict, nodes_info) -> dict:
 
   # Gathering information about the partitions
   partitions = SlurmInfo()
-  partitions.parse('scontrol show part --detail --all')
+  partitions.parse_input('scontrol show part --detail --all')
   # partitions.to_LML('./partitions_LML.xml','part')
 
   # Adding information about the different classes/partitions in each node
@@ -345,7 +345,7 @@ def jobinfo(options: dict, jobs_info) -> dict:
 
   # Gathering information about the job steps
   # steps = SlurmInfo()
-  # steps.parse('scontrol show steps')
+  # steps.parse_input('scontrol show steps')
   # # steps.to_LML('./steps_LML.xml',prefix='st',stype='steps')
   # for stepname,step in steps.items():
   #   match = re.match('((\w+)\.\w+)',stepname)
@@ -427,78 +427,124 @@ class SlurmInfo:
     """
     return not bool(self._dict)
 
-  def parse(self, cmd, timestamp="", prefix="", stype="", delimiter="|"):
+  def parse(self,options):
+    # Modifying SLURM output with functions
+    if 'modify_after_parse' in options:
+      self.modify(options['modify_after_parse'])
+
+    # Using function of name 'key' (current key being processed, e.g.: nodeinfo, jobinfo, etc.), when defined,
+    # to modify that particular group/dictionary and items
+    if 'apply_function' in options:
+      if options['apply_function'] in globals():
+        func = globals()[options['apply_function']]
+        self.add(func(options,self))
+      else:
+        self.log.error(f"Function '{options['apply_function']}' is not defined in the program! Skipping...")
+
+    # Modifying SLURM output with functions
+    if 'modify_before_mapping' in options:
+      self.modify(options['modify_before_mapping'])
+
+    # Applying pattern to include or exclude units
+    if 'exclude' in options or 'include' in options:
+      self.apply_pattern(
+                          exclude=options['exclude'] if 'exclude' in options else '',
+                          include=options['include'] if 'include' in options else ''
+                        )
+
+    # Mapping keywords
+    if 'mapping' in options:
+      self.map(options['mapping'])
+
+    return
+
+  def parse_input(self, initial_cmd, foreach=[None], timestamp="", prefix="", stype="", delimiter="|"):
     """
     This function parses the output of Slurm commands
     and returns them in a dictionary
     """
-    # If a timestamp file is given, the query should be made in a given period
-    # This is set by the flags '-S <start_time> -E <end_time>' and the file
-    # 'timestampfile' stores the last timestamp for which information was obtained
-    if timestamp and ('file' in timestamp):
-      end_ts = time.time() - timestamp['ts_delay'] if 'ts_delay' in timestamp else 0
+    # Looping over a given quantity 
+    # (this can only happen when adding extra information to a given block via 'add' keyword)
+    # Each entry in foreach must be a dictionary with {"key_to_be_substituted_in_cmd": "value"}
+    # e.g., {'jobid': 999999}
+    for loop_entry in foreach:
+      # Starting new command for current call
+      cmd = initial_cmd
+      # If a timestamp file is given, the query should be made in a given period
+      # This is set by the flags '-S <start_time> -E <end_time>' and the file
+      # 'timestampfile' stores the last timestamp for which information was obtained
+      if timestamp and ('file' in timestamp):
+        end_ts = time.time() - timestamp['ts_delay'] if 'ts_delay' in timestamp else 0
 
-      if os.path.isfile(timestamp['file']):
-        try:
-          with open(timestamp['file'], 'r') as f:
-            last_ts = float(f.readline())
-        except ValueError:
-          self.log.error(f"Error reading timestamp from {timestamp['file']}! Check if file is correct or delete it.\n")
-          return
-        self.log.debug(f"Last timestamp from {timestamp['file']}: {last_ts}\n")
+        if os.path.isfile(timestamp['file']):
+          try:
+            with open(timestamp['file'], 'r') as f:
+              last_ts = float(f.readline())
+          except ValueError:
+            self.log.error(f"Error reading timestamp from {timestamp['file']}! Check if file is correct or delete it.\n")
+            return
+          self.log.debug(f"Last timestamp from {timestamp['file']}: {last_ts}\n")
+        else:
+          last_ts = end_ts-1*24*60*60
+          self.log.debug(f"Timestamp file {timestamp['file']} does not exist. Getting information from the last day...\n")
+        last_date = datetime.fromtimestamp(last_ts).strftime('%m/%d/%y-%H:%M:%S')
+        end_date = datetime.fromtimestamp(end_ts).strftime('%m/%d/%y-%H:%M:%S')
+        self.log.debug(f"Getting information from {last_date} to {end_date}\n")
+        cmd = f"{cmd} -S {last_date} -E {end_date}"
+
+        # Write timestamp of last query to file
+        with open(timestamp['file'], 'w') as f:
+          f.write(f'{end_ts}')
+
+      # If there's a loop to be done, substitute the desired key in the command
+      if loop_entry:
+        for key,value in loop_entry.items():
+          cmd = cmd.replace(f"$${key}$$",value)
+
+      # Getting Slurm raw output
+      rawoutput = check_output(cmd, shell=True, text=True)
+      # 'scontrol' has an output that is different from
+      # 'sacct' and 'sacctmgr' (the latter are csv-like)
+      if("scontrol" in cmd):
+        # Parsing 'scontrol' command
+        # If result is empty, return
+        if (re.match("No (.*) in the system",rawoutput)):
+          self.log.warning(rawoutput.split("\n")[0]+"\n")
+          continue
+        # Getting unit to be parsed from first keyword
+        unitname = re.match(r"(\w+)",rawoutput).group(1)
+        self.log.debug(f"Parsing units of {unitname}...\n")
+        units = re.findall(fr"({unitname}[\s\S]+?)\n\n",rawoutput)
+        for unit in units:
+          self.parse_unit_block(unit, unitname, prefix, stype)
       else:
-        last_ts = end_ts-1*24*60*60
-        self.log.debug(f"Timestamp file {timestamp['file']} does not exist. Getting information from the last day...\n")
-      last_date = datetime.fromtimestamp(last_ts).strftime('%m/%d/%y-%H:%M:%S')
-      end_date = datetime.fromtimestamp(end_ts).strftime('%m/%d/%y-%H:%M:%S')
-      self.log.debug(f"Getting information from {last_date} to {end_date}\n")
-      cmd += f" -S {last_date} -E {end_date}"
-
-      # Write timestamp of last query to file
-      with open(timestamp['file'], 'w') as f:
-        f.write(f'{end_ts}')
-
-    # Getting Slurm raw output
-    rawoutput = check_output(cmd, shell=True, text=True)
-    # 'scontrol' has an output that is different from
-    # 'sacct' and 'sacctmgr' (the latter are csv-like)
-    if("scontrol" in cmd):
-      # If result is empty, return
-      if (re.match("No (.*) in the system",rawoutput)):
-        self.log.warning(rawoutput.split("\n")[0]+"\n")
-        return
-      # Getting unit to be parsed from first keyword
-      unitname = re.match(r"(\w+)",rawoutput).group(1)
-      self.log.debug(f"Parsing units of {unitname}...\n")
-      units = re.findall(fr"({unitname}[\s\S]+?)\n\n",rawoutput)
-      for unit in units:
-        self.parse_unit_block(unit, unitname, prefix, stype)
-    else:
-      units = list(csv.DictReader(rawoutput.splitlines(), delimiter=delimiter))
-      if len(units) == 0:
-        self.log.warning(f"No output units from command {cmd}\n")
-        return
-      # Getting unit to be parsed from first keyword
-      unitname = re.match(r"(\w+)",rawoutput).group(1)
-      self.log.debug(f"Parsing units of {unitname}...\n")
-      for unit in units:
-        current_unit = unit[unitname]
-        self._raw.setdefault(current_unit,{})
-        # Adding prefix and type of the unit, when given in the input
-        if prefix:
-          self._raw[current_unit]["__prefix"] = prefix
-        if stype:
-          self._raw[current_unit]["__type"] = stype
-        for key,value in unit.items():
-          # If the value exist, join with new one separated by comma
-          # Unless the value is the current_unit, since that does not need acumulation
-          if key in self._raw[current_unit] and value != current_unit: 
-            value_to_add = f"{self._raw[current_unit][key]},{value}"
-          else:
-            value_to_add = value
-          self.add_value(key,value_to_add,self._raw[current_unit])
-
-    self._dict |= self._raw
+        # Parsing 'sacct' or 'sacctmgr' or 'sstat' commands
+        units = list(csv.DictReader(rawoutput.splitlines(), delimiter=delimiter))
+        if len(units) == 0:
+          self.log.warning(f"No output units from command {cmd}\n")
+          continue
+        # Getting unit to be parsed from first keyword
+        unitname = re.match(r"(\w+)",rawoutput).group(1)
+        self.log.debug(f"Parsing units of {unitname} in output of {cmd}...\n")
+        for unit in units:
+          current_unit = unit[unitname]
+          self._raw.setdefault(current_unit,{})
+          # Adding prefix and type of the unit, when given in the input
+          if "__prefix" not in self._raw[current_unit] and prefix:
+            self._raw[current_unit]["__prefix"] = prefix
+          if "__type" not in self._raw[current_unit] and stype:
+            self._raw[current_unit]["__type"] = stype
+          for key,value in unit.items():
+            # If the value exist, join with new one separated by comma
+            # Unless the value is the current_unit, since that does not need accumulation
+            if key in self._raw[current_unit] and value != current_unit: 
+              # Only add if values are different
+              if value not in self._raw[current_unit][key].split(','):
+                value_to_add = f"{self._raw[current_unit][key]},{value}"
+            else:
+              value_to_add = value
+            self.add_value(key,value_to_add,self._raw[current_unit])
+      self._dict |= self._raw
     return
 
   def add_value(self,key,value,dict):
@@ -552,7 +598,6 @@ class SlurmInfo:
         continue
       # Now the pairs are separated by space
       for pair in line.split(' '):
-        print('pair=',pair)
         if len(splitted := pair.split('=',1)) == 2: # Checking if line is splittable on "=" sign
           key,value = splitted
         else:  # If not, split on ":"
@@ -941,38 +986,49 @@ def main():
     if ('cmd' not in options):
       log.warning(f"No 'cmd' key given for Slurm command for {key} in config file! Skipping...\n")
     else:
-      slurm_info.parse(
+      if 'prefix' not in options:
+        options['prefix'] = 'i'
+      if 'type' not in options:
+        options['type'] = 'item'
+      slurm_info.parse_input(
                         options['cmd'],
                         timestamp=options['timestamp'] if 'timestamp' in options else '',
-                        prefix=options['prefix'] if 'prefix' in options else 'i',
-                        stype=options['type'] if 'type' in options else 'item',
+                        prefix=options['prefix'],
+                        stype=options['type'],
                         delimiter=options['delimiter'] if 'delimiter' in options else '|',
                         )
 
-    # Modifying SLURM output with functions
-    if 'modify_after_parse' in options:
-      slurm_info.modify(options['modify_after_parse'])
+    slurm_info.parse(options)
 
-    # Using function of name 'key' (current key being processed, e.g.: nodeinfo, jobinfo, etc.), when defined,
-    # to modify that particular group/dictionary and items
-    if key in globals():
-      func = globals()[key]
-      slurm_info.add(func(options,slurm_info))
+    # If there are extra metrics to be added on the same LML file
+    if 'add' in options:
+      # loop over all extra entries
+      for extra_entry in options['add']:
+        # If the extra commands are to be looped over some quantity
+        # the 'foreach' key can be used (it is obtained)
+        if extra_entry['foreach']:
+          foreach_value = set()
+          for name, item in slurm_info.items():
+            foreach_value.add(item[extra_entry['foreach']])
+          foreach = [{extra_entry['foreach']:_} for _ in foreach_value] 
 
-    # Modifying SLURM output with functions
-    if 'modify_before_mapping' in options:
-      slurm_info.modify(options['modify_before_mapping'])
-
-    # Applying pattern to include or exclude units
-    if 'exclude' in options or 'include' in options:
-      slurm_info.apply_pattern(
-                                exclude=options['exclude'] if 'exclude' in options else '',
-                                include=options['include'] if 'include' in options else ''
-                              )
-
-    # Mapping keywords
-    if 'mapping' in options:
-      slurm_info.map(options['mapping'])
+        # Parsing Slurm output
+        if ('cmd' not in extra_entry):
+          log.warning(f"No 'cmd' key given for Slurm command for extra option in {key}! Skipping...\n")
+        else:
+          slurm_info.parse_input(
+                            extra_entry['cmd'],
+                            foreach=foreach,
+                            timestamp=extra_entry['timestamp'] if 'timestamp' in extra_entry else '',
+                            prefix=extra_entry['prefix'] if 'prefix' in extra_entry else options['prefix'],
+                            stype=extra_entry['type'] if 'type' in extra_entry else options['type'],
+                            delimiter=extra_entry['delimiter'] if 'delimiter' in extra_entry else '|',
+                            )
+        # Mapping should include all entries in original and added, so we gather all in 
+        # options['mapping'] and use it as mapping dictionary
+        options['mapping'] |= extra_entry['mapping']
+        extra_entry['mapping'] = options['mapping']
+        slurm_info.parse(extra_entry)
 
     end_time = time.time()
     log.debug(f"Gathering {key} information took {end_time - start_time:.4f}s\n")
@@ -997,7 +1053,7 @@ def main():
       if slurm_info.empty():
         log.warning(f"Object {key} is empty, nothing to output to LML! Skipping...\n")
       else:
-        slurm_info.to_LML(f"{args.outfolder+'/' if args.outfolder else ''}{options['LML']}")
+        slurm_info.to_LML(f"{args.outfolder.rstrip('/')+'/' if args.outfolder else ''}{options['LML']}")
     else:
       # Accumulating for a single LML
       unique = unique + slurm_info
@@ -1006,7 +1062,7 @@ def main():
     if unique.empty():
       log.warning(f"Unique object is empty, nothing to output to LML! Skipping...\n")
     else:
-      unique.to_LML(f"{args.outfolder+'/' if args.outfolder else ''}{args.singleLML}")
+      unique.to_LML(f"{args.outfolder.rstrip('/')+'/' if args.outfolder else ''}{args.singleLML}")
   return
 
 if __name__ == "__main__":

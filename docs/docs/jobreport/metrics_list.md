@@ -22,11 +22,11 @@ Here we list the current metrics for each section and detail their meaning.
 
     * **Logical Cores Used**: (For multithreaded processors) Numbers of "Logical cores" with usage above 25% in the last minute. The "Logical cores" in the graphs are represented by the second half of the node.
 
-    * **Load**: The CPU load is a measure of the amount of computational work that a computer system performs (`1` means a load of 1 core on average). It is a quantity provided by Linux in three numbers: 1-, 5- and 15-min average loads. The load is then collected by LLview via Slurm.  
+    * **Load**: Average number of runnable processes (including those waiting for disk I/O) over the past 1 minute, indicating short-term system load and responsiveness (e.g., `1` means a load of 1 core on average - _not a percentage_).
 
     !!! note
 
-        In the job reports, the `Node: Load` is obtained from Slurm, which at JSC contains the 1-min load average.
+        The Load is provided by Linux in three numbers: 1-, 5- and 15-min average loads. In the job reports, the `Node: Load` is obtained from Slurm, which at JSC contains the 1-min Load average.
 
     * **Memory Usage**: Amount of allocated RAM memory (in GiB) in the node.
 
