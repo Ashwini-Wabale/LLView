@@ -88,7 +88,6 @@
     set:        coreusage
     FORALL:     'P,U,J:VAR_project_user_job'
     filepath:   '$outputdir/projects/$P/$U/PCOREusage_${J}_node.dat'
-    columns:        'jobid,ts,nodeid,coreid,cnt,usage_avg'
     columns:        'ts,nodeid,coreid,usage1_avg,usage2_avg'
     column_convert: 'usage1_avg->toPercent,usage2_avg->toPercent'
     column_filemap: 'J:jobid'

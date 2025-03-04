@@ -15,6 +15,18 @@ The functioning of LLview, however - in particular, how the permissions are set 
         - `AllowOverride All` (to allow [`.htaccess` configurations](#htaccess))
 - PHP
 
+JURI already includes several Open Source libraries:
+
+- [AG-Grid Community](https://www.ag-grid.com/)
+- [Bootstrap](https://getbootstrap.com/)
+- [d3](https://d3js.org/)
+- [Font Awesome (v4)](http://fontawesome.com/v4/)
+- [Handlebars](https://handlebarsjs.com/)
+- [JQuery](https://jquery.com/)
+- [Meimaid](https://mermaid.js.org/)
+- [Plotly.js](https://plotly.com/javascript/)
+- [svg-pan-zoom](https://github.com/bumbu/svg-pan-zoom)
+
 ## Configuration
 
 ### Transfer of data from LLview Server

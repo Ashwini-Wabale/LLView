@@ -103,7 +103,7 @@
       num_datapoints: 'ld_ndps,cores_ndps,gpu_ndps,fs_all_ndps,fs_project_ndps,fs_scratch_ndps,fs_home_ndps,fs_fastdata_ndps,fa_ndps,jmc_ndps'
       files:  'loadmemnodefile,coreusagenodefile,gpunodefile,fabricnodefile,fsallnodefile,fsprojectnodefile,
                fsscratchnodefile,fsfastdatanodefile,fshomenodefile,pdffile,htmlfile,jmcfile'
-    column_convert:     'runtimehm->hhmm_short,waittime->hhmm_short,endedhm->todate_std_hhmm,runtime->hourfrac,wallh->hourfrac,wallhm->hhmm_short,
+    column_convert:     'gpu_active_avg->toPercent,runtimehm->hhmm_short,waittime->hhmm_short,endedhm->todate_std_hhmm,runtime->hourfrac,wallh->hourfrac,wallhm->hhmm_short,
                          runtimeperc->cut2digits,updatetime->todate_std_hhmmss,system->systemname,
                          usage_avg->toPercent,usage_min->toPercent,usage_max->toPercent,
                          fs_all_MbwR_max->cut6digits,fs_all_MbrR_max->cut6digits,fs_all_ocR_max->cut6digits,
