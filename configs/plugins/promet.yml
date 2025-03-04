@@ -146,3 +146,21 @@ prometheus:
           query: 'sum by(instance,device) (DCGM_FI_PROF_NVLINK_TX_BYTES)'
           factor: 0.0009765625 # 1/1024.0
           default: 0
+
+    loadmem:
+      LML: './loadmem_LML.xml'
+      type: 'loadmemnode'
+      prefix: 'lm'
+      metrics:
+        memavail:
+          query: 'sum by (instance) (node_memory_MemAvailable_bytes{job="node-compute"})'
+          default: 0
+        memfree:
+          query: 'sum by (instance) (node_memory_MemFree_bytes{job="node-compute"})'
+          default: 0
+        memtotal:
+          query: 'sum by (instance) (node_memory_MemTotal_bytes{job="node-compute"})'
+          default: 0
+        cpuload:
+          query: 'sum by (instance) (node_load1{job="node-compute"})'
+          default: 0

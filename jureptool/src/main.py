@@ -192,7 +192,16 @@ def _ProcessReport(njob,total_jobs,job,config):
     if 'llview_calibrate' in data['job']['comment']:
       for calib_test in data['job']['comment'].split(':')[1:]:
         key, value = calib_test.split('=',1)
-        section,graph,header = key.replace('_',' ').split('-',2)
+        section,graph_header = key.replace('_',' ').split('-',1)
+        section = section.replace('$',r'\$') # Fix for '$FILESYSTEM' that is stored with a slash
+        try: # Checking if header is given
+          graph,header = graph_header.split('-',1)
+        except ValueError:
+          log.error(f"Could not split graph and header for calibrate report! Using graph '{graph_header}'...")
+          graph = graph_header
+        if graph not in config['plots'][section]:
+          log.error(f"Graph '{graph}' not existent in section {section}. Skipping...")
+          continue
         if 'lines' not in config['plots'][section][graph]:
           # If no value for 'lines' is given in options, add it
           config['plots'][section][graph]['lines'] = [float(value)]
@@ -603,8 +612,6 @@ def _ProcessReport(njob,total_jobs,job,config):
     data['rc']['err_type'] = False
     if "oom-killer" in data['rc']['errmsgs']:
       data['rc']['err_type'] = r"(Out-of-memory)"
-    elif "nodeDownAlloc" in data['rc']['errmsgs']:
-      data['rc']['err_type'] = r"(Node Error)"
     elif "LinkDownedCounter" in data['rc']['errmsgs']:
       # Checking how many HCA link failures there were
       failures = re.findall(r'LinkDownedCounter = (\d+)', data['rc']['errmsgs'])
@@ -613,6 +620,8 @@ def _ProcessReport(njob,total_jobs,job,config):
       else:
         # If it's more than one, we can say it was a "Flipping Link" case
         data['rc']['err_type'] = r"(Flipping Link)"
+    elif "nodeDownAlloc" in data['rc']['errmsgs']:
+      data['rc']['err_type'] = r"(Node Error)"
     error_lines = data['rc']['errmsgs'].split("|")
     error_nodes = set(re.findall(r'\((.*?)\)', data['rc']['errmsgnodes']))
     if (len(error_nodes) != data['rc']['numerrnodes']):

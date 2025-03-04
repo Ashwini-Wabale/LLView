@@ -26,6 +26,18 @@ The dependencies of LLview Server are:
         - DBD::SQLite
         - Config::IniFiles
         - JSON
+        - Compress::Zlib
+        - Archive::Tar
+        - LWP::Simple
+        - LWP::UserAgent
+        - LWP::Protocol::https
+        - SVG
+        - SVG::TT::Graph::Line
+        - Tk
+        - Tk::NoteBook
+        - Tk::Table
+        - Cwd
+
 - Python (>3.9) (For JuRepTool and plugins for Prometheus and Gitlab)
     - Packages (install with `pip install <PackageName>`)
         - matplotlib (>3.5.0)
@@ -152,6 +164,14 @@ Finally, the command itself must be updated with the correct values for:
 
 
 
+#### `liveview`
+
+The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
+
+### JuRepTool
+
+The `liveview` action uses the LLview client to create a live view of the jobs running on the system.
+
 
 
 #### `icmap` action
@@ -164,7 +184,6 @@ To color the nodes in the detailed job reports according to their interconnect g
     (...)
     ```
 This information is then converted into an xml file via the `$LLVIEW_HOME/da/utils/get_hostnodemap.py` script, which is then imported to the database to be used by the reports.
-
 
 
 

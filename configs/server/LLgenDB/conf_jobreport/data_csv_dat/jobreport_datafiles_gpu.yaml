@@ -19,7 +19,7 @@
     FORALL:     'P,U,J:VAR_project_user_job'
     filepath:   '$outputdir/projects/$P/$U/GPU_${J}_node.dat'
     columns:        'jobid,ts,gpuid,gpu_util,gpu_memu,gpu_pu,gpu_temp,gpu_memur,gpu_sclk,gpu_clk,gpu_clkr,gpu_pcie_tx,gpu_pcie_rx,gpu_nvlink_tx,gpu_nvlink_rx,gpu_active'
-    column_convert: 'gpu_memu->Bytes2GiB,gpu_pu->toThousand,gpu_pcie_tx->KiBtoGiB,gpu_pcie_rx->KiBtoGiB,gpu_nvlink_tx->KiBtoGiB,gpu_nvlink_rx->KiBtoGiB'
+    column_convert: 'gpu_active->toPercent,gpu_memu->Bytes2GiB,gpu_pu->toThousand,gpu_pcie_tx->KiBtoGiB,gpu_pcie_rx->KiBtoGiB,gpu_nvlink_tx->KiBtoGiB,gpu_nvlink_rx->KiBtoGiB'
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'dat'
