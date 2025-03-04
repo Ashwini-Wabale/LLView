@@ -49,9 +49,9 @@
              colorby: "groupnr"
              onhover:
               #  - ts_ms: { name: 'Start time', format: '|%Y/%m/%d %H:%M:%S.%L'}
-               id: { name: 'Step name'}
-               dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
-               cmplx: { name: 'Complexity' }
+               - id: { name: 'Step name'}
+               - dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
+               - cmplx: { name: 'Complexity' }
              color:
                - '#FF0000'
                - '#00FF00'
@@ -94,9 +94,9 @@
              colorby: "groupnr"
              onhover:
               #  - ts_ms: { name: 'Start time', format: '|%Y/%m/%d %H:%M:%S.%L'}
-               id: { name: 'Step name'}
-               dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
-               cmplx: { name: 'Complexity' }
+               - id: { name: 'Step name'}
+               - dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
+               - cmplx: { name: 'Complexity' }
              color:
                - '#FF0000'
                - '#00FF00'
@@ -139,9 +139,9 @@
              colorby: "groupnr"
              onhover:
               #  - ts_ms: { name: 'Start time', format: '|%Y/%m/%d %H:%M:%S.%L'}
-               id: { name: 'Step name'}
-               dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
-               cmplx: { name: 'Complexity' }
+               - id: { name: 'Step name'}
+               - dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
+               - cmplx: { name: 'Complexity' }
              color:
                - '#FF0000'
                - '#00FF00'
@@ -184,9 +184,9 @@
              colorby: "groupnr"
              onhover:
               #  - ts_ms: { name: 'Start time', format: '|%Y/%m/%d %H:%M:%S.%L'}
-               id: { name: 'Step name'}
-               dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
-               cmplx: { name: 'Complexity' }
+               - id: { name: 'Step name'}
+               - dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
+               - cmplx: { name: 'Complexity' }
              color:
                - '#FF0000'
                - '#00FF00'
@@ -229,9 +229,9 @@
              colorby: "groupnr"
              onhover:
               #  - ts_ms: { name: 'Start time', format: '|%Y/%m/%d %H:%M:%S.%L'}
-               id: { name: 'Step name'}
-               dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
-               cmplx: { name: 'Complexity' }
+               - id: { name: 'Step name'}
+               - dt_ms: { name: 'Duration', format: ':.2f', factor: 0.001, units: 's'}
+               - cmplx: { name: 'Complexity' }
              color:
                - '#FF0000'
                - '#00FF00'
