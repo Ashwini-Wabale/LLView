@@ -31,6 +31,7 @@ include:
 
 stages:
   - build
+  - test
   - jureptool_test
   - deploy
 
@@ -44,6 +45,18 @@ before_script:
   - pip3 install mkdocs-material-extensions
   - pip3 install mkdocs-glightbox
   - pip3 install mkdocs-git-revision-date-localized-plugin
+
+check_yaml:
+  image: python:3.10-alpine
+  stage: test
+  tags:
+    - public-docker
+  needs: []
+  before_script:
+    - pip install yamllint
+    - find . -name "*.yaml" -type f -exec sed -i '/%include /d' {} \;
+  script:
+    - yamllint -c .yamllint.yml --no-warnings .
 
 builddocs:
   stage: build

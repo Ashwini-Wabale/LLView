@@ -19,7 +19,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %10.3f %10.3f %10.3f %10.3f'
     format_header:   '%-10s %10s %12s %10s %10s %10s %10s'
-    column_filemap: 'J:jobid'
     data_database:   fabricstate
     data_table:      fabric_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fabric
@@ -41,7 +40,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fabricstate
     data_table:      fabric_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fabric

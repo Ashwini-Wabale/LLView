@@ -9,7 +9,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s "%s" "%s" "%s" "%s" "%s" "%s" "%s" "%s" "%s" "%s"'
     format_header:   '%-10s %10s %12s %8s %8s %8s %8s %8s %8s %8s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   jumoncstate
     data_table:      jumonc_by_ts
     stat_database:   jobreport_stat_jumonc

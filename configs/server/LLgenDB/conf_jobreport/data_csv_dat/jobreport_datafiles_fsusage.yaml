@@ -24,7 +24,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %8.6f %8.6f %e'
     format_header:   '%-10s %10s %12s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_all
     data_table:      fsusage_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fsusage_all
@@ -43,7 +42,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_all
     data_table:      fsusage_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fsusage_all
@@ -66,7 +64,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %8.6f %8.6f %8.6f'
     format_header:   '%-10s %10s %12s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_project
     data_table:      fsusage_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fsusage_project
@@ -85,7 +82,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_project
     data_table:      fsusage_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fsusage_project
@@ -108,7 +104,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %8.6f %8.6f %8.6f'
     format_header:   '%-10s %10s %12s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_scratch
     data_table:      fsusage_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fsusage_scratch
@@ -127,7 +122,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_scratch
     data_table:      fsusage_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fsusage_scratch
@@ -150,7 +144,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %8.6f %8.6f %f'
     format_header:   '%-10s %10s %12s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_fastdata
     data_table:      fsusage_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fsusage_fastdata
@@ -169,7 +162,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_fastdata
     data_table:      fsusage_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fsusage_fastdata
@@ -192,7 +184,6 @@
     format:         'dat'
     format_str:      '%-10s %10d %12s %8.6f %8.6f %8.6f'
     format_header:   '%-10s %10s %12s %8s %8s %8s'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_home
     data_table:      fsusage_by_jobid_nodeid_ts
     stat_database:   jobreport_stat_fsusage_home
@@ -211,7 +202,6 @@
     column_filemap: 'J:jobid'
     column_ts:      'ts'
     format:         'csv'
-    column_filemap: 'J:jobid'
     data_database:   fsusagestate_home
     data_table:      fsusage_aggr_by_jobid_ts
     stat_database:   jobreport_stat_fsusage_home

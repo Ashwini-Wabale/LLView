@@ -1,0 +1,14 @@
+---
+extends: relaxed
+
+rules:
+  line-length: disable
+  commas: disable
+  braces: disable
+  brackets: disable
+  colons: disable
+  trailing-spaces: disable
+  indentation: disable
+
+ignore:
+  - rest/db/Full_LLgenDB.yaml
