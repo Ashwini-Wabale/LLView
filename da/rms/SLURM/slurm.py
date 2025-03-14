@@ -521,11 +521,11 @@ class SlurmInfo:
         # Parsing 'sacct' or 'sacctmgr' or 'sstat' commands
         units = list(csv.DictReader(rawoutput.splitlines(), delimiter=delimiter))
         if len(units) == 0:
-          self.log.warning(f"No output units from command {cmd}\n")
+          self.log.warning(f"No output units from command '{cmd}'\n")
           continue
         # Getting unit to be parsed from first keyword
         unitname = re.match(r"(\w+)",rawoutput).group(1)
-        self.log.debug(f"Parsing units of {unitname} in output of {cmd}...\n")
+        self.log.debug(f"Parsing units of {unitname} in output of '{cmd}'...\n")
         for unit in units:
           current_unit = unit[unitname]
           self._raw.setdefault(current_unit,{})
@@ -601,7 +601,11 @@ class SlurmInfo:
         if len(splitted := pair.split('=',1)) == 2: # Checking if line is splittable on "=" sign
           key,value = splitted
         else:  # If not, split on ":"
-          key,value = pair.split(":",1)
+          if len(split_pair := pair.split(":",1)) == 2:
+            key,value = split_pair
+          else:
+            self.log.error(f"Could not parse pair '{pair}' in line '{line}'. Skipping line...\n")
+            break
         if key in ['Dist']: #'JobName'
           self._raw[current_unit][key] = line.split(f'{key}=',1)[1]
           break
