@@ -59,7 +59,7 @@ check_yaml:
     - yamllint -c .yamllint.yml --no-warnings .
 
 check_combined_yaml:
-  image: perl:5.40-bookworm
+  image: registry.jsc.fz-juelich.de/cstao/llview_package/perl:5.40
   stage: test
   tags:
     - public-docker
@@ -72,10 +72,7 @@ check_combined_yaml:
     expire_in: "30 days"
     paths:
       - ./combined_yaml
-  before_script:
-    - apt-get update
-    - apt-get install -y yamllint
-    - cpanm YAML::XS warnings::unused DBI DBD::SQLite Parallel::ForkManager JSON
+  before_script: []
   script:
     - mkdir combined_yaml
     - export LLMONDB_PRINT_CONFIG_TO_DIR="${PWD}/combined_yaml"
