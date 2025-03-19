@@ -58,6 +58,33 @@ check_yaml:
   script:
     - yamllint -c .yamllint.yml --no-warnings .
 
+check_combined_yaml:
+  image: perl:5.40-bookworm
+  stage: test
+  tags:
+    - public-docker
+  allow_failure: true
+  needs: []
+  artifacts:
+    untracked: false
+    when: always
+    access: all
+    expire_in: "30 days"
+    paths:
+      - ./combined_yaml
+  before_script:
+    - apt-get update
+    - apt-get install -y yamllint
+    - cpanm YAML::XS warnings::unused DBI DBD::SQLite Parallel::ForkManager JSON
+  script:
+    - mkdir combined_yaml
+    - export LLMONDB_PRINT_CONFIG_TO_DIR="${PWD}/combined_yaml"
+    - perl ./da/LLmonDB/LLmonDB_mngt.pl -config=./configs/server/LLgenDB/LLgenDB.yaml printconfig > ./combined_yaml/stdout.log
+    - head ./combined_yaml/stdout.log
+    - tail ./combined_yaml/stdout.log
+    - ls -lah ./combined_yaml/
+    - yamllint -c .yamllint.yml --no-warnings ./combined_yaml/
+
 builddocs:
   stage: build
   tags:
