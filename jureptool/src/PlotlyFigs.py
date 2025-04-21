@@ -12,7 +12,7 @@ import plotly.graph_objs as go
 import numpy as np
 import pandas as pd
 
-def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
+def CreateOverviewFig(config,data,time_range,df_overview,gpus):
   # General layout options
   layout = dict(legend=dict(
                       yanchor="top",
@@ -47,89 +47,58 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                                               specs=[[{"secondary_y": False}, {"secondary_y": True,"r":-0.06},{"secondary_y": False,"l":0.06,"r":-0.06}]],
                                               # row_heights=[0.3, 0.7]
                                               )
-  if x1:
-    int_usage = int(data['cpu']['usage'])
-    img = np.arange(int_usage).reshape((int_usage, 1))
-    fig.add_trace(go.Heatmap(z=img, 
-                            showscale=False, 
-                            connectgaps=False, 
-                            zmin=0,
-                            zmax=100.0,
-                            hoverinfo='skip',
-                            colorscale=["#d62728","gold","#2ca02c"],
-                            # colorbar=dict(outlinewidth=0.5,
-                            #               outlinecolor='black',
-                            #               len=0.5,
-                            #               thickness=0.02,
-                            #               thicknessmode='fraction',
-                            #               ticks='inside',
-                            #               yanchor='bottom',
-                            #               x=0.2) , 
-                            ), 1, 1)
-    fig['layout']['xaxis'].update(dict(zeroline=False, showgrid=False, range=[-0.5,0.5], tickmode='array',tickvals=[], fixedrange=True, showticklabels=False))
-    fig['layout']['yaxis'].update(dict(zeroline=False, showgrid=False, range=[0.0,100.0], tickmode='array',tickvals=[], fixedrange=True ,showticklabels=False))
+  int_usage = int(data['cpu']['usage'])
+  img = np.arange(int_usage).reshape((int_usage, 1))
+  fig.add_trace(go.Heatmap(z=img, 
+                          showscale=False, 
+                          connectgaps=False, 
+                          zmin=0,
+                          zmax=100.0,
+                          hoverinfo='skip',
+                          colorscale=["#d62728","gold","#2ca02c"],
+                          # colorbar=dict(outlinewidth=0.5,
+                          #               outlinecolor='black',
+                          #               len=0.5,
+                          #               thickness=0.02,
+                          #               thicknessmode='fraction',
+                          #               ticks='inside',
+                          #               yanchor='bottom',
+                          #               x=0.2) , 
+                          ), 1, 1)
+  fig['layout']['xaxis'].update(dict(zeroline=False, showgrid=False, range=[-0.5,0.5], tickmode='array',tickvals=[], fixedrange=True, showticklabels=False))
+  fig['layout']['yaxis'].update(dict(zeroline=False, showgrid=False, range=[0.0,100.0], tickmode='array',tickvals=[], fixedrange=True ,showticklabels=False))
+  fig.add_annotation( text = "<b>Average<br>CPU Usage</b>",
+                      x = 0.0,
+                      y = 100,
+                      xanchor='center',
+                      yanchor='bottom',
+                      yshift=10,
+                      xref = "x",
+                      yref = "y",
+                      align="center",
+                      valign="middle",
+                      showarrow = False,
+                      font = {
+                          "family": "'Liberation Sans','Arial',sans-serif",
+                          "size": 14,
+                      })
+  fig.add_annotation( text = f"<b>{data['cpu']['usage']:.1f}%</b>",
+                      x = 0.0,
+                      y = 75,
+                      xref = "x",
+                      yref = "y",
+                      xanchor='center',
+                      yanchor='middle',
+                      align="center",
+                      valign="middle",
+                      showarrow = False,
+                      textangle=-90.0,
+                      font = {
+                          "family": "'Liberation Sans','Arial',sans-serif",
+                          "size": 12,
+                      })
 
-    color = tuple(255*x for x in config['appearance']['colors_cmap'][7])
-
-    hovertext = []
-    for time,value in zip(x1,y1):
-      delta_comp = (time - time_range[0]).components
-      delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
-      hovertext.append(f"Time: {time} ({delta})<br />{data['cpu']['usage_or_load_text']}: {value:.2f}")
-
-    fig.add_trace(go.Scatter( x=x1,
-                              y=y1, 
-                              name = data['cpu']['usage_or_load_text'],
-                              legendgroup = 'cpu',
-                              line = {"shape": 'hvh', "color": f"rgb{color}"},
-                              mode="lines+markers",
-                              hoverinfo='text',
-                              text=hovertext,
-                              # mode = 'markers',
-                              marker=dict(
-                                    size=5,
-                                    color=f"rgb{color}",
-                                ),
-                                ), 1, 2)
-    fig['layout']['yaxis2'].update(dict( title=data['cpu']['overview_label'],
-                                          color = f"rgb{color}",
-                                          tickcolor = f"rgb{color}",
-                                          range=data['cpu']['overview_range'],
-                                          ))
-    fig['layout']['xaxis2'].update(dict( tickformat=('%d/%m/%y\n%H:%M:%S'),
-                                          range=time_range,
-                                          ))
-    fig.add_annotation( text = "<b>Average<br>CPU Usage</b>",
-                        x = 0.0,
-                        y = 100,
-                        xanchor='center',
-                        yanchor='bottom',
-                        yshift=10,
-                        xref = "x",
-                        yref = "y",
-                        align="center",
-                        valign="middle",
-                        showarrow = False,
-                        font = {
-                            "family": "'Liberation Sans','Arial',sans-serif",
-                            "size": 14,
-                        })
-    fig.add_annotation( text = f"<b>{data['cpu']['usage']:.1f}%</b>",
-                        x = 0.0,
-                        y = 75,
-                        xref = "x",
-                        yref = "y",
-                        xanchor='center',
-                        yanchor='middle',
-                        align="center",
-                        valign="middle",
-                        showarrow = False,
-                        textangle=-90.0,
-                        font = {
-                            "family": "'Liberation Sans','Arial',sans-serif",
-                            "size": 12,
-                        })
-  if x2:
+  if gpus:
     int_usage = int(data['gpu']['usage_avg'])
     img = np.arange(int_usage).reshape((int_usage, 1))
     fig.add_trace(go.Heatmap(z=img, 
@@ -150,36 +119,7 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             ), 1, 3)
     fig['layout']['xaxis3'].update(dict(zeroline=False, showgrid=False, range=[-0.5,0.5], tickmode='array',tickvals=[], fixedrange=True, showticklabels=False))
     fig['layout']['yaxis4'].update(dict(zeroline=False, showgrid=False, range=[0.0,100.0], tickmode='array',tickvals=[], fixedrange=True ,showticklabels=False))
-
-    color = tuple(255*x for x in config['appearance']['colors_cmap'][0])
-
-    hovertext = []
-    for time,value in zip(x2,y2):
-      delta_comp = (time - time_range[0]).components
-      delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
-      hovertext.append(f"Time: {time} ({delta})<br />{data['gpu']['usage_or_util_text']}: {value:.2f}")
-
-    fig.add_trace(go.Scatter( x=x2,
-                              y=y2, 
-                              name = data['gpu']['usage_or_util_text'],
-                              legendgroup = 'gpu',
-                              line = {"shape": 'hvh', "color":f"rgb{color}"},
-                              mode="lines+markers",
-                              hoverinfo='text',
-                              text=hovertext,
-                              # mode = 'markers',
-                              marker=dict(
-                                    size=5,
-                                    color=f"rgb{color}",
-                                ),
-                                ),
-                                1, 2, secondary_y=True)
-    fig['layout']['yaxis3'].update(dict( title=data['gpu']['overview_label'],
-                                          color = f"rgb{color}",
-                                          tickcolor = f"rgb{color}",
-                                          range=[0,110],
-                                          ))
-    fig.add_annotation( text = f"<b>{data['gpu']['usage_or_util_text'].replace('Avg. ','Average<br>')}</b>",
+    fig.add_annotation( text = f"<b>Average<br>GPU Usage</b>",
                         x = 0.0,
                         y = 100,
                         xanchor='center',
@@ -209,6 +149,83 @@ def CreateOverviewFig(config,data,time_range,x1,y1,x2,y2):
                             "family": "'Liberation Sans','Arial',sans-serif",
                             "size": 12,
                         })
+
+  if df_overview['left']:
+    color = tuple(255*x for x in config['appearance']['colors_cmap'][7])
+
+    for x,y,legend in zip(df_overview['left']['x'],df_overview['left']['y'],df_overview['left']['legend']):
+      hovertext = []
+      for time,value in zip(x,y):
+        delta_comp = (time - time_range[0]).components
+        delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
+        hovertext.append(f"Time: {time} ({delta})<br />{legend}: {value:.2f}")
+
+      fig.add_trace(go.Scatter( x=x,
+                                y=y, 
+                                name = legend,
+                                legendgroup = 'left',
+                                line = {"shape": 'hvh', "color": f"rgb{color}"},
+                                mode="lines+markers",
+                                hoverinfo='text',
+                                text=hovertext,
+                                # mode = 'markers',
+                                marker=dict(
+                                      size=5,
+                                      color=f"rgb{color}",
+                                  ),
+                                ), 1, 2)
+    if '_label' in config['plots']['_overview']['left']:
+      fig['layout']['yaxis2'].update(dict( 
+        title=config['plots']['_overview']['left']['_label'],
+        color = f"rgb{color}",
+        tickcolor = f"rgb{color}",
+      ))
+    # Defining range
+    if '_range' in config['plots']['_overview']['left']:
+      fig['layout']['yaxis2'].update(dict( 
+        range=config['plots']['_overview']['left']['_range'],
+      ))
+    fig['layout']['xaxis2'].update(dict( 
+      tickformat=('%d/%m/%y\n%H:%M:%S'),
+      range=time_range,
+    ))
+
+  if df_overview['right']:
+    color = tuple(255*x for x in config['appearance']['colors_cmap'][0])
+
+    for x,y,legend in zip(df_overview['right']['x'],df_overview['right']['y'],df_overview['right']['legend']):
+      hovertext = []
+      for time,value in zip(x,y):
+        delta_comp = (time - time_range[0]).components
+        delta = f"{(str(delta_comp.hours)+'h:') if delta_comp.hours > 0 else ''}{delta_comp.minutes:02d}m:{delta_comp.seconds:02d}s"
+        hovertext.append(f"Time: {time} ({delta})<br />{legend}: {value:.2f}")
+
+      fig.add_trace(go.Scatter( x=x,
+                                y=y, 
+                                name = legend,
+                                legendgroup = 'gpu',
+                                line = {"shape": 'hvh', "color":f"rgb{color}"},
+                                mode="lines+markers",
+                                hoverinfo='text',
+                                text=hovertext,
+                                # mode = 'markers',
+                                marker=dict(
+                                      size=5,
+                                      color=f"rgb{color}",
+                                  ),
+                                ), 1, 2, secondary_y=True)
+    if '_label' in config['plots']['_overview']['right']:
+      fig['layout']['yaxis3'].update(dict( 
+        title=config['plots']['_overview']['right']['_label'],
+        color = f"rgb{color}",
+        tickcolor = f"rgb{color}",
+      ))
+    # Defining range
+    if '_range' in config['plots']['_overview']['right']:
+      fig['layout']['yaxis3'].update(dict( 
+        range=config['plots']['_overview']['right']['_range'],
+      ))
+
   for i in range(1,5): 
     frame = dict( mirror=True,
                   ticks='inside',
