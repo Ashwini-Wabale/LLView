@@ -248,11 +248,11 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
         page.fig.text(0.600,0.659-gpu_section_size,r"$\rightarrow$ detailed list of error messages at end of report", ha='left', color='black',fontsize=config['appearance']['tinyfont'])
       page.fig.text(0.500,0.659-gpu_section_size-ierr*0.017,r"This job has used approximately: {} nodes $\times$ {} cores $\times$ {:.3f} hours $=$ {:.2f} core-h".format(num_cpus,config['system'][data['job']['system'].upper()][data['job']['queue']]['cores'],float(data['job']['runtime']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['runtime'])), ha='center', fontweight='bold', color='black')
       if config['energy']:
-        page.fig.text(0.500,0.644-gpu_section_size-ierr*0.017,f"Estimated energy used by this job, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
+        page.fig.text(0.500,0.644-gpu_section_size-ierr*0.017,f"Estimated energy used by this job, integrated from the node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
     else: # if job is still running:
       page.fig.text(0.500,0.676-gpu_section_size,r"This job will use approximately {} nodes $\times$ {} cores $\times$ {:.3f} hours $=$ {:.2f} core-h for the specified walltime (up to now: {:.2f})".format(num_cpus,config['system'][data['job']['system'].upper()][data['job']['queue']]['cores'],float(data['job']['wallh']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['wallh']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['runtime']) ), ha='center', fontweight='bold', color='black')
       if config['energy']:
-        page.fig.text(0.500,0.661-gpu_section_size,f"Estimated energy used by this job up to now, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
+        page.fig.text(0.500,0.661-gpu_section_size,f"Estimated energy used by this job up to now, integrated from the node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
 
     # Graphic on first page
     if df_overview:

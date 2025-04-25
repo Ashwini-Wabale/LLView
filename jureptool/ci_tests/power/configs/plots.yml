@@ -239,7 +239,7 @@ GH200:
     cmap: 'cmc.hawaii'
     lim:  False
     description: 'Power usage (in Watts) for the Hopper GPU and its associated circuitry (e.g. memory)'
-  Chip Power: 
+  Superchip Power: 
     _file_header: 'pwrchipfile'
     _datapoints_header: 'pwr_ch_ndps'
     _y:
