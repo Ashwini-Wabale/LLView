@@ -54,28 +54,47 @@ def cpus(options: dict, cpus_info) -> dict:
   # Getting information from the steps
   log.info("Adding extra information for cpus...\n")
 
+  # Default is using 2 smt (i.e., 1 logiccore) when 'smt' not given in options
+  nsmts = options['smt'] if 'smt' in options else 2
+  nsockets = options['sockets'] if 'sockets' in options else 1
+
   cpusextra = {}
   # Updating the jobs dictionary by adding or removing keys
-  for node,cpuinfo in cpus_info.items():
-    # print(node,coreinfo)
-    cpusextra.setdefault(node,{})
-    cpusextra[node]['usage'] = 0
-    cpusextra[node]['physcoresused'] = 0
-    if 'logiccores' in options and not options['logiccores']:
-      ncores = len(cpuinfo['coreidle'].keys())
-    else:
-      cpusextra[node]['logiccoresused'] = 0
-      ncores = len(cpuinfo['coreidle'].keys())/2
-    for core,coreidle in cpuinfo['coreidle'].items():
-      cpusextra[node]['usage'] += 1 - coreidle
-      if core < ncores:
-        cpusextra[node]['physcoresused']+= int(coreidle<0.75)
+  for node,cpuinfo in list(cpus_info.items()):
+    ncores = int(len(cpuinfo['coreidle'].keys())/nsmts/nsockets)
+
+    # Store node_names of this node
+    node_names = set()
+    for coreid,coreidle in cpuinfo['coreidle'].items():
+      # Extracting position of core from coreid
+      core = coreid%ncores
+      core_idx = int(coreid/ncores)
+      smt = int(core_idx/nsockets)
+      socket = core_idx%nsockets
+
+      # Add results node or per socket, if the later is given in the options
+      node_name = f"{node}{'' if nsockets == 1 else f'_{socket:02d}'}"
+      node_names.add(node_name)
+      cpusextra.setdefault(node_name,{})
+
+      cpusextra[node_name]['usage'] = cpusextra[node_name].get('usage', 0) + (1 - coreidle)
+      if smt == 0:
+        cpusextra[node_name]['physcoresused'] = cpusextra[node_name].get('physcoresused', 0) + int(coreidle<0.75)
       else:
-        cpusextra[node]['logiccoresused']+= int(coreidle<0.75)
+        # TODO: This works for up to 2 SMTs, but more than that would sum together. Must be generalised.
+        cpusextra[node_name]['logiccoresused'] = cpusextra[node_name].get('logiccoresused', 0) + int(coreidle<0.75)
 
-    cpusextra[node]['usage'] = cpusextra[node]['usage']/ncores
+    # Moving information from node to node/socket info
+    for node_name in node_names:
+      cpusextra[node_name]['id'] = node_name
+      cpusextra[node_name]['cpu_ts'] = cpuinfo['cpu_ts']
+      cpusextra[node_name]['__prefix'] = cpuinfo['__prefix']
+      cpusextra[node_name]['__type'] = cpuinfo['__type']
+      cpusextra[node_name]['usage'] = cpusextra[node_name]['usage']/ncores
 
-    del cpuinfo['coreidle']
+    # Removing original node, as the information was already carried to the new (per node or per socket)
+    del cpus_info[node]
+
   return cpusextra
 
 
@@ -88,12 +107,12 @@ def gpu(options: dict, gpus_info) -> dict:
   # Getting information from the steps
   log.info("Adding extra information for gpus...\n")
 
-  log.debug(f"Performing query to check if node is up: 'sum by(instance) (up{{job=~\"node-compute.*\"}})' \n")
-  query = 'sum by(instance) (up{job=~"node-compute.*"})'
+  log.debug(f"Performing query to check if node is up: 'sum by(instance) (up{{job=~\"mg-computes-region[0-9]+-external-node-exporter\"}})' \n")
+  query = 'sum by(instance) (up{job=~"mg-computes-region[0-9]+-external-node-exporter"})'
   url = f"https://{gpus_info._host}/api/v1/query?query={requests.utils.quote(query)}"
   log.debug(f"{url}\n")
 
-  # Querying Prometheus server
+  # Querying server
   if gpus_info._token:
     # with token
     headers = {'accept': 'application/json', 'Authorization': gpus_info._token}
@@ -125,9 +144,9 @@ def gpu(options: dict, gpus_info) -> dict:
 
 class Info:
   """
-  Class that stores and processes information from Slurm output  
+  Class that stores and processes information from parsed output  
   """
-  def __init__(self,hostname="",username=None,password=None,token=None,verify=True):
+  def __init__(self, hostname="", username=None, password=None, token=None, client_secret=None, verify=True):
     self._raw = {}  # Dictionary with parsed raw information
     self._dict = {} # Dictionary with modified information (which is output to LML)
     self._host = os.path.expandvars(hostname)
@@ -135,6 +154,7 @@ class Info:
     self._pass = password
     self._token = token
     self._verify = verify
+    self._client_secret = os.path.expandvars(client_secret) if client_secret else None
     self.log   = logging.getLogger('logger')
 
   def __add__(self, other):
@@ -191,19 +211,26 @@ class Info:
         self.log.info(f"Query {name} is cached, recovering data without querying again...\n")
         data = cached_queries[name]
       else:
-        if 'query' not in metric:
-          self.log.debug(f"No query to be done for {name}\n")
-          continue
-
         if not self._host:
           self.log.error(f"No hostname defined for current server. Query {name} cannot be done! Skipping...")
           continue
+        if 'query' in metric:
+          self.log.debug(f"Performing query: {metric['query']}\n")
+          url = f"{'' if self._host.startswith('https://') else 'https://'}{self._host}/api/v1/query?query={requests.utils.quote(metric['query'])}"
+        elif 'endpoint' in metric:
+          self.log.debug(f"Performing query at endpoint: {metric['endpoint']}\n")
+          url = f"{'' if self._host.startswith('https://') else 'https://'}{self._host}{metric['endpoint']}"
+        else:
+          self.log.debug(f"No 'query' or 'endpoint' defined for {name}\n")
+          continue
 
-        self.log.debug(f"Performing query: {metric['query']}\n")
-        url = f"https://{self._host}/api/v1/query?query={requests.utils.quote(metric['query'])}"
+        # Adding parameters given in options
+        if 'parameters' in metric:
+          url = f"{url}?{'&'.join([f'{key}={requests.utils.quote(value)}' for key,value in metric['parameters'].items()])}" 
+
         self.log.debug(f"{url}\n")
 
-        # Querying Prometheus server
+        # Querying server
         if self._token:
           # with token
           headers = {'accept': 'application/json', 'Authorization': self._token}
@@ -217,46 +244,73 @@ class Info:
 
         # If current query does not succeed, log error and continue to next query
         if not r.ok:
-          self.log.error(f"Status <{r.status_code}> with query {url}")
+          self.log.error(f"Status <{r.status_code}> with query {url}\n")
           continue
 
         # Getting data from returned result of query
-        data = r.json()['data']['result']
+        r = r.json()
+        self.log.debug(f"Raw response received: {r}\n")
+
+        if ('data' in r) and ('result' in r['data']):
+          # Prometheus response
+          data = r['data']['result']
+        elif ('out' in r) and ('columns' in r['out']) and ('data' in r['out']):
+          # SEMS response
+          data = {key: value for key,value in zip(r['out']['columns'],r['out']['data'][0])}
+        else:
+          self.log.error("Problem parsing output! Skipping... ")
+          continue
 
         if ('cache' in metric) and metric['cache']:
           cached_queries[name] = data
 
       # Looping over all instances (nodes/gpus) in current queried result
       for instance in data:
-        # Getting name of the node
-        pid = instance['metric']['instance']
-        gpu = None
-        if 'device' in instance['metric']:
-          # If 'device' key is present, this is a gpu
-          gpu = int(instance['metric']['device'].replace('nvidia',''))
-        id = f"{pid}" + ( f"_{gpu:02d}" if isinstance(gpu,int) else "" )
-        self._raw.setdefault(id,{})
-        # Getting value
-        if 'cpu' in instance['metric']:
+        # Default ID is obtained from instance['metric']['instance']
+        id_from = metric['id'] if 'id' in metric else 'instance'
+        # Testing if metric and instance are sub-keys. If so, this is a response from Prometheus
+        if ('metric' in instance) and (id_from in instance['metric']):
+          # Getting name of the node
+          pid = instance['metric'][id_from]
+          if 'replace' in metric and pid in metric['replace']:
+            pid = self.substitute_placeholders(metric['replace'][pid], instance['metric'])
+          gpu = None
+          if 'device' in instance['metric']:
+            # If 'device' key is present, this is a gpu
+            gpu = int(instance['metric']['device'].replace('nvidia',''))
+          id = f"{pid}" + ( f"_{gpu:02d}" if isinstance(gpu,int) else "" )
+          self._raw.setdefault(id,{})
+          # Getting value
+          if 'cpu' in instance['metric']:
+            self._raw[id].setdefault(name,{})
+            # Storing as a dictionary to be concatenated later on
+            self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = ast.literal_eval(instance['value'][1])
+            if ('min' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
+            if ('max' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
+          else:
+            self._raw[id][name] = ast.literal_eval(instance['value'][1])
+            if ('min' in metric) and self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
+            if ('max' in metric) and self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
+          if 'factor' in metric:
+            self._raw[id][name] *= metric['factor']
+          # Adding extra keys 
+          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = instance['value'][0]
+          if isinstance(gpu,int):
+            self._raw[id]['pid'] = pid
+            self._raw[id]['id'] = id
+            self._raw[id]['feature'] = f"GPU{gpu}"
+          else:
+            self._raw[id]['id'] = pid
+        else:
+          # Response that is not from Prometheus (currently, from SEMS)
+          # Getting id of the current value
+          id = instance
+          self._raw.setdefault(id,{})
           self._raw[id].setdefault(name,{})
-          self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = ast.literal_eval(instance['value'][1])
-          if ('min' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
-          if ('max' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
-        else:
-          self._raw[id][name] = ast.literal_eval(instance['value'][1])
-          if ('min' in metric) and self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
-          if ('max' in metric) and self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
-        if 'factor' in metric:
-          self._raw[id][name] *= metric['factor']
-        # Adding extra keys 
-        self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = instance['value'][0]
-        if isinstance(gpu,int):
-          self._raw[id]['pid'] = pid
+          self._raw[id][name] = data[instance]
           self._raw[id]['id'] = id
-          self._raw[id]['feature'] = f"GPU{gpu}"
-        else:
-          self._raw[id]['id'] = pid
-
+          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = r['out']['index'][0]
+          
     for instance in self._raw:
       # Adding prefix and type of the unit, when given in the input
       if prefix:
@@ -271,14 +325,34 @@ class Info:
     self._dict |= self._raw
     return cached_queries
 
+  def substitute_placeholders(self, template: str, values: dict) -> str:
+    """
+    Substitute placeholders in the given template string with corresponding values from the dictionary.
+
+    This function searches for patterns enclosed in curly braces (e.g., {instance})
+    and replaces them with the corresponding value from the provided dictionary.
+    If a key is not found in the dictionary, the original placeholder is preserved.
+
+    Args:
+        template (str): The template string containing one or more placeholders.
+        values (dict): A dictionary mapping placeholder keys to their replacement values.
+
+    Returns:
+        str: The resulting string after all substitutions have been made.
+    """
+    # Use regex to find all occurrences of '{key}' in the template.
+    # The lambda function takes each regex match and returns the corresponding value from the dictionary,
+    # or leaves the placeholder unchanged if the key does not exist.
+    return re.sub(r'\{(.*?)\}', lambda match: values.get(match.group(1), match.group(0)), template)
+
 
   def parse(self, cmd, timestamp="", prefix="", stype=""):
     """
-    This function parses the output of Slurm commands
+    This function parses the output of commands
     and returns them in a dictionary
     """
 
-    # Getting Slurm raw output
+    # Getting raw output
     rawoutput = check_output(cmd, shell=True, text=True)
     # 'scontrol' has an output that is different from
     # 'sacct' and 'sacctmgr' (the latter are csv-like)
@@ -325,7 +399,7 @@ class Info:
 
   def parse_unit_block(self, unit, unitname, prefix, stype):
     """
-    Parse each of the blocks returned by Slurm into the internal dictionary self._raw
+    Parse each of the returned blocks into the internal dictionary self._raw
     """
     # self.log.debug(f"Unit: \n{unit}\n")
     lines = unit.split("\n")
@@ -525,7 +599,7 @@ class Info:
         for key,value in item.items():
           # The __nelems_{type} is used to indicate to DBupdate the number of elements - important when the file is empty
           if key.startswith('__nelems'): 
-            file.write(" <data key={:24s} value=\"{}\"/>\n".format('\"'+str(key)+'\"',value))
+            file.write(" <data key={:24s} value=\"{}\"/>\n".format('\"'+str(key[2:])+'\"',value))
             continue
           if key.startswith('__'): continue
           if (not isinstance(value,str)) or (value != ""):
@@ -573,8 +647,11 @@ def get_token(username,password,config,verify):
       'username': username,
       'password': password,
       'grant_type': 'password',
-      'client_id': config['client_id']
+      'client_id': os.path.expandvars(config['client_id'])
   }
+  if 'client_secret' in config:
+    data |= {'client_secret': os.path.expandvars(config['client_secret'])}
+
   headers = {'content-type': 'application/x-www-form-urlencoded'}
 
   # Get token endpoint
@@ -702,7 +779,7 @@ class _ExcludeErrorsFilter(logging.Filter):
 log_config = {
               'format': "%(asctime)s %(funcName)-18s(%(lineno)-3d): [%(levelname)-8s] %(message)s",
               'datefmt': "%Y-%m-%d %H:%M:%S",
-              # 'file': 'slurm.log',
+              # 'file': 'prometheus.log',
               # 'filemode': "w",
               'level': "INFO" # Default value; Options: 'DEBUG', 'INFO', 'WARNING', 'ERROR' from more to less verbose logging
               }
@@ -812,10 +889,11 @@ def main():
                   username=username,
                   password=password,
                   token=token,
+                  client_secret=server_config['client_secret'] if 'client_secret' in server_config else None,
                   verify=verify,
                   )
 
-      # Parsing Slurm output
+      # Parsing output
       if ('metrics' not in file) or (len(file['metrics']) == 0):
         log.warning(f"No 'metrics' given for file {filename} in config file! Skipping...\n")
       else:
@@ -826,7 +904,7 @@ def main():
                                       cached_queries = cached_queries,
                                     )
 
-      # Modifying SLURM output with functions
+      # Modifying output with functions
       if 'modify_after_parse' in file:
         info.modify(file['modify_after_parse'])
 
@@ -836,7 +914,7 @@ def main():
         func = globals()[filename]
         info.add(func(file,info))
 
-      # Modifying SLURM output with functions
+      # Modifying output with functions
       if 'modify_before_mapping' in file:
         info.modify(file['modify_before_mapping'])
 
@@ -874,7 +952,7 @@ def main():
         if info.empty():
           log.warning(f"Object {filename} is empty, nothing to output to LML! Skipping...\n")
         else:
-          info.to_LML(f"{args.outfolder+'/' if args.outfolder else ''}{file['LML']}")
+          info.to_LML(f"{args.outfolder.rstrip('/')+'/' if args.outfolder else ''}{file['LML']}")
       else:
         # Accumulating for a single LML
         unique = unique + info
@@ -883,7 +961,7 @@ def main():
     if unique.empty():
       log.warning(f"Unique object is empty, nothing to output to LML! Skipping...\n")
     else:
-      unique.to_LML(f"{args.outfolder+'/' if args.outfolder else ''}{args.singleLML}")
+      unique.to_LML(f"{args.outfolder.rstrip('/')+'/' if args.outfolder else ''}{args.singleLML}")
 
   log.debug("FINISH\n")
   return
