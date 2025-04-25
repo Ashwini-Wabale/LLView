@@ -1276,7 +1276,7 @@ def CreateFirstTables(data,config,num_cpus,num_gpus,gpus,ierr):
     if config['energy']:   
       tables += f"""
       <br />
-      <b>Estimated energy used by this job, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
+      <b>Estimated energy used by this job, integrated from the node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
 """
     tables += f"""
       </td>
@@ -1291,7 +1291,7 @@ def CreateFirstTables(data,config,num_cpus,num_gpus,gpus,ierr):
     if config['energy']:   
       tables += f"""
       <br />
-      <b>Estimated energy used by this job up to now, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
+      <b>Estimated energy used by this job up to now, integrated from the node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
 """
     tables += f"""
     </div>
