@@ -1,13 +1,3 @@
-# Copyright (c) 2023 Forschungszentrum Juelich GmbH.
-# This file is part of LLview. 
-#
-# This is an open source software distributed under the GPLv3 license. More information see the LICENSE file at the top level.
-#
-# Contributions must follow the Contributor License Agreement. More information see the CONTRIBUTING.md file at the top level.
-#
-# Contributors:
-#    Filipe Guimarães (Forschungszentrum Juelich GmbH) 
-
 _x:
   header: 'ts'
   type: 'int32'
@@ -23,11 +13,11 @@ _overview:
       - Node: 
         - 'CPU Usage'
   right:
-    _label: 'Avg. GPU Active SM (%)'
+    _label: 'Avg. GPU Utilization (%)'
     _range: [0,100]
     plots:
-      - GH200: 
-        - 'GPU Active SM'
+      - GPU: 
+        - 'Utilization'
 Cores:
   _file_header: 'coreusagenodefile'
   _datapoints_header: 'cores_ndps'
@@ -121,15 +111,6 @@ GPU:
   _datapoints_header: 'gpu_ndps'
   _y:
     name: 'GPU'
-  Active SM:
-    header: 'gpu_active'
-    type: 'float16'
-    unit: ''
-    log: False
-    note: ''
-    cmap: 'cmc.hawaii'
-    lim: [0,1]
-    description: 'Average fraction of time at least one warp was active on a multiprocessor, averaged over all multiprocessors.'
   Utilization: 
     header: 'gpu_util'
     type: 'float16'
@@ -139,6 +120,15 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: [0,100]
     description: 'Percent of time over the past sample period during which one or more kernels was executing on the GPU'
+  Active SM:
+    header: 'gpu_active'
+    type: 'float16'
+    unit: ''
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim: [0,1]
+    description: 'Average fraction of time at least one warp was active on a multiprocessor, averaged over all multiprocessors.'
   Memory Usage: 
     header: 'gpu_memu'
     type: 'float32'
@@ -203,6 +193,16 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: False  
     description: 'Current frequency of the memory clock, in MHz'
+  Performance State:
+    header: 'gpu_pfst'  
+    type: 'int16'  
+    unit: '#'  
+    log: False  
+    note: "0: Highest performance\n\n12: Lowest performance"
+    cmap: 'cmc.hawaii'
+    lim: [0,15] 
+    skip_when_all: 0
+    description: 'The current performance state for the GPU. States range from P0 (maximum performance) to P12 (minimum performance)'
   PCIe TX:
     header: 'gpu_pcie_tx'  
     type: 'float32'  
@@ -336,7 +336,7 @@ File System \$SCRATCH:
     lim: False
     description: 'Average operation rate (in operations/s) in the last minute'
 
-File System \$FASTDATA:
+File System \$DATA:
   _file_header: 'fsfastdatanodefile'  
   _datapoints_header: 'fs_fastdata_ndps'  
   _fill_with: 0.0

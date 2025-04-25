@@ -135,51 +135,65 @@ def _ProcessReport(njob,total_jobs,job,config):
     data['files']['pdffile'] = f"jobreport_{data['job']['system']}_{njob}.pdf"
 
   # Flag for finished jobs
-  finished =  bool(data['job']['finished'])
+  config['finished'] = bool(data['job']['finished'])
+  # If energy data is present
+  config['energy'] = int('energy' in data and 'en_nd_all_sum' in data['energy'])
 
   # Getting number of CPUs and GPUs and setting flag for GPU jobs
   num_cpus = int(data['job']['numnodes'])
   try:
     num_gpus = int(data['job']['numgpus'])
-    if num_gpus == 0:
-      gpus = False
-    else:
+    if num_gpus > 0:
       if(data['gpu']['gpulist']=="0"):
         log.warning("No GPU information yet - report skipped!")
         return    # skip job without the GPU list
       data['gpu']['gpu_util_avg'] = float(data['gpu']['gpu_util_avg'])
-      data['gpu']['gpu_active_avg'] = float(data['gpu']['gpu_active_avg'])
+      if 'gpu_active_avg' in data['gpu']:
+        data['gpu']['gpu_active_avg'] = float(data['gpu']['gpu_active_avg'])
       data['gpu']['usage_avg'] = 0.0
-      gpus = True
   except (ValueError,KeyError):
     data['job']['numgpus'] = 0
     num_gpus = 0
-    gpus = False
-
+  
   # Escaping job name
   data['job']['name'] = re.escape(data['job']['name'])
 
-  # Configuring plots (from plots.yml)
-  sections = [_ for _ in config['plots'] if _ not in ['x','y']]
+  # Looping through the sections (CPU, GPU, File systems, etc.) and gathering their names and graphs inside them
+  sections = {sec: [graph for graph in config['plots'][sec] if not graph.startswith('_')] for sec in config['plots'] if not sec.startswith('_')}
+  gpus = False
+  for section,graphs in sections.items():
+    config_section = config['plots'][section]
+    # Checking if a section contains GPU data
+    if num_gpus > 0 or ('_gpu' in config_section and config_section['_gpu']): gpus = True
 
-  # If GPU info is present on the json but there's no GPU section to plot, turn GPU off
-  if 'GPU' not in sections: gpus = False
+    # For user defined sections:
+    if not graphs:
+      # Checking if current section contain x information. If not, add information from section or from overall config
+      config_section['_x'] = config['plots'].get('_x', {}) | config_section.get('_x', {})
+      # Same thing for y
+      config_section['_y'] = config['plots'].get('_y', {}) | config_section.get('_y', {})
 
-  # Looping through the sections (CPU, GPU, File systems, etc.)
-  for section in sections:
-    # Skipping GPU section if job has no GPU
-    if not gpus and section == "GPU": continue
-    # Looping through the "inner sections" (i.e. graphs), skipping the ones with 'json' (which includes information for the json file)
-    for graph in [_ for _ in config['plots'][section] if not _.startswith('_') and _ not in ['x','y']]:
+    # Looping through the "inner sections" (i.e. graphs)
+    for graph in graphs:
+      config_graph = config_section[graph]
+      # Checking if current graph contain x information. If not, add information from section or from overall config
+      config_graph['_x'] = config['plots'].get('_x', {}) | config_section.get('_x', {}) | config_graph.get('_x', {})
+      # Same thing for y
+      config_graph['_y'] = config['plots'].get('_y', {}) | config_section.get('_y', {}) | config_graph.get('_y', {})
+      # Getting _file_header and _datapoints_header for this graph (directly defined or from the section definition)
+      config_graph.setdefault('_file_header',config_section['_file_header'])
+      config_graph.setdefault('_datapoints_header',config_section['_datapoints_header'])
+      if '_fill_with' in config_section:
+        config_graph.setdefault('_fill_with', config_section['_fill_with'])
+
       # If a limit is given, check if it is a memory limit (defined in system_info.yml)
-      if 'lim' in config['plots'][section][graph]:
-        if config['plots'][section][graph]['lim']:
-          config['plots'][section][graph]['lim'] = [ config['system'][data['job']['system'].upper()][ data['job']['queue'] ][_] if isinstance(_, str) else _ for _ in config['plots'][section][graph]['lim'] ]
+      if 'lim' in config_graph and config_graph['lim'] and all(key in config['system'][data['job']['system'].upper()][ data['job']['queue'] ] for key in config_graph['lim'] if isinstance(key, str) ):
+        config_graph['lim'] = [ config['system'][data['job']['system'].upper()][ data['job']['queue'] ][_] if isinstance(_, str) else _ for _ in config_graph['lim'] ]
       else:
-        config['plots'][section][graph]['lim'] = False
+        config_graph['lim'] = False
       # If lines are given, check if it is a list (such that more than one can be added)
-      if 'lines' in config['plots'][section][graph] and not isinstance(config['plots'][section][graph]['lines'],list):
-        config['plots'][section][graph]['lines'] = [float(config['plots'][section][graph]['lines'])]
+      if 'lines' in config_graph and not isinstance(config_graph['lines'],list):
+        config_graph['lines'] = [float(config_graph['lines'])]
 
   # Parsing comments from SBATCH
   # Check if line plots were chosen
@@ -194,20 +208,22 @@ def _ProcessReport(njob,total_jobs,job,config):
         key, value = calib_test.split('=',1)
         section,graph_header = key.replace('_',' ').split('-',1)
         section = section.replace('$',r'\$') # Fix for '$FILESYSTEM' that is stored with a slash
+        config_section = config['plots'][section]
         try: # Checking if header is given
           graph,header = graph_header.split('-',1)
         except ValueError:
           log.error(f"Could not split graph and header for calibrate report! Using graph '{graph_header}'...")
           graph = graph_header
-        if graph not in config['plots'][section]:
+        config_graph = config_section[graph]
+        if graph not in config_section:
           log.error(f"Graph '{graph}' not existent in section {section}. Skipping...")
           continue
-        if 'lines' not in config['plots'][section][graph]:
+        if 'lines' not in config_graph:
           # If no value for 'lines' is given in options, add it
-          config['plots'][section][graph]['lines'] = [float(value)]
+          config_graph['lines'] = [float(value)]
         else:
           # If lines are given (already transformed to list above), add new one to the list
-          config['plots'][section][graph]['lines'].append(float(value))
+          config_graph['lines'].append(float(value))
 
   # Tick properties
   rcParams['xtick.top'] = 'on'
@@ -230,103 +246,151 @@ def _ProcessReport(njob,total_jobs,job,config):
   rcParams['axes.facecolor'] = 'whitesmoke'
   rcParams['axes.prop_cycle'] = cycler('color', config['appearance']['colors_cmap'])
 
+  # Looping over all sections and graphs and gathering all information on the required files
+  files = {}
+  for section, graphs in sections.items():
+    for g in graphs or [None]:
+      # pick graph‐level cfg or fall back to section‐level (for user-defined section)
+      cfg = (config['plots'][section][g] if g else config['plots'][section])
 
-  tocentries = {'Overview':1}
-  df = {}
-  df_custom = {}
-  to_plot = {}
-  page_num = 2
-  for section in sections:
-    ######################################### Reading data #########################################
-    # If points are not there, add 0
-    if(config['plots'][section]['_datapoints_header'] not in data['num_datapoints']): data['num_datapoints'][config['plots'][section]['_datapoints_header']] = 0
-    if (int(data['num_datapoints'][config['plots'][section]['_datapoints_header']])>1) and (data['files'][config['plots'][section]['_file_header']] not in ["",0,"-"]):
-      # Getting which graphs to plot
-      graphs = [_ for _ in config['plots'][section] if not _.startswith('_') and _ not in ['x','y']]
+      fh = cfg['_file_header']
 
-      # Reading file with information for all nodes and all times
-      with open(f"{folder}/{data['files'][config['plots'][section]['_file_header']]}",'r') as file:
-        header = file.readline().rstrip().strip("#").split()
+      # Collecting information per file header
+      files.setdefault(fh, {
+        'cols': {},           # store all required header:type map here
+        'xh': {},             # x-headers:type
+        'yh': {},             # y-headers:type
+        'data': None,
+      })
 
-        # Columns to store (from config)
-        # Getting x headers from graphs, if present
-        x_headers = {config['plots'][section][_]['x']['header']: config['plots'][section][_]['x']['type'] for _ in graphs if 'x' in config['plots'][section][_]}
-        # if there are graphs with undefined x header, add default x header (from main or section)
-        if not graphs or [_ for _ in graphs if 'x' not in config['plots'][section][_]]:
-          x_headers |= {config['plots'][section]['x']['header']: config['plots'][section]['x']['type']} if ('x' in config['plots'][section] and 'header' in config['plots'][section]['x']) else {config['plots']['x']['header']: config['plots']['x']['type']}
-        # Getting y headers from graphs, if present
-        y_headers = {config['plots'][section][_]['y']['header']: config['plots'][section][_]['y']['type'] for _ in graphs if 'y' in config['plots'][section][_]}
-        # if there are graphs with undefined y header, add default y header (from main or section)
-        if not graphs or [_ for _ in graphs if 'y' not in config['plots'][section][_]]:
-          y_headers |= {config['plots'][section]['y']['header']: config['plots'][section]['y']['type']} if ('y' in config['plots'][section] and 'header' in config['plots'][section]['y']) else {config['plots']['y']['header']: config['plots']['y']['type']}
-        cols = { 
-                  **x_headers,
-                  **y_headers,
-                  **{config['plots'][section][_]['header']:config['plots'][section][_]['type'] for _ in graphs},
-                }
+      # Storing number of datapoints for this file
+      # If number of points for the current section is not in the json, add 0
+      if(cfg['_datapoints_header'] not in data['num_datapoints']): data['num_datapoints'][cfg['_datapoints_header']] = 0
+      files[fh]['datapoints'] = data['num_datapoints'][cfg['_datapoints_header']]
 
-        # If list of graphs is empty, it means that the section is defined, but not the graphs
+      #  Saving all headers that will be read from this file (for non-user-defined sections)
+      xh, xt = cfg['_x']['header'], cfg['_x']['type']
+      yh, yt = cfg['_y']['header'], cfg['_y']['type']
+      # separate maps for just the x- and y-axes
+      files[fh]['xh'][xh] = xt
+      files[fh]['yh'][yh] = yt
+      if g:
+        zh, zt = cfg['header'],        cfg['type']
+
+        # flat map of every header you’ll ever need from this file
+        files[fh]['cols'].update({
+          xh: xt,
+          yh: yt,
+          zh: zt,
+        })
+
+  ##################################### Reading data from files #####################################
+  for fh,fh_info in files.items():
+    # If number of points is less than 2 or if the filename is not given, don't read the file
+    if (int(fh_info['datapoints'])<2) or (fh not in data['files']) or (data['files'][fh] in ["",0,"-"]): 
+      continue
+
+    # Reading file with information for all nodes and all times
+    with open(f"{folder}/{data['files'][fh]}",'r') as file:
+      cols = fh_info['cols']
+      x_headers = fh_info['xh']
+      y_headers = fh_info['yh']
+
+      header = file.readline().rstrip().strip("#").split()
+      # Check if graphs are defined for this section, if not, read the full file (user defined)
+      if cols:
+        # Get the headers given on the graph list
+        icols = [header.index(_) for _ in cols.keys()]
+        # Reading database
+        df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
+      else:
+        # If column dict is empty, it means that the section is defined
         # This is then a User-defined/Custom section
         # Then we add the given file "as is" to df_custom
-        if not graphs:
-          df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False)
-        else:
-          # Else, get the headers given on the graph list
-          icols = [header.index(_) for _ in cols.keys()]
-          # Reading database
-          df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
+        df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False)
 
-        # Getting header title for timestamp and nodelist
-        y_x_keys = [key for key in {**y_headers, **x_headers}.keys()]
+    # Getting header title for timestamp and nodelist
+    y_x_keys = [key for key in {**y_headers, **x_headers}.keys()]
 
-        # Dropping duplicated lines
-        df_temp.drop_duplicates(subset=y_x_keys, keep='first', inplace=True) 
+    # Dropping duplicated lines
+    df_temp.drop_duplicates(subset=y_x_keys, keep='first', inplace=True) 
 
-        # Dropping rows above ts range
-        if config['appearance']['maxsec']:
-          df_temp.drop(df_temp[df_temp[config['plots']['x']['header']] > df_temp[config['plots']['x']['header']].min()+config['appearance']['maxsec']].index, inplace=True) 
+    # Dropping rows above ts range
+    if config['appearance']['maxsec']:
+      df_temp.drop(df_temp[df_temp[config['plots']['_x']['header']] > df_temp[config['plots']['_x']['header']].min()+config['appearance']['maxsec']].index, inplace=True) 
 
-        # Dropping rows with infinity values
-        df_temp = df_temp[~df_temp.isin([np.inf, -np.inf]).any(axis=1)]
+    # Dropping rows with infinity values
+    df_temp = df_temp[~df_temp.isin([np.inf, -np.inf]).any(axis=1)]
 
-        # Completing the dataframe by y_x_keys (ts and node)
-        # Build the full MultiIndex, set the partial MultiIndex, and reindex.
-        full_idx = pd.MultiIndex.from_product([df_temp[col].unique() for col in y_x_keys], names=y_x_keys)
-        df_temp = df_temp.set_index(y_x_keys).reindex(full_idx).fillna(value=(np.nan if '_fill_with' not in config['plots'][section] else config['plots'][section]['_fill_with'])).reset_index()
-        # df_temp = df_temp.groupby(level=y_x_keys[0]).fillna(value=(np.nan if '_fill_with' not in config['plots'][section] else config['plots'][section]['_fill_with'])).reset_index()
-        # Alternative way of filling the dataframe by y_x_keys (ts and node)
-        # df_temp = df_temp.set_index(y_x_keys)\
-        #                          .unstack(level=y_x_keys[1], fill_value=0.0)\
-        #                          .stack(level=y_x_keys[1], dropna=False)
-        # df_temp = df_temp.groupby(level=y_x_keys[1]).reset_index()
+    # Completing the dataframe by y_x_keys (ts and node)
+    # Build the full MultiIndex, set the partial MultiIndex, and reindex.
+    full_idx = pd.MultiIndex.from_product([df_temp[col].unique() for col in y_x_keys], names=y_x_keys)
+    df_temp = (
+      df_temp
+        .set_index(y_x_keys)
+        .reindex(full_idx)
+        .reset_index()
+        .fillna(np.nan)
+    )
+    # df_temp = df_temp.groupby(level=y_x_keys[0]).fillna(value=(np.nan if '_fill_with' not in config_section else config_section['_fill_with'])).reset_index()
+    # Alternative way of filling the dataframe by y_x_keys (ts and node)
+    # df_temp = df_temp.set_index(y_x_keys)\
+    #                          .unstack(level=y_x_keys[1], fill_value=0.0)\
+    #                          .stack(level=y_x_keys[1], dropna=False)
+    # df_temp = df_temp.groupby(level=y_x_keys[1]).reset_index()
 
-        # Creating datetime entry (for plotting)
-        # df_temp['datetime']= pd.to_datetime(df_temp['ts']+config.timezonegap,unit='s')
+    # Creating datetime entry (for plotting)
+    # df_temp['datetime']= pd.to_datetime(df_temp['ts']+config.timezonegap,unit='s')
 
-        # Repeating last line to be able to plot the real last one with pcolormesh
-        for key,value in y_headers.items():
-          if value == "str":
-            new_line = df_temp.loc[df_temp[key]==df_temp.tail(1)[key].values[0]].copy()
-            new_line.loc[:,key] = 'zzz'
-            df_temp = pd.concat([df_temp,new_line],ignore_index=True)
-        # Sorting DF
-        df_temp.sort_values(y_x_keys, ascending=[True,True], inplace=True)
+    # Repeating last line to be able to plot the real last one with pcolormesh
+    for key,value in y_headers.items():
+      if value == "str":
+        new_line = df_temp.loc[df_temp[key]==df_temp.tail(1)[key].values[0]].copy()
+        new_line.loc[:,key] = 'zzz'
+        df_temp = pd.concat([df_temp,new_line],ignore_index=True)
+    # Sorting DF
+    df_temp.sort_values(y_x_keys, ascending=[True,True], inplace=True)
 
-        # Setting df_temp to the corresponsing df (user-defined or configuration-defined)
-        if not graphs:
-          df_custom[section] = df_temp
-          continue
-        else:
-          df[section] = df_temp
-    ################################# Setting up TOC and graphs ####################################
-      max_graph_per_page = config['plots'][section]['_max_graph_per_page'] if '_max_graph_per_page' in config['plots'][section] else config['appearance']['max_graph_per_page']
-      for pg in range(int((len(graphs)-1)/max_graph_per_page)+1):
+    # Fixing timezone and adding 'datetime' entry when 'ts' in the data
+    if 'ts' in df_temp:
+      df_temp['ts'] += config['appearance']['timezonegap']
+      df_temp['datetime'] = pd.to_datetime(df_temp['ts'],unit='s')
+
+    files[fh]['data'] = df_temp
+
+    # Cleaning up last df_temp
+    del df_temp
+
+  # At this point, all required data from all files were read and stored into files[fh]['data']
+
+  tocentries = {'Overview':1}
+  to_plot = {}
+  page_num = 2
+  to_plot_extra = {}
+  for section,graphs in sections.items():
+    config_section = config['plots'][section]
+    # When graphs are defined, this is a regular section; otherwise, it's user-defined
+    if graphs:
+      # Removing graphs that have no data (either not enough points, or no file_header given)
+      graphs_to_plot = [
+        g for g in graphs
+        if files[ config_section[g]['_file_header'] ]['data'] is not None
+      ]
+      # If there are no graphs to plot in this section, skip
+      if not graphs_to_plot: continue
+
+      # Getting the file headers in this section 
+      files_in_section = [config_section[_]['_file_header'] for _ in graphs_to_plot]
+
+      ################################# Setting up TOC and graphs_to_plot ####################################
+      max_graph_per_page = config_section['_max_graph_per_page'] if '_max_graph_per_page' in config_section else config['appearance']['max_graph_per_page']
+      for pg in range(int((len(graphs_to_plot)-1)/max_graph_per_page)+1):
         i0 = max_graph_per_page*pg
         i1 = i0+max_graph_per_page
         to_plot[page_num] = {}
         to_plot[page_num]['type']    = section
-        to_plot[page_num]['data']    = df[section]
-        to_plot[page_num]['graphs']  = graphs[i0:i1]
+        to_plot[page_num]['data']    = files_in_section[i0:i1]
+        to_plot[page_num]['graphs']  = graphs_to_plot[i0:i1]
         to_plot[page_num]['headers'] = []
         to_plot[page_num]['unit']    = []
         to_plot[page_num]['cmap']    = []
@@ -340,125 +404,187 @@ def _ProcessReport(njob,total_jobs,job,config):
         to_plot[page_num]['note']    = []
         to_plot[page_num]['colorplot'] = []
         to_plot[page_num]['unified'] = []
-        # Looping over graphs that will be plotted in this given page
-        for _ in graphs[i0:i1]:
+        # Looping over graphs_to_plot that will be plotted in this given page
+        for _,fh in zip(graphs_to_plot[i0:i1],files_in_section[i0:i1]):
+
           # Removing 0.0 in log plots
-          if config['plots'][section][_]['log']:
-            df[section][config['plots'][section][_]['header']] = df[section][config['plots'][section][_]['header']].replace(0, np.nan)
+          if config_section[_]['log']:
+            files[fh]['data'].replace({config_section[_]['header']: {0: np.nan}}, inplace=True)
 
           # If 'skip_when_all' is present, check if dataframe values are all equal given value
-          if 'skip_when_all' in config['plots'][section][_]:
+          if 'skip_when_all' in config_section[_]:
             # If 'skip_when_all'=nan and the database is empty, remove it
             # Testing if value is str first
-            if isinstance(config['plots'][section][_]['skip_when_all'], str):
-              if config['plots'][section][_]['skip_when_all'].lower() == 'nan' and df[section][config['plots'][section][_]['header']].isnull().all():
-                del df[section][config['plots'][section][_]['header']]
+            if isinstance(config_section[_]['skip_when_all'], str):
+              if config_section[_]['skip_when_all'].lower() == 'nan' and files[fh]['data'][config_section[_]['header']].isnull().all():
+                del files[fh]['data'][config_section[_]['header']]
                 to_plot[page_num]['graphs'].remove(_)
                 continue
             else:
               # If all elements in database equals value defined in plots.yml, remove it
-              if(df[section][config['plots'][section][_]['header']].eq(config['plots'][section][_]['skip_when_all']).all()):
-                del df[section][config['plots'][section][_]['header']]
+              if(files[fh]['data'][config_section[_]['header']].eq(config_section[_]['skip_when_all']).all()):
+                del files[fh]['data'][config_section[_]['header']]
                 to_plot[page_num]['graphs'].remove(_)
                 continue
 
-          to_plot[page_num]['headers'].append(config['plots'][section][_]['header'])
-          # to_plot[page_num]['factor'].append(config['plots'][section][_]['factor'])
-          to_plot[page_num]['unit'].append(config['plots'][section][_]['unit'])
-          to_plot[page_num]['cmap'].append(config['plots'][section][_]['cmap'])
-          to_plot[page_num]['lim'].append(config['plots'][section][_]['lim'])
-          to_plot[page_num]['log'].append(config['plots'][section][_]['log'])
-          if 'lines' in config['plots'][section][_]:
-            to_plot[page_num]['lines'].append(config['plots'][section][_]['lines'])
+          # Filling nan when there is data (and it's not a log plot to be filled with 0)
+          if ('_fill_with' in config_section[_]) and (not (config_section[_]['log'] and config_section[_]['_fill_with'] == 0.0)) and (files[fh]['data'] is not None):
+            files[fh]['data'].fillna({config_section[_]['header']: config_section[_]['_fill_with']}, inplace=True)
+
+          to_plot[page_num]['headers'].append(config_section[_]['header'])
+          # to_plot[page_num]['factor'].append(config_section[_]['factor'])
+          to_plot[page_num]['unit'].append(config_section[_]['unit'])
+          to_plot[page_num]['cmap'].append(config_section[_]['cmap'])
+          to_plot[page_num]['lim'].append(config_section[_]['lim'])
+          to_plot[page_num]['log'].append(config_section[_]['log'])
+          if 'lines' in config_section[_]:
+            to_plot[page_num]['lines'].append(config_section[_]['lines'])
           else:
             to_plot[page_num]['lines'].append([])
-          # Defining the header and label to be used for x, depending if they are defined in graph, section or main only (in this priority order)
-          if 'x' in config['plots'][section][_]:
-            to_plot[page_num]['x'].append(config['plots'][section][_]['x']['header'])
-            to_plot[page_num]['xlabel'].append(config['plots'][section][_]['x']['name'] if 'name' in config['plots'][section][_]['x'] else "")
-          else:
-            to_plot[page_num]['x'].append(config['plots'][section]['x']['header'] if ('x' in config['plots'][section] and 'header' in config['plots'][section]['x']) else config['plots']['x']['header'])
-            to_plot[page_num]['xlabel'].append(config['plots'][section]['x']['name'] if ('x' in config['plots'][section] and 'name' in config['plots'][section]['x']) else config['plots']['x']['name'] if 'name' in config['plots']['x'] else "")
+          # Defining the header and label to be used for x
+          to_plot[page_num]['x'].append(config_section[_]['_x']['header'])
+          to_plot[page_num]['xlabel'].append(config_section[_]['_x']['name'] if 'name' in config_section[_]['_x'] else "")
           # Defining the header and label to be used for y, depending if they are defined in graph, section or main only (in this priority order)
-          if 'y' in config['plots'][section][_]:
-            to_plot[page_num]['y'].append(config['plots'][section][_]['y']['header'])
-            to_plot[page_num]['ylabel'].append(config['plots'][section][_]['y']['name'] if 'name' in config['plots'][section][_]['y'] else "")
-          else:
-            to_plot[page_num]['y'].append(config['plots']['y']['header'])
-            to_plot[page_num]['ylabel'].append(config['plots'][section]['y']['name'] if ('y' in config['plots'][section] and 'name' in config['plots'][section]['y']) else config['plots']['y']['name'] if 'name' in config['plots']['y'] else "")
+          to_plot[page_num]['y'].append(config_section[_]['_y']['header'])
+          to_plot[page_num]['ylabel'].append(config_section[_]['_y']['name'] if 'name' in config_section[_]['_y'] else "")
+
           to_plot[page_num]['colorplot'].append(True)
           to_plot[page_num]['unified'].append(False)
-          to_plot[page_num]['note'].append(config['plots'][section][_]['note'])
+          to_plot[page_num]['note'].append(config_section[_]['note'])
         tocentries[f"{section}: {', '.join(to_plot[page_num]['graphs'])}"] = page_num
         page_num += 1
+    else:
+      # If there are no user-defined data read, skip
+      if files[config_section['_file_header']]['data'] is None: continue
 
-  ####################################### Custom plots (e.g. JuMonC) ########################################
-  # These plots are plotted into a unified figure in plotly, so they have to
-  # be treated separate from to_plot here. They are plotted on the pdf the same way, but
-  # to create a single/unified plotly figure, it can't be looped over the graphs
-  to_plot_extra = {}
-  for section in df_custom.keys():
-    schema = data[config['plots'][section]['_section']]
-    graphs = [_ for _ in schema['names'].split('::') if _]
-    if len(graphs) != schema['numvars']:
-      log.error(f"Number of graphs ({len(graphs)}) different than numvars ({schema['numvars']}) in custom section {section}! Skipping...")
-      continue
-    minimums = [float(_) if _ else None for _ in schema['minimums'].split('::')[:schema['numvars']]]
-    maximums = [float(_) if _ else None for _ in schema['maximums'].split('::')[:schema['numvars']]]
-    descs = [_ for _ in schema['descs'].split('::')[0:schema['numvars']]]
-    to_plot_extra[section] = {}
-    to_plot_extra[section]['type'] = section
-    to_plot_extra[section]['data'] = df_custom[section]
-    to_plot_extra[section]['graphs'] = graphs
-    to_plot_extra[section]['headers'] = []
-    to_plot_extra[section]['unit']   = []
-    to_plot_extra[section]['cmap']   = []
-    to_plot_extra[section]['lim']    = []
-    to_plot_extra[section]['log']    = []
-    to_plot_extra[section]['lines']  = []
-    to_plot_extra[section]['x']      = []
-    to_plot_extra[section]['xlabel'] = []
-    to_plot_extra[section]['y']      = []
-    to_plot_extra[section]['ylabel'] = []
-    to_plot_extra[section]['note']   = []
-    to_plot_extra[section]['colorplot'] = []
-    to_plot_extra[section]['unified'] = []
-    to_plot_extra[section]['description'] = []
-    # Looping over graphs defined in the custom section 
-    for idx,_ in enumerate(graphs):
-      # The header on the dat file uses a generic name, and not the real "name" of the graph
-      to_plot_extra[section]['headers'].append(f"value{idx}")
-      to_plot_extra[section]['unit'].append('') # Should we add units in the list of possible entries?
-      to_plot_extra[section]['cmap'].append('cmc.hawaii')
-      to_plot_extra[section]['lim'].append([minimums[idx], maximums[idx]])
-      to_plot_extra[section]['log'].append(False)
-      to_plot_extra[section]['lines'].append([])
-      to_plot_extra[section]['colorplot'].append(True)
-      to_plot_extra[section]['note'].append('')
-      to_plot_extra[section]['unified'].append(True)
-      to_plot_extra[section]['description'].append(descs[idx])
-      to_plot_extra[section]['x'].append(config['plots'][section]['x']['header'] if ('x' in config['plots'][section] and 'header' in config['plots'][section]['x']) else config['plots']['x']['header'])
-      to_plot_extra[section]['xlabel'].append(config['plots'][section]['x']['name'] if ('x' in config['plots'][section] and 'name' in config['plots'][section]['x']) else config['plots']['x']['name'] if 'name' in config['plots']['x'] else "")
-      to_plot_extra[section]['y'].append(config['plots']['y']['header'])
-      to_plot_extra[section]['ylabel'].append(config['plots'][section]['y']['name'] if ('y' in config['plots'][section] and 'name' in config['plots'][section]['y']) else config['plots']['y']['name'] if 'name' in config['plots']['y'] else "")
+      ####################################### Custom plots (e.g. JuMonC) ########################################
+      # These plots are plotted into a unified figure in plotly, so they have to
+      # be treated separate from to_plot here. They are plotted on the pdf the same way, but
+      # to create a single/unified plotly figure, it can't be looped over the graphs
+      schema = data[config['plots'][section]['_section']]
+      graphs_to_plot = [_ for _ in schema['names'].split('::') if _]
+      if len(graphs_to_plot) != schema['numvars']:
+        log.error(f"Number of graphs ({len(graphs_to_plot)}) different than numvars ({schema['numvars']}) in custom section {section}! Skipping...")
+        continue
+      minimums = [float(_) if _ else None for _ in schema['minimums'].split('::')[:schema['numvars']]]
+      maximums = [float(_) if _ else None for _ in schema['maximums'].split('::')[:schema['numvars']]]
+      descs = [_ for _ in schema['descs'].split('::')[0:schema['numvars']]]
+      to_plot_extra[section] = {}
+      to_plot_extra[section]['type'] = section
+      to_plot_extra[section]['data'] = [config_section['_file_header'] for _ in graphs_to_plot]
+      to_plot_extra[section]['graphs'] = graphs_to_plot
+      to_plot_extra[section]['headers'] = []
+      to_plot_extra[section]['unit']   = []
+      to_plot_extra[section]['cmap']   = []
+      to_plot_extra[section]['lim']    = []
+      to_plot_extra[section]['log']    = []
+      to_plot_extra[section]['lines']  = []
+      to_plot_extra[section]['x']      = []
+      to_plot_extra[section]['xlabel'] = []
+      to_plot_extra[section]['y']      = []
+      to_plot_extra[section]['ylabel'] = []
+      to_plot_extra[section]['note']   = []
+      to_plot_extra[section]['colorplot'] = []
+      to_plot_extra[section]['unified'] = []
+      to_plot_extra[section]['description'] = []
+      # Looping over graphs defined in the custom section 
+      for idx,_ in enumerate(graphs_to_plot):
+        # The header on the dat file uses a generic name, and not the real "name" of the graph
+        to_plot_extra[section]['headers'].append(f"value{idx}")
+        to_plot_extra[section]['unit'].append('') # Should we add units in the list of possible entries?
+        to_plot_extra[section]['cmap'].append('cmc.hawaii')
+        to_plot_extra[section]['lim'].append([minimums[idx], maximums[idx]])
+        to_plot_extra[section]['log'].append(False)
+        to_plot_extra[section]['lines'].append([])
+        to_plot_extra[section]['colorplot'].append(True)
+        to_plot_extra[section]['note'].append('')
+        to_plot_extra[section]['unified'].append(True)
+        to_plot_extra[section]['description'].append(descs[idx])
+        to_plot_extra[section]['x'].append(config['plots'][section]['_x']['header'] if ('_x' in config['plots'][section] and 'header' in config['plots'][section]['_x']) else config['plots']['_x']['header'])
+        to_plot_extra[section]['xlabel'].append(config['plots'][section]['_x']['name'] if ('_x' in config['plots'][section] and 'name' in config['plots'][section]['_x']) else config['plots']['_x']['name'] if 'name' in config['plots']['_x'] else "")
+        to_plot_extra[section]['y'].append(config['plots']['_y']['header'])
+        to_plot_extra[section]['ylabel'].append(config['plots'][section]['_y']['name'] if ('_y' in config['plots'][section] and 'name' in config['plots'][section]['_y']) else config['plots']['_y']['name'] if 'name' in config['plots']['_y'] else "")
 
-    config['plots'][section]['Custom'] = {}
-    config['plots'][section]['Custom']['description'] = "User-defined graphs:\n{}".format('\n '.join([ f"{_}: {descs[idx]}" for idx,_ in enumerate(graphs) ]))
-    tocentries[f"{section}: {', '.join(to_plot_extra[section]['graphs'])}"] = page_num
-    page_num += 1
+      config['plots'][section]['Custom'] = {}
+      config['plots'][section]['Custom']['description'] = "User-defined graphs:\n{}".format('\n '.join([ f"{_}: {descs[idx]}" for idx,_ in enumerate(graphs_to_plot) ]))
+      tocentries[f"{section}: {', '.join(to_plot_extra[section]['graphs'])}"] = page_num
+      page_num += 1
+
+  # Collecting data for overview plots
+  df_overview = {}
+  x_header_overview = False
+  if '_overview' in config['plots']:
+    for side in ['left','right']:
+      if side in config['plots']['_overview'] and 'plots' in config['plots']['_overview'][side]:
+        # Collecting headers of all plots to be plotted on the overview graph
+        cols = {}
+        legends = []
+        for plot in config['plots']['_overview'][side]['plots']:
+          # Loop over all sections inside 'plots' key
+          for section in plot.keys():
+            config_section = config['plots'][section]
+            if section.startswith('_'): continue
+            # Loop over all graphs inside a given section that is inside 'plots'
+            for graph in plot[section]:
+              config_graph = config_section[graph]
+              fh = config_graph['_file_header']
+              cols.setdefault(fh,[])
+              # If graph header already in the list, skip
+              if config_graph['header'] in cols[fh]: continue
+              # Check if x header is already defined, and if so, if it's the same
+              if not x_header_overview:
+                x_header_overview = config_graph['_x']['header']
+              elif config_graph['_x']['header'] != x_header_overview:
+                log.error(f"Overview graph cannot have different x headers! Using {x_header_overview} and skipping graph {graph}...\n")
+                continue
+              cols[fh].append('datetime' if x_header_overview == 'ts' else x_header_overview)
+              cols[fh].append(config_graph['header'])
+              legends.append(graph)
+        # Getting plotting curves
+        df_overview[side] = {}
+        df_overview[side]['x'] = []
+        df_overview[side]['y'] = []
+        df_overview[side]['legend'] = []
+        for (fh,graphs),legend in zip(cols.items(),legends):
+          # Skipping plot if no data is present
+          if files[fh]['data'] is None: continue 
+          if x_header_overview == 'ts': x_header = 'datetime'
+          df_temp = files[fh]['data'][list(graphs)].groupby([x_header], as_index=False).mean()
+          # # Transforming timestamps (with timezone) to datetime
+          # if x_header_overview == 'ts':
+          #   df_temp['ts'] = pd.to_datetime(df_temp['ts'] + config['appearance']['timezonegap'], unit='s')
+          for gh in graphs:
+            if gh == x_header: continue
+            df_overview[side]['x'].append(list(df_temp[x_header]))
+            df_overview[side]['y'].append(list(df_temp[gh]))
+            df_overview[side]['legend'].append(legend)
+        # If no data was added for x, remove the information of this side
+        if not df_overview[side]['x']:
+          del df_overview[side]
 
   ##########################################################################################################
   # Fixing missing sections by adding a '-' on the required quantities
-  if 'fabric' not in data:
-    data['fabric'] = {}
-    for key in ['mbin_min','mbin_avg','mbin_max','mbout_min','mbout_avg','mbout_max','pckin_min','pckin_avg','pckin_max','pckout_min','pckout_avg','pckout_max']:
-      data['fabric'][key] = '-'
 
-  if 'fs' not in data:
-    data['fs'] = {}
-    for fs in ['home','project','scratch','fastdata']:
-      for key in [f'fs_{fs}_Mbw_sum',f'fs_{fs}_Mbr_sum',f'fs_{fs}_MbwR_max',f'fs_{fs}_MbrR_max',f'fs_{fs}_ocR_max']:
-        data['fs'][key] = '-'
+  dic = data.setdefault('fs', {})
+  for fs in ['home','project','scratch','fastdata']:
+    for metric in ['Mbw_sum','Mbr_sum','MbwR_max','MbrR_max','ocR_max']:
+      key = f'fs_{fs}_{metric}'
+      if data['num_datapoints'].get(f'fs_{fs}_ndps', 0) <= 0:
+        # if no datapoints, always force a '-'
+        dic[key] = '-'
+      else:
+        # otherwise only set '-' if there's no real value already
+        dic.setdefault(key, '-')
+
+  dic = data.setdefault('fabric', {})
+  if not dic or 'fa_ndps' not in data['num_datapoints'] or data['num_datapoints']['fa_ndps']<=0:
+    for key in ['mbin_min','mbin_avg','mbin_max','mbout_min','mbout_avg','mbout_max','pckin_min','pckin_avg','pckin_max','pckout_min','pckout_avg','pckout_max']:
+      dic[key] = '-'
+
+  dic = data.setdefault('energy', {})
+  if not dic or 'pwr_nd_ndps' not in data['num_datapoints'] or data['num_datapoints']['pwr_nd_ndps']<=0:
+    for key in ['pwr_nd_min','pwr_nd_avg','pwr_nd_max']:
+      dic[key] = '-'
 
   ####################################### Nodelist #########################################################
   # Nodelist color cycler
@@ -510,7 +636,7 @@ def _ProcessReport(njob,total_jobs,job,config):
 
   # If number of cpus/gpus is large, add a separate section for the nodelist
   # Otherwise, they will be written in the bottom of the first page
-  if (gpus and num_cpus>2*nl_config['per_line']) or (not gpus and num_cpus>9*nl_config['per_line']):
+  if (gpus and num_cpus>1*nl_config['per_line']) or (not gpus and num_cpus>5*nl_config['per_line']):
     nl_config['firstpage']=False
     tocentries['Nodelist']=page_num
     page_num += (int(num_cpus/(17*nl_config['per_line']))+1 if gpus else int(num_cpus/(40*nl_config['per_line']))+1)
@@ -650,20 +776,20 @@ def _ProcessReport(njob,total_jobs,job,config):
     ############################################################################
     # First page:
     # Also gets min and max date from average plot of first page
-    first_page_html,overview_fig,navbar,nodelist_html = FirstPage.FirstPage(pdf,data,config,df,time_range,page_num,tocentries,num_cpus,num_gpus,finished,gpus,nl_config,nodedict,error_nodes)
+    first_page_html,overview_fig,navbar,nodelist_html = FirstPage.FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpus,num_gpus,gpus,nl_config,nodedict,error_nodes)
 
     ############################################################################
     # Graphs
     for report in to_plot.values():
       figs.setdefault(report['type'].replace("\\",""),{})
-      figs[report['type'].replace("\\","")].update(CreateReports.CreateFullReport(pdf,data,config,page_num,report,time_range))
+      figs[report['type'].replace("\\","")].update(CreateReports.CreateFullReport(pdf,data,config,page_num,report,files,time_range))
 
     ############################################################################
     # Custom graphs (User-defined)
     for section in to_plot_extra.values():
       figs.setdefault(section['type'].replace("\\",""),{})
-      figs[section['type'].replace("\\","")].update(CreateReports.CreateFullReport(pdf,data,config,page_num,section,time_range))
-      figs[section['type'].replace("\\","")].update(CreateUnifiedPlotlyFig(data,config,section,time_range))
+      figs[section['type'].replace("\\","")].update(CreateReports.CreateFullReport(pdf,data,config,page_num,section,files,time_range))
+      figs[section['type'].replace("\\","")].update(CreateUnifiedPlotlyFig(data,config,section,files,time_range))
 
     ############################################################################
     # Nodelist:

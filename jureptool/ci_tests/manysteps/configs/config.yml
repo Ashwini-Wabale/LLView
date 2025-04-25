@@ -1,13 +1,3 @@
-# Copyright (c) 2023 Forschungszentrum Juelich GmbH.
-# This file is part of LLview. 
-#
-# This is an open source software distributed under the GPLv3 license. More information see the LICENSE file at the top level.
-#
-# Contributions must follow the Contributor License Agreement. More information see the CONTRIBUTING.md file at the top level.
-#
-# Contributors:
-#    Filipe Guimarães (Forschungszentrum Juelich GmbH) 
-
 # Timezone name (a list can be found in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 timezone: 'Europe/Berlin'
 
@@ -17,8 +7,8 @@ timezone: 'Europe/Berlin'
 # - removals can be done with: (string_to_remove)
 hostname: 'https://llview.fz-juelich.de/#system(-dc)[ ,_]#'
 
-#Folder prefix to be added to items in plotlists file
-folder_prefix: '$LLVIEW_DATA/$LLVIEW_SYSTEMNAME/tmp/jobreport/data/'
+# Folder prefix to be added to items in plotlists file
+folder_prefix: '/home/llstat/.data/jurecadc/tmp/jobreport/data/'
 
 # PDF configuration
 page_width: 8.25
@@ -44,5 +34,5 @@ smallfont: 7
 tinyfont: 6
 
 # Colors:
-minmax_color: 'lightblue' # Color for shadowed area between min-max
-colors: 'tab10'           # Colors for different interconnect and line plots (when llview_plot_lines is used)
+minmax_color: 'lightblue'
+colors: 'tab10'

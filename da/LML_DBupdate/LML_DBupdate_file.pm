@@ -325,6 +325,16 @@ sub update_structure {
           my $jref    = $fh->{DATA}->{INFODATA}->{$key};
           push(@{$data->{RACKPWR_ENTRIES}},$jref);
         }
+      } elsif ($ref->{type} eq "ndpwrinfo") {
+        if(exists($fh->{DATA}->{INFODATA}->{$key})) {
+          my $jref    = $fh->{DATA}->{INFODATA}->{$key};
+          push(@{$data->{NDPWRINFO_ENTRIES}},$jref);
+        }
+      } elsif ($ref->{type} eq "pwrinfo") {
+        if(exists($fh->{DATA}->{INFODATA}->{$key})) {
+          my $jref    = $fh->{DATA}->{INFODATA}->{$key};
+          push(@{$data->{PWRINFO_ENTRIES}},$jref);
+        }
       } elsif ($ref->{type} eq "supportmap") {
         if(exists($fh->{DATA}->{INFODATA}->{$key})) {
           my $jref    = $fh->{DATA}->{INFODATA}->{$key};

@@ -17,7 +17,7 @@ from matplotlib import colormaps
 from copy import copy
 import numpy as np
 import pandas as pd
-import cmcrameri
+import cmcrameri  # Used for cmap of colorbar, coming from config
 
 from AddPage import AddFullPage
 from PlotlyFigs import CreatePlotlyFig
@@ -30,7 +30,7 @@ def _annotate(ax, x, y):
   X, Y = np.meshgrid(x, y)
   ax.plot(X.flat, Y.flat, 'o',ms=1, color='k')
 
-def CreateFullReport(pdf,data,config,page_num,report,time_range):
+def CreateFullReport(pdf,data,config,page_num,report,files,time_range):
   """
   Creates page with full reports including:
   bottom,0: time and node dependent-colorplot,
@@ -51,13 +51,13 @@ def CreateFullReport(pdf,data,config,page_num,report,time_range):
       z_header = report['headers'][graph]
       # HEADERS FOR DATABASE NEEDED FOR CURRENT GRAPH
       cols = [x_header,y_header,z_header]
-      df_current = report['data'][cols].copy()
+      if x_header == 'ts':
+        cols.append('datetime')
+      df_current = files[report['data'][graph]]['data'][cols].copy()
       df_current.drop(df_current[df_current[y_header]=='zzz'].index,inplace=True)
       # CALCULATING AVERAGE, MINIMUM AND MAXIMUM CURVES
-      df_x_avg = df_current.groupby([x_header], as_index=False).mean(numeric_only=True)
+      df_x_avg = df_current.groupby([x_header, 'datetime'] if x_header == 'ts' else [x_header], as_index=False).mean(numeric_only=True)
       if x_header == 'ts':
-        df_x_avg[x_header] += config['appearance']['timezonegap']
-        df_x_avg['datetime'] = pd.to_datetime(df_x_avg[x_header],unit='s')
         x = df_x_avg['datetime']
       else:
         x = df_x_avg[x_header]
@@ -86,9 +86,9 @@ def CreateFullReport(pdf,data,config,page_num,report,time_range):
       # FULL NODE COLORPLOT
       ##############################################################################################################################
       # MAIN SURFACE TO PLOT
-      y_names = report['data'][y_header].unique()
+      y_names = files[report['data'][graph]]['data'][y_header].unique()
       y = np.arange(len(y_names))
-      z = np.array(report['data'][report['headers'][graph]])
+      z = np.array(files[report['data'][graph]]['data'][report['headers'][graph]])
       z.shape = (len(y),len(x))
 
       if data['colorplot'] and report['colorplot'][graph]:

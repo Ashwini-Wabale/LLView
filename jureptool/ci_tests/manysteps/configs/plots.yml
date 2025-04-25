@@ -31,7 +31,7 @@ _overview:
 Cores:
   _file_header: 'coreusagenodefile'
   _datapoints_header: 'cores_ndps'
-  Physical Cores Usage:
+  Cores Usage:
     _x: 
       header: 'coreid'
       type: 'int16'
@@ -43,20 +43,20 @@ Cores:
     note: ''
     cmap: 'cmc.hawaii'
     lim: [0,100]
-    description: 'Average physical core usage along the runtime of the job (max. 100%)'
-  Logical Cores Usage:
-    _x: 
-      header: 'coreid'
-      type: 'int16'
-      name: 'Core ID'
-    header: 'usage2_avg'
-    type: 'float16'
-    unit: '%'
-    log: False
-    note: ''
-    cmap: 'cmc.hawaii'
-    lim: [0,100]
-    description: 'Average logical core usage along the runtime of the job (max. 100%)'
+    description: 'Average core usage along the runtime of the job (max. 100%)'
+#  Logical Cores Usage:
+#    _x: 
+#      header: 'coreid'
+#      type: 'int16'
+#      name: 'Core ID'
+#    header: 'usage2_avg'
+#    type: 'float16'
+#    unit: '%'
+#    log: False
+#    note: ''
+#    cmap: 'cmc.hawaii'
+#    lim: [0,100]
+#    description: 'Average logical core usage along the runtime of the job (max. 100%)'
 
 Node:
   _file_header: 'loadmemnodefile'
@@ -70,8 +70,8 @@ Node:
     note: ''
     cmap: 'cmc.hawaii'
     lim: [0,100]
-    description: 'Average core usage among all cores in the nodes (max. 200%)'
-  Number of Physical Cores Used:
+    description: 'Average core usage among all cores in the nodes (max. 100%)'
+  Number of Cores Used:
     header: 'used_cores_phys'
     type: 'int16'
     unit: 'cores'
@@ -79,16 +79,16 @@ Node:
     note: ''
     cmap: 'cmc.hawaii'
     lim: [0,'cores']
-    description: 'Number of physical cores with usage >25%'
-  Number of Logical Cores Used:
-    header: 'used_cores_logic'
-    type: 'int16'
-    unit: 'cores'
-    log: False
-    note: ''
-    cmap: 'cmc.hawaii'
-    lim: [0,'cores']
-    description: 'Number of logical cores with usage >25%'
+    description: 'Number of cores with usage >25%'
+#  Number of Logical Cores Used:
+#    header: 'used_cores_logic'
+#    type: 'int16'
+#    unit: 'cores'
+#    log: False
+#    note: ''
+#    cmap: 'cmc.hawaii'
+#    lim: [0,'cores']
+#    description: 'Number of logical cores with usage >25%'
   Load:
     header: 'load'
     type: 'float16'
@@ -108,29 +108,34 @@ Node:
     lim: [0,'mem']
     description: 'Amount of allocated RAM memory (in GiB) in the node'
   Current Power:
-    header: 'currentwatts'
+    _file_header: 'pwrnodefile'
+    _datapoints_header: 'pwr_nd_ndps'
+    header: 'power'
     type: 'float32'
     unit: 'W'
     log: False
     note: ''
     cmap: 'cmc.hawaii'
     lim: False
+    skip_when_all: 0.0
     description: 'Current power (in Watts) used in the whole node'
-GPU:
+GH200:
   _file_header: 'gpunodefile'
   _datapoints_header: 'gpu_ndps'
+  _fill_with: 0.0
+  _gpu: true
   _y:
-    name: 'GPU'
-  Active SM:
+    name: 'Socket'
+  GPU Active SM:
     header: 'gpu_active'
     type: 'float16'
-    unit: ''
+    unit: '%'
     log: False
     note: ''
     cmap: 'cmc.hawaii'
-    lim: [0,1]
-    description: 'Average fraction of time at least one warp was active on a multiprocessor, averaged over all multiprocessors.'
-  Utilization: 
+    lim: [0,100]
+    description: 'Percentage of time at least one warp was active on a GPU multiprocessor, averaged over all multiprocessors.'
+  GPU Utilization: 
     header: 'gpu_util'
     type: 'float16'
     unit: '%'
@@ -139,7 +144,7 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: [0,100]
     description: 'Percent of time over the past sample period during which one or more kernels was executing on the GPU'
-  Memory Usage: 
+  GPU Memory Usage: 
     header: 'gpu_memu'
     type: 'float32'
     unit: 'GiB'
@@ -147,17 +152,8 @@ GPU:
     note: ''
     cmap: 'cmc.hawaii'
     lim: [0,'memgpu']
-    description: 'Amount of memory (in GiB) used on the device by the context'
-  Power: 
-    header: 'gpu_pu'
-    type: 'float32'
-    unit: 'W'
-    log: False
-    note: ''
-    cmap: 'cmc.hawaii'
-    lim:  False
-    description: 'Power usage for (in Watts) for the GPU and its associated circuitry (e.g. memory)'
-  Temperature: 
+    description: 'Amount of memory (in GiB) used on the GPU'
+  GPU Temperature: 
     header: 'gpu_temp'
     type: 'float32'
     unit: '°C'
@@ -166,7 +162,7 @@ GPU:
     cmap: 'cmc.lajolla_r'
     lim: [40,83]
     description: 'Current Temperature (in Celsius) on the GPU'
-  Clk Throttle Reason:
+  GPU Clk Throttle Reason:
     header: 'gpu_clkr'  
     type: 'int16'  
     unit: '#'  
@@ -175,8 +171,8 @@ GPU:
     cmap: 'cmc.hawaii'
     lim: False  
     skip_when_all: NaN
-    description: 'Information about factors that are reducing the frequency of clocks'
-  StreamMP Clk:
+    description: 'Information about factors that are reducing the frequency of GPU clocks'
+  GPU StreamMP Clk:
     header: 'gpu_sclk'  
     type: 'float32'  
     unit: 'MHz'  
@@ -184,8 +180,8 @@ GPU:
     note: ''  
     cmap: 'cmc.hawaii'
     lim: False  
-    description: 'Current frequency in MHz of SM (Streaming Multiprocessor) clock'
-  Memory Usage Rate:
+    description: 'Current frequency in MHz of the GPU SM (Streaming Multiprocessor) clock'
+  GPU Memory Usage Rate:
     header: 'gpu_memur'  
     type: 'float32'  
     unit: '%'  
@@ -193,8 +189,8 @@ GPU:
     note: ''  
     cmap: 'cmc.hawaii'
     lim: [0,100]  
-    description: 'Percent of time over the past sample period during which global (device) memory was being read or written'
-  Memory Clk:
+    description: 'Percent of time over the past sample period during which GPU memory was being read or written'
+  GPU Memory Clk:
     header: 'gpu_clk'  
     type: 'float32'  
     unit: 'MHz'  
@@ -202,7 +198,60 @@ GPU:
     note: ''  
     cmap: 'cmc.hawaii'
     lim: False  
-    description: 'Current frequency of the memory clock, in MHz'
+    description: 'Current frequency of the GPU memory clock, in MHz'
+  CPU Power: 
+    _file_header: 'pwrchipfile'
+    _datapoints_header: 'pwr_ch_ndps'
+    _y:
+      header: 'chipid'
+    header: 'cpupower'
+    type: 'float32'
+    unit: 'W'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim:  False
+    description: 'Power usage (in Watts) for the Grace unit including CPU, Memory and System IO'
+  CPU Power Cap: 
+    _file_header: 'pwrchipfile'
+    _datapoints_header: 'pwr_ch_ndps'
+    _y:
+      header: 'chipid'
+    header: 'cpupowercap'
+    type: 'float32'
+    unit: 'W'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim:  False
+    skip_when_all: 100.0
+    description: 'Power cap (in Watts) for the Grace unit including CPU, Memory and System IO'
+  GPU Power: 
+    _file_header: 'pwrchipfile'
+    _datapoints_header: 'pwr_ch_ndps'
+    _y:
+      header: 'chipid'
+    header: 'gpu_pu'
+    type: 'float32'
+    unit: 'W'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim:  False
+    description: 'Power usage (in Watts) for the Hopper GPU and its associated circuitry (e.g. memory)'
+  Chip Power: 
+    _file_header: 'pwrchipfile'
+    _datapoints_header: 'pwr_ch_ndps'
+    _y:
+      header: 'chipid'
+    header: 'power'
+    type: 'float32'
+    unit: 'W'
+    log: False
+    note: ''
+    cmap: 'cmc.hawaii'
+    lim:  False
+    description: 'Power usage (in Watts) for the whole Grace-Hopper unit'
   PCIe TX:
     header: 'gpu_pcie_tx'  
     type: 'float32'  
@@ -336,7 +385,7 @@ File System \$SCRATCH:
     lim: False
     description: 'Average operation rate (in operations/s) in the last minute'
 
-File System \$FASTDATA:
+File System \$DATA:
   _file_header: 'fsfastdatanodefile'  
   _datapoints_header: 'fs_fastdata_ndps'  
   _fill_with: 0.0
@@ -413,4 +462,3 @@ User:
   _file_header: 'jmcfile'  
   _datapoints_header: 'jmc_ndps' 
   _section: 'jmc'  
-  
