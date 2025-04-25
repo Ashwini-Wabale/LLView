@@ -11,7 +11,6 @@
 from matplotlib.dates import DateFormatter                 # Library to format date
 from matplotlib.patches import Rectangle                   # Rectangle shapes
 from matplotlib.lines import Line2D                        # 2D lines
-import pandas as pd
 
 from tools import format_float_string
 from AddPage import AddEmptyPage
@@ -33,7 +32,7 @@ def AverageUsageBar(x,y,str,fig,config,avg):
   return
 
 
-def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpus,num_gpus,finished,gpus,nl_config,nodedict,error_nodes):
+def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpus,num_gpus,gpus,nl_config,nodedict,error_nodes):
   """
   Creates first page in job report
   """
@@ -55,10 +54,10 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       gpu_section_size = 0.041
       patches.append(Rectangle((0.060, 0.650),0.880,gpu_section_size,lw=0.5, ec="black", fc="None",transform=page.fig.transFigure, figure=page.fig)) # Job GPU statistics
     ierr = 0
-    if finished:
+    if config['finished']:
       if config['error']:
         ierr = 1
-      patches.append(Rectangle((0.060, 0.651-gpu_section_size-ierr*0.018),0.880,0.040+ierr*0.018,lw=0.5, ec="black", fc="None",transform=page.fig.transFigure, figure=page.fig)) # Job finalization report
+      patches.append(Rectangle((0.060, 0.651-gpu_section_size-ierr*0.018-config['energy']*0.018),0.880,0.040+ierr*0.018+config['energy']*0.018,lw=0.5, ec="black", fc="None",transform=page.fig.transFigure, figure=page.fig)) # Job finalization report
     patches.append(Rectangle((0.060, 0.315-0.011*len(tocentries)),0.880,0.008+0.011*len(tocentries),lw=0.5, ec="black", fc="None",transform=page.fig.transFigure, figure=page.fig)) # Table of contents
     page.fig.patches.extend(patches)
 
@@ -82,7 +81,7 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
     page.fig.text(0.070,0.878,"Start Time: ", ha='left',  color='black', va='center')
     page.fig.text(0.200,0.878,data['job']["starttime"], ha='left',  color='black', va='center', fontweight='bold')
 
-    if finished:
+    if config['finished']:
       page.fig.text(0.070,0.864,"End Time: ", ha='left',  color='black', va='center')
       page.fig.text(0.200,0.864,data['job']['updatetime'], ha='left',  color='black', va='center', fontweight='bold')
     else:
@@ -105,9 +104,9 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       page.fig.text(0.350,0.792,data["num_datapoints"]["gpu_ndps"], ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
 
     page.fig.text(0.435,0.907,"Job Performance Metrics", ha='left',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.690,0.905,"Min.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.780,0.905,"Avg.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.870,0.905,"Max.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.690,0.907,"Min.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.780,0.907,"Avg.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.870,0.907,"Max.", ha='right',  color='black', va='center', fontsize=config['appearance']['smallfont'])
 
     if data['num_datapoints']['cores_ndps']>0:
       # If core usage metrics is available
@@ -119,55 +118,48 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       data['cpu']['usage_max'] = "-"
       # Values to use on the colorbar on the left of the overview plot
       data['cpu']['usage'] = float(data['cpu']['load_avg'])*100.0/config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']
-    page.fig.text(0.450,0.888,"CPU Usage:", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.888,format_float_string(data['cpu']['usage_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.888,format_float_string(data['cpu']['usage_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.888,format_float_string(data['cpu']['usage_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.887,"%", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.894,"CPU Usage:", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.894,format_float_string(data['cpu']['usage_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.894,format_float_string(data['cpu']['usage_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.894,format_float_string(data['cpu']['usage_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.893,"%", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
 
-    page.fig.text(0.450,0.873,"Load (CPU-Nodes):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.873,format_float_string(data['cpu']['load_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.873,format_float_string(data['cpu']['load_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.873,format_float_string(data['cpu']['load_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.450,0.859,"Memory (CPU-Nodes):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.859,format_float_string(data['cpu']['used_mem_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.859,format_float_string(data['cpu']['used_mem_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.859,format_float_string(data['cpu']['used_mem_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.858,"MiB", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.879,"Load (CPU-Nodes):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.879,format_float_string(data['cpu']['load_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.879,format_float_string(data['cpu']['load_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.879,format_float_string(data['cpu']['load_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.450,0.865,"Memory (CPU-Nodes):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.865,format_float_string(data['cpu']['used_mem_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.865,format_float_string(data['cpu']['used_mem_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.865,format_float_string(data['cpu']['used_mem_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.864,"MiB", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
 
-    if data['num_datapoints']['fa_ndps']<=0:
-      data['fabric']['mbin_min'] = "-"
-      data['fabric']['mbin_avg'] = "-"
-      data['fabric']['mbin_max'] = "-"
-      data['fabric']['mbout_min'] = "-"
-      data['fabric']['mbout_avg'] = "-"
-      data['fabric']['mbout_max'] = "-"
-      data['fabric']['pckin_min'] = "-"
-      data['fabric']['pckin_avg'] = "-"
-      data['fabric']['pckin_max'] = "-"
-      data['fabric']['pckout_min'] = "-"
-      data['fabric']['pckout_avg'] = "-"
-      data['fabric']['pckout_max'] = "-"
-    page.fig.text(0.450,0.845,"Interconnect Traffic (in):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.845,format_float_string(data['fabric']['mbin_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.845,format_float_string(data['fabric']['mbin_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.845,format_float_string(data['fabric']['mbin_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.844,"MiB/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.450,0.830,"Interconnect Traffic (out):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.830,format_float_string(data['fabric']['mbout_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.830,format_float_string(data['fabric']['mbout_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.830,format_float_string(data['fabric']['mbout_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.829,"MiB/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.450,0.816,"Interconnect Packets (in):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.816,format_float_string(data['fabric']['pckin_min'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.816,format_float_string(data['fabric']['pckin_avg'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.816,format_float_string(data['fabric']['pckin_max'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.815,"pck/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
-    page.fig.text(0.450,0.801,"Interconnect Packets (out):", ha='left',  color='black', va='center')
-    page.fig.text(0.690,0.801,format_float_string(data['fabric']['pckout_min'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.780,0.801,format_float_string(data['fabric']['pckout_avg'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.870,0.801,format_float_string(data['fabric']['pckout_max'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
-    page.fig.text(0.880,0.800,"pck/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.851,"Interconnect Traffic (in):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.851,format_float_string(data['fabric']['mbin_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.851,format_float_string(data['fabric']['mbin_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.851,format_float_string(data['fabric']['mbin_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.85,"MiB/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.836,"Interconnect Traffic (out):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.836,format_float_string(data['fabric']['mbout_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.836,format_float_string(data['fabric']['mbout_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.836,format_float_string(data['fabric']['mbout_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.835,"MiB/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.822,"Interconnect Packets (in):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.822,format_float_string(data['fabric']['pckin_min'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.822,format_float_string(data['fabric']['pckin_avg'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.822,format_float_string(data['fabric']['pckin_max'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.821,"pck/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+    page.fig.text(0.450,0.807,"Interconnect Packets (out):", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.807,format_float_string(data['fabric']['pckout_min'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.807,format_float_string(data['fabric']['pckout_avg'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.807,format_float_string(data['fabric']['pckout_max'],"0f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.806,"pck/s", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
+
+    page.fig.text(0.450,0.792,"Node Power:", ha='left',  color='black', va='center')
+    page.fig.text(0.690,0.792,format_float_string(data['energy']['pwr_nd_min'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.780,0.792,format_float_string(data['energy']['pwr_nd_avg'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.870,0.792,format_float_string(data['energy']['pwr_nd_max'],"2f"), ha='right',  color='black', va='center', fontweight='bold')
+    page.fig.text(0.880,0.791,"W", ha='left',  color='black', va='center', style='italic', fontsize=config['appearance']['smallfont'])
 
     if data['job']['command']=="(null)":
       page.fig.text(0.190,0.773,"Interactive Job", ha='left',  color='black', va='center', fontweight='bold')
@@ -184,12 +176,6 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
     posy = 0.738
     
     for fs in ['home','project','scratch','fastdata']:
-      if data['num_datapoints'][f'fs_{fs}_ndps']<=0:
-        data['fs'][f'fs_{fs}_Mbw_sum'] = "-"
-        data['fs'][f'fs_{fs}_Mbr_sum'] = "-"
-        data['fs'][f'fs_{fs}_MbwR_max'] = "-"
-        data['fs'][f'fs_{fs}_MbrR_max'] = "-"
-        data['fs'][f'fs_{fs}_ocR_max'] = "-"
       page.fig.text(0.100,posy,f"${fs.upper()}:", ha='left')
       page.fig.text(0.295,posy,format_float_string(data['fs'][f'fs_{fs}_Mbw_sum'],"2f"), ha='right', fontweight='bold')
       page.fig.text(0.320,posy,"MiB", ha='right', style='italic', fontsize=config['appearance']['smallfont'])
@@ -237,7 +223,7 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       page.fig.text(0.830,0.655,"Max. GPU Power:  ", ha='right', fontsize=config['appearance']['smallfont'])
       page.fig.text(0.830,0.655,f"{float(data['gpu']['gpu_pu_max'])/1000.0:.2f}", ha='left', fontweight='bold')
       page.fig.text(0.899,0.655,"W", ha='right', fontsize=config['appearance']['smallfont'])
-    if finished:
+    if config['finished']:
       if (data['rc']['rc_state'] == "COMPLETED"):
         color = 'green'
       elif ('FAIL' in data['rc']['rc_state']):
@@ -261,9 +247,12 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
           page.fig.text(0.480, 0.659-gpu_section_size, data['rc']['err_type'], ha='left', color='red', fontweight='bold')
         page.fig.text(0.600,0.659-gpu_section_size,r"$\rightarrow$ detailed list of error messages at end of report", ha='left', color='black',fontsize=config['appearance']['tinyfont'])
       page.fig.text(0.500,0.659-gpu_section_size-ierr*0.017,r"This job has used approximately: {} nodes $\times$ {} cores $\times$ {:.3f} hours $=$ {:.2f} core-h".format(num_cpus,config['system'][data['job']['system'].upper()][data['job']['queue']]['cores'],float(data['job']['runtime']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['runtime'])), ha='center', fontweight='bold', color='black')
+      if config['energy']:
+        page.fig.text(0.500,0.644-gpu_section_size-ierr*0.017,f"Estimated energy used by this job, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
     else: # if job is still running:
       page.fig.text(0.500,0.676-gpu_section_size,r"This job will use approximately {} nodes $\times$ {} cores $\times$ {:.3f} hours $=$ {:.2f} core-h for the specified walltime (up to now: {:.2f})".format(num_cpus,config['system'][data['job']['system'].upper()][data['job']['queue']]['cores'],float(data['job']['wallh']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['wallh']),num_cpus*config['system'][data['job']['system'].upper()][data['job']['queue']]['cores']*float(data['job']['runtime']) ), ha='center', fontweight='bold', color='black')
-
+      if config['energy']:
+        page.fig.text(0.500,0.661-gpu_section_size,f"Estimated energy used by this job up to now, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh", ha='center', fontweight='bold', color='black')
 
     # Graphic on first page
     if df_overview:
@@ -281,7 +270,7 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
 
       # left graph
       overview_fig = None
-      if df_overview['left']:
+      if 'left' in df_overview and df_overview['left']:
         page.ax1 = page.fig.add_axes([0.130,0.365, 0.740,0.180], zorder=4)
         page.ax1.set_title("Job-Usage Overview", fontweight='bold')
         page.ax1.yaxis.tick_left()
@@ -310,7 +299,7 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
           page.ax1.set_ylim(config['plots']['_overview']['left']['_range'])
 
       # right graph
-      if df_overview['right']:
+      if 'right' in df_overview and df_overview['right']:
         page.ax2 = page.fig.add_axes([0.130,0.365, 0.740,0.180], frame_on=False, sharex=page.ax1, zorder=4)
         if not df_overview['left']: page.ax2.set_title("Job-Usage Overview", fontweight='bold')
         page.ax2.yaxis.tick_right()
@@ -379,6 +368,6 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       AddRectangles(page.fig,config,numcpu,numgpu,gpus,nl_config,nodedict,error_nodes)
 
   if config['html'] or config['gzip']:
-    first_page_html,navbar = CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr)
+    first_page_html,navbar = CreateFirstTables(data,config,num_cpus,num_gpus,gpus,ierr)
 
   return first_page_html,overview_fig,navbar,nodelist_html

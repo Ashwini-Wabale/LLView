@@ -150,7 +150,7 @@ def CreateOverviewFig(config,data,time_range,df_overview,gpus):
                             "size": 12,
                         })
 
-  if df_overview['left']:
+  if 'left' in df_overview and df_overview['left']:
     color = tuple(255*x for x in config['appearance']['colors_cmap'][7])
 
     for x,y,legend in zip(df_overview['left']['x'],df_overview['left']['y'],df_overview['left']['legend']):
@@ -190,7 +190,7 @@ def CreateOverviewFig(config,data,time_range,df_overview,gpus):
       range=time_range,
     ))
 
-  if df_overview['right']:
+  if 'right' in df_overview and df_overview['right']:
     color = tuple(255*x for x in config['appearance']['colors_cmap'][0])
 
     for x,y,legend in zip(df_overview['right']['x'],df_overview['right']['y'],df_overview['right']['legend']):
@@ -799,7 +799,7 @@ def CreatePlotlyFig(config,
   return fig
 
 
-def CreateUnifiedPlotlyFig(data,config,report,time_range):
+def CreateUnifiedPlotlyFig(data,config,report,files,time_range):
   """
   This function generates a unified figure (with Dropdown selections) containing user-defined curves
   using plotly
@@ -843,17 +843,17 @@ def CreateUnifiedPlotlyFig(data,config,report,time_range):
   fig['layout'][f'xaxis'].update(frame)
   fig['layout'][f'yaxis'].update(frame)
 
+  # Getting data to be plotted (assuming there's a single file with all the data)
+  df_current = files[report['data'][0]]['data'].copy()
+
   # Add dropdown menus
   # Adding different options to Dropdown
   buttons_y = []
   if 'ts' in report['x']:
-    report['data']['ts'] += config['appearance']['timezonegap']
-    report['data']['datetime'] = pd.to_datetime(report['data']['ts'],unit='s')
-
     buttons_x = [dict(
                       args=[
                             { 
-                              'x': [report['data']['datetime']],
+                              'x': [df_current['datetime']],
                               },
                             {
                               'xaxis.title': '',
@@ -868,24 +868,24 @@ def CreateUnifiedPlotlyFig(data,config,report,time_range):
     graph_header = report['headers'][i]
 
     # Removing extra line
-    report['data'].drop(report['data'][report['data'][report['y'][i]] == 'zzz'].index, inplace=True)
+    df_current.drop(df_current[df_current[report['y'][i]] == 'zzz'].index, inplace=True)
     # Transforming 'ts' to datetime
     x_header = report['x'][i]
     if x_header == 'ts':
-      x = report['data']['datetime']
+      x = df_current['datetime']
     else:
       x = report['x'][x_header]
 
 
     # Calculating range of each graph
-    min_value = report['data'][graph_header].min()
-    max_value = report['data'][graph_header].max()
+    min_value = df_current[graph_header].min()
+    max_value = df_current[graph_header].max()
     report['lim'][i] = [min(min_value,report['lim'][i][0]) if report['lim'][i][0] else min_value,max(max_value,report['lim'][i][1]) if report['lim'][i][1] else max_value]
 
     buttons_x.append(dict(
                       args=[
                             { 
-                              'x': [report['data'][graph_header]],
+                              'x': [df_current[graph_header]],
                               },
                             {
                               'xaxis.title': graph,
@@ -898,7 +898,7 @@ def CreateUnifiedPlotlyFig(data,config,report,time_range):
     buttons_y.append(dict(
                       args=[
                             { 
-                              'y': [report['data'][graph_header]],
+                              'y': [df_current[graph_header]],
                               'name': graph,
                               },
                             {
@@ -929,7 +929,7 @@ def CreateUnifiedPlotlyFig(data,config,report,time_range):
   fig.update_layout(updatemenus=dropdown_buttons)
 
   fig.add_trace(go.Scatter( x=x,
-                            y=report['data'][report['headers'][0]], 
+                            y=df_current[report['headers'][0]], 
                             name = report['graphs'][0],
                             line = {"shape": 'hvh', "color":"black"},
                             mode="lines+markers",

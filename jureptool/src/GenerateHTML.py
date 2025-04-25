@@ -1062,7 +1062,7 @@ def CreateSystemErrorReport(error_lines,data):
 """
   return system_report_html
 
-def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
+def CreateFirstTables(data,config,num_cpus,num_gpus,gpus,ierr):
   tables = f"""
   <h1>{data['job']['system'].upper().replace('_',' ')} Job Report</h1>
   <br />
@@ -1105,7 +1105,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
   </tr>
   <tr>
 """
-  if finished:
+  if config['finished']:
     tables += f"""
       <td>End Time: </td>
       <td colspan="2" class="rborder"><b>{data["job"]["updatetime"]}</b> </td>  
@@ -1160,17 +1160,25 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
     <td style="text-align: right;"><b>{format_float_string(data['fabric']['pckout_max'],"0f")}</b></td>
     <td>pck/s</td>
   </tr>
+  <tr>
 """  
   if gpus:
     tables += f"""
-  <tr>
     <td>Job Size, #GPUs: </td>
     <td><b>{num_gpus}</b></td>
     <td class="rborder"><span style="font-size:10pt">#Data Points: {data["num_datapoints"]["gpu_ndps"]}</span></td>
-    <td colspan="5"></td>
-  </tr>
+"""
+  else:
+    tables += f"""
+    <td colspan="3" class="rborder"></td>
 """
   tables += f"""
+    <td>Node Power: </td>
+    <td style="text-align: right;"><b>{format_float_string(data['energy']['pwr_nd_min'],"2f")}</b></td>
+    <td style="text-align: right;"><b>{format_float_string(data['energy']['pwr_nd_avg'],"2f")}</b></td>
+    <td style="text-align: right;"><b>{format_float_string(data['energy']['pwr_nd_max'],"2f")}</b></td>
+    <td>W</td>
+  </tr>
   </table>
   <table style="border-top: 1px solid black; border-bottom: 1px solid black; width:100%;">
     <tr>
@@ -1208,7 +1216,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
 """  
   if gpus:
     tables += f"""
-    <table style="border-top: 1px solid black; border-bottom: {"1px" if finished else "2px"} solid black; width:100%;">
+    <table style="border-top: 1px solid black; border-bottom: {"1px" if config['finished'] else "2px"} solid black; width:100%;">
     <tr>
       <td colspan="8"><b>Job GPU Statistics</b></td>
     </tr>
@@ -1234,7 +1242,7 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
     </tr>
     </table>
 """
-  if finished:
+  if config['finished']:
     if (data['rc']['rc_state'] == "COMPLETED"):
       color = 'green'
     elif ('FAIL' in data['rc']['rc_state']):
@@ -1262,16 +1270,30 @@ def CreateFirstTables(data,config,finished,num_cpus,num_gpus,gpus,ierr):
 """
     tables += f"""
     <tr>
-      <td colspan="5" style="text-align: center;"><b>This job has used approximately: {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['runtime']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f} core-h</b></td>
+      <td colspan="5" style="text-align: center;">
+      <b>This job has used approximately: {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['runtime']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f} core-h</b>
+"""
+    if config['energy']:   
+      tables += f"""
+      <br />
+      <b>Estimated energy used by this job, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
+"""
+    tables += f"""
+      </td>
     </tr>
     </table>
 """
   else: # if job is still running:
     tables += f"""
     <div style="margin: 15px">
-    <b>
-    This job will use approximately {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['wallh']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['wallh']):.2f} core-h for the specified walltime (up to now: {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f})
-    </b>
+    <b>This job will use approximately {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['wallh']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['wallh']):.2f} core-h for the specified walltime (up to now: {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f})</b>
+"""
+    if config['energy']:   
+      tables += f"""
+      <br />
+      <b>Estimated energy used by this job up to now, based on 1-min node power snapshots: {data['energy']['en_nd_all_sum']:.2f} M-Joules = {data['energy']['en_nd_all_sum']*0.2778:.2f} kWh</b>
+"""
+    tables += f"""
     </div>
 """
 
