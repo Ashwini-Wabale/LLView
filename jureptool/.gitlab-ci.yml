@@ -71,7 +71,7 @@ run_tests:
         - manysteps     # Test job with many steps
         - errormessage  # Test with error messages at the end
         - parsestepname # Test with step name with \d\+\d ids
-        # - escapejobname # Test with job name to be escaped (containing '$')
+        - escapejobname # Test with job name to be escaped (containing '$')
   tags:
     - linux
     - private
@@ -79,7 +79,7 @@ run_tests:
   script:
     - cd ${CI_TEST_FOLDER}
     - mkdir results || true
-    - time python3 ../src/main.py ${TEST}/*.json --nprocs 1 --loglevel DEBUG --gzip --configfolder ./configs
+    - time python3 ../src/main.py ${TEST}/*.json --nprocs 1 --loglevel DEBUG --gzip --configfolder ${TEST}/configs
   artifacts:
     paths:
       - ${CI_TEST_FOLDER}/*/*.pdf
