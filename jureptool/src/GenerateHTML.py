@@ -816,7 +816,7 @@ def CreateHTML( config,
       html += '    <li><a href="javascript:scrollIntoView(\'{}_{}\')">{}</a></li>\n '.format(stype,title.replace(" ","_"),title)
     html += f'  </ul>\n'
     html += f'  </li>\n'
-  if nodelist: html += '<li><a href="javascript:scrollIntoView(\'nodelist\')">Nodelist</a></li>\n'
+  if nodelist: html += '<li><a href="javascript:scrollIntoView(\'nodelist\')">Node List</a></li>\n'
   if timeline: html += '<li><a href="javascript:scrollIntoView(\'timeline\')">Timeline</a></li>\n'
   if config['error']: html += '<li><a href="javascript:scrollIntoView(\'system_report\')">System Error Report</a></li>\n'
   html += """
@@ -931,7 +931,7 @@ def CreateHTML( config,
     html += f"""
     <hr class="no-print">
     <section class="block" id="nodelist">
-    <h2>Nodelist</h2>
+    <h2>Node List</h2>
     {nodelist}
     </section>
 """

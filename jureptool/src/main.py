@@ -277,7 +277,7 @@ def _ProcessReport(njob,total_jobs,job,config):
       if g:
         zh, zt = cfg['header'],        cfg['type']
 
-        # flat map of every header you’ll ever need from this file
+        # flat map of every header you'll ever need from this file
         files[fh]['cols'].update({
           xh: xt,
           yh: yt,
@@ -638,12 +638,12 @@ def _ProcessReport(njob,total_jobs,job,config):
   # Otherwise, they will be written in the bottom of the first page
   if (gpus and num_cpus>1*nl_config['per_line']) or (not gpus and num_cpus>5*nl_config['per_line']):
     nl_config['firstpage']=False
-    tocentries['Nodelist']=page_num
+    tocentries['Node List']=page_num
     page_num += (int(num_cpus/(17*nl_config['per_line']))+1 if gpus else int(num_cpus/(40*nl_config['per_line']))+1)
   else:
     # If nodelist in first page, change TOC item and re-sort it
     nl_config['firstpage']=True
-    tocentries['Overview and Nodelist'] = tocentries.pop('Overview')
+    tocentries['Overview and Node List'] = tocentries.pop('Overview')
     tocentries = dict(sorted(tocentries.items(), key=lambda item: item[1]))
   ########################################### Finalization report ###########################################
   error_lines = []
