@@ -22,7 +22,14 @@ nav:
   - Workflows: workflow/index.md
   - Job Reporting:
     - List of Jobs: jobreport/index.md
-    - Detailed Reports: jobreport/detailed_reports.md
+    - Detailed Reports:
+      - Reports: jobreport/detailed_reports.md
+      - Overview Table: jobreport/overview_table.md
+      - Overview Graph: jobreport/overview_graph.md
+      - Metric Graphs: jobreport/metric_graphs.md
+      - Node List: jobreport/nodelist.md
+      - Timeline: jobreport/timeline.md
+      - System Errors: jobreport/system_errors.md
     - List of metrics: jobreport/metrics_list.md
     - Examples: jobreport/examples.md
   - Known Issues: known_issues/index.md
@@ -118,6 +125,9 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true 
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite

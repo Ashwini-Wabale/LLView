@@ -170,7 +170,7 @@
           desc: "Number of cores in the reservation"                                                           }
       - { name: flags,    group: "res", title: "Flags", sort: "S", format: "text-left",
           desc: "Flags used in the reservation"                                                           }
-      - { name: nodelist, group: "res_nodes", title: "Nodelist", sort: "S", format: "text-left",
+      - { name: nodelist, group: "res_nodes", title: "Node List", sort: "S", format: "text-left",
           desc: "Nodes covered by the reservation"                                                           }
       - { name: accounts, group: "res_accounts", title: "Accounts", sort: "S", format: "text-left",
           desc: "Accounts allowed to submit jobs to the reservation"                                                           }

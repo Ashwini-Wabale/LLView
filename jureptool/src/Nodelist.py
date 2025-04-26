@@ -128,7 +128,7 @@ def Nodelist(pdf,data,config,gpus,nl_config,nodedict,error_nodes,page_num):
       page.add_header(data)
 
       page.fig.text(0.5,nl_config['top']+0.01, \
-                    f"Nodelist", \
+                    f"Node List", \
                     ha='center',  \
                     color='black', \
                     fontsize=config['appearance']['normalfont']+1,\

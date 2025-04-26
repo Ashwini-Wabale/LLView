@@ -352,7 +352,7 @@ def FirstPage(pdf,data,config,df_overview,time_range,page_num,tocentries,num_cpu
       nl_config['top']=posy
 
       page.fig.text(0.5,nl_config['top']+0.01, \
-                    f"Nodelist", \
+                    f"Node List", \
                     ha='center',  \
                     color='black', \
                     fontsize=config['appearance']['normalfont']+1,\

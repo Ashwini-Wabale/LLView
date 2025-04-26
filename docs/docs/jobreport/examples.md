@@ -159,6 +159,26 @@ to `32:SwThermSlDwn` (Software Thermal Slowdown).
 The node containing this GPU was drained and repaired.
 
 
+## GPUs used with low occupation
+
+
+When you first inspect GPU performance, you might check [`GPU Utilization`](metrics_list.md#gpu). 
+This shows the percentage of time—over the last sampling interval—during which any kernel was running on the GPU. 
+But beware: a single, simple kernel running constantly will report 100 % Utilization, even if it only uses a tiny slice of the GPU's actual compute resources.
+
+A more telling metric for real parallelism is [`GPU Active SM`](metrics_list.md#gpu). 
+This measures the average fraction of time that at least one warp was active on each Streaming Multiprocessor (SM), then averages across all SMs. 
+(For reference, an NVIDIA A100 has 108 SMs, and an H100 may have up to 132 SMs.)
+
+<figure markdown> 
+  ![Unused GPUs](../images/gpus_util_active.png){ width="800" } 
+  <figcaption>Example: GPU Utilization = 100 %, but SM occupancy is very low</figcaption> 
+</figure>
+
+In the chart above, the job drives the GPU continuously (so Utilization reads 100 %) yet SM occupancy remains low. 
+That gap means many SMs sit idle—if you launch more work or larger kernels, you can improve occupancy and make your code run significantly faster.
+
+
 ## Load imbalance
 
 Another example where the LLview job reports may be of use is to verify poor performance of the code.
