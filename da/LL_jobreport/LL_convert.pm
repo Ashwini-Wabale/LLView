@@ -109,6 +109,7 @@ sub init_convert_functions {
                                 "toGiB"      => \&to_gib,
                                 "toMiB"      => \&to_mib,
                                 "to_ms"      => \&to_ms,
+                                "MJouletoWh" => \&mjouletowh,
                                 "toThousand" => \&to_thousand,
                                 "toMillion"  => \&to_million,
                                 "toBillion"  => \&to_billion,
@@ -565,6 +566,11 @@ sub to_gib {
 sub to_ms {
   my ($num,$self)=@_;
   return($num*1000.0);
+}
+
+sub mjouletowh {
+  my ($num,$self)=@_;
+  return($num*277.77777778);
 }
 
 sub to_thousand {
