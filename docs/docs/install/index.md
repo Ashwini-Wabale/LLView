@@ -5,7 +5,7 @@ It currently contains a simplified workload including all the necessary
 scripts and plugins for a basic functioning. This version does not include:
 
 - Client (Live view)
-- Plugins other than Slurm
+- Plugins other than Slurm, Prometheus and GitLab
 - Logger (module that collects LLview's access metrics)
 
 These features will be added in future updates.
