@@ -6,7 +6,7 @@ The dependencies of LLview Remote are:
 
 - Crontab
 - Perl (>5) 
-    - Modules (install with `cpanm <ModuleName>`)
+    - Modules (install with `cpan <ModuleName>`)
         - Data::Dumper
         - Getopt::Long
         - Time::Local

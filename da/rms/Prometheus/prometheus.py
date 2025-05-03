@@ -251,14 +251,14 @@ class Info:
         r = r.json()
         self.log.debug(f"Raw response received: {r}\n")
 
-        if ('data' in r) and ('result' in r['data']):
+        if r and 'data' in r and r['data'] and 'result' in r['data']:
           # Prometheus response
           data = r['data']['result']
-        elif ('out' in r) and ('columns' in r['out']) and ('data' in r['out']):
+        elif r and 'out' in r and r['out'] and 'columns' in r['out'] and 'data' in r['out']:
           # SEMS response
           data = {key: value for key,value in zip(r['out']['columns'],r['out']['data'][0])}
         else:
-          self.log.error("Problem parsing output! Skipping... ")
+          self.log.error("Problem parsing output! Skipping... \n")
           continue
 
         if ('cache' in metric) and metric['cache']:
@@ -362,9 +362,9 @@ class Info:
         self.log.warning(rawoutput.split("\n")[0]+"\n")
         return
       # Getting unit to be parsed from first keyword
-      unitname = re.match("(\w+)",rawoutput).group(1)
+      unitname = re.match(r"(\w+)",rawoutput).group(1)
       self.log.debug(f"Parsing units of {unitname}...\n")
-      units = re.findall(f"({unitname}[\s\S]+?)\n\n",rawoutput)
+      units = re.findall(fr"({unitname}[\s\S]+?)\n\n",rawoutput)
       for unit in units:
         self.parse_unit_block(unit, unitname, prefix, stype)
     else:
@@ -373,7 +373,7 @@ class Info:
         self.log.warning(f"No output units from command {cmd}\n")
         return
       # Getting unit to be parsed from first keyword
-      unitname = re.match("(\w+)",rawoutput).group(1)
+      unitname = re.match(r"(\w+)",rawoutput).group(1)
       self.log.debug(f"Parsing units of {unitname}...\n")
       for unit in units:
         current_unit = unit[unitname]

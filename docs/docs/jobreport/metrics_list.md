@@ -13,7 +13,7 @@ Here we list the current metrics and detail their meaning.
     
     !!! warning
 
-        The abscissa in this graph are the cores instead of the timestamp, and it includes both "Physical" cores (first half) as well as the "Logical" ones (second-half) for multithreaded processors.
+        The abscissa in this graph are the **core IDs** instead of the **timestamp**, and it includes both "Physical" cores (first half) as well as the "Logical" ones (second-half) for multithreaded processors.
 
 === "CPU"
 

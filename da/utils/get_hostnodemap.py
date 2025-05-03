@@ -35,7 +35,8 @@ def to_lml(nodelist: dict, xmlfile: str):
     # Creating first list of objects
     file.write(f"{2*' '}<objects>\n" )
 
-    digits = int(math.log10(len(nodelist)))+1
+    if nodelist:
+      digits = int(math.log10(len(nodelist)))+1
     i = 0
     # Looping over the entries in each role
     for node in nodelist:
