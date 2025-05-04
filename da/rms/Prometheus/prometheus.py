@@ -640,7 +640,7 @@ def get_token(username,password,config,verify):
   """
   log = logging.getLogger('logger')
   # Build Auth URI for token
-  token_endpoint = config['endpoint']
+  token_endpoint = os.path.expandvars(config['endpoint'])
 
   # Preparing data to request token
   data = {
