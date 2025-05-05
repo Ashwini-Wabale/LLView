@@ -302,12 +302,12 @@ def _ProcessReport(njob,total_jobs,job,config):
         # Get the headers given on the graph list
         icols = [header.index(_) for _ in cols.keys()]
         # Reading database
-        df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
+        df_temp = pd.read_csv(file, sep=r'\s+', comment='#', names=header, index_col=False, usecols=icols,dtype=cols)[cols.keys()]
       else:
         # If column dict is empty, it means that the section is defined
         # This is then a User-defined/Custom section
         # Then we add the given file "as is" to df_custom
-        df_temp = pd.read_csv(file, sep='\s+', comment='#', names=header, index_col=False)
+        df_temp = pd.read_csv(file, sep=r'\s+', comment='#', names=header, index_col=False)
 
     # Getting header title for timestamp and nodelist
     y_x_keys = [key for key in {**y_headers, **x_headers}.keys()]
