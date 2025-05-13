@@ -267,7 +267,7 @@ def nodeinfo(options: dict, nodes_info) -> dict:
   # Updating the nodes dictionary by adding or removing keys
   for nodename,nodeinfo in nodes_info.items():
     # Adding gpus information for GPU nodes (which include 'Gres' key)
-    if ('Gres' in nodeinfo) and (match := re.search(r'gpu:(\d)',nodeinfo['Gres'])):
+    if ('Gres' in nodeinfo) and (match := re.search(r'gpu:(?:[^:]+:)*(\d+)',nodeinfo['Gres'])):
       nodeinfo['gpus'] = match.group(1)
 
   # Gathering information about the partitions

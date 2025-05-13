@@ -109,32 +109,42 @@ def read_map(filemap: str) -> dict:
 
 def expand_NodeList(nodelist: str) -> list:
   """
-  Split node list by commas only between groups of nodes, not within groups
-  Returns all complete node names separated by a single space
-  Regex notes:
-    [^\[]+ - matches anything (at lest one character) but the '[' literal
-    (?:\[[\d,-]*\])? - matches zero or one (optional) node groupings like '[1,3,5-8,10]'
-    General Documentation https://docs.python.org/3/library/re.html#regular-expression-syntax
+  Expand expressions like:
+    "node[01,03-05]"                 → ["node01","node03","node04","node05"]
+    "nodename-[001-003]-[01-03]"     → ["nodename-001-01",...,"nodename-003-03"]
+    "foo[1-2],bar[3-4]"              → ["foo1","foo2","bar3","bar4"]
   """
-  expandedlist = []
-  for nodelist in re.findall('([^\[]+(?:\[[\d,-]*\])?),?',nodelist):
-    match = re.findall( "(.+?)\[(.*?)\]|(.+)", nodelist)[0]
-    if match[2] == nodelist:
-      # single node
-      expandedlist.append(f"{nodelist}")
-      continue
-    # multiple nodes in node list as in "node[a,b,m-n,x-y]"
-    for node in match[1].split(','):
-      # splitting eventual consecutive nodes with '-'
-      list = node.split('-',1)
-      if len(list)==1:
-        # single node
-        expandedlist.append(f"{match[0]}{list[0]}")
-      else:
-        # multi-node separated by '-'
-        for i in range(int(list[0]),int(list[1])+1):
-          expandedlist.append(f"{match[0]}{i:0{len(list[0])}}")
-  return expandedlist
+  # Split on commas *not* inside [...] to handle multiple top-level groups
+  parts = re.split(r',\s*(?![^\[]*\])', nodelist)
+  out = []
+  for part in parts:
+    out.extend(_expand_part(part))
+  return out
+
+def _expand_part(s: str) -> list:
+  """
+  Recursively expand the *first* [...] group found in s.
+  If no [...] remains, return [s].
+  """
+  m = re.match(r'(.*?)\[(.*?)\](.*)', s)
+  if not m:
+    return [s]
+
+  prefix, body, suffix = m.groups()
+  result = []
+
+  # body = e.g. "001-003,005,010-012"
+  for token in body.split(','):
+    if '-' in token:
+      start, end = token.split('-', 1)
+      width = len(start)  # preserve zero-padding
+      for i in range(int(start), int(end) + 1):
+        val = f"{i:0{width}d}"
+        result.extend(_expand_part(prefix + val + suffix))
+    else:
+      result.extend(_expand_part(prefix + token + suffix))
+
+  return result
 
 
 class CustomFormatter(logging.Formatter):
