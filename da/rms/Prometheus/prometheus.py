@@ -183,7 +183,7 @@ class Info:
     # self._dict |= dict
     if not add_to:
       add_to = self._dict
-    for bk, bv in to_add.items():
+    for bk, bv in to_add.items() if to_add else []:
       av = add_to.get(bk)
       if isinstance(av, dict) and isinstance(bv, dict):
         self.add(bv,add_to=av)

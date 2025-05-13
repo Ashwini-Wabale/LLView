@@ -1284,9 +1284,15 @@ def CreateFirstTables(data,config,num_cpus,num_gpus,gpus,ierr):
     </table>
 """
   else: # if job is still running:
-    tables += f"""
-    <div style="margin: 15px">
-    <b>This job will use approximately {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['wallh']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['wallh']):.2f} core-h for the specified walltime (up to now: {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f})</b>
+    if data['job']['wallh'] != 'UNLIMITED':
+      tables += f"""
+      <div style="margin: 15px">
+      <b>This job will use approximately {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['wallh']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['wallh']):.2f} core-h for the specified walltime (up to now: {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f})</b>
+"""
+    else:
+      tables += f"""
+      <div style="margin: 15px">
+      <b>This job has used approximately {num_cpus} nodes &times; {config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']} cores &times; {float(data['job']['runtime']):.3f} hours = {num_cpus*config['system'][data['job']['system'].upper()][data["job"]["queue"]]['cores']*float(data['job']['runtime']):.2f} core-h up to now</b>
 """
     if config['energy']:   
       tables += f"""
