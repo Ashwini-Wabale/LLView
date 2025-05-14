@@ -7,10 +7,10 @@
         "fsallnodefile": "FSusage_64337_all_node.dat",
         "fsfastdatanodefile": "FSusage_64337_fastdata_node.dat",
         "pwrnodefile": "Nodepower_64337_node.dat",
-        "htmlfile": "jobreport_jedi_jureap59_franke5_64337.html",
+        "htmlfile": "jobreport_jedi_project_user1_64337.html",
         "gpunodefile": "GPU_64337_node.dat",
         "fsprojectnodefile": "FSusage_64337_project_node.dat",
-        "pdffile": "jobreport_jedi_jureap59_franke5_64337.pdf",
+        "pdffile": "jobreport_jedi_project_user1_64337.pdf",
         "fabricnodefile": "Fabric_64337_node.dat",
         "coreusagenodefile": "PCOREusage_64337_node.dat",
         "pwrchipfile": "Chippower_64337_chip.dat"

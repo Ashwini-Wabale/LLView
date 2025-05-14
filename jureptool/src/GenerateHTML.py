@@ -717,7 +717,9 @@ def CreateHTML( config,
   function sync_zoom() {
     for (const [key, value] of Object.entries(sections)) {
       if (value) {
-        value.on( "plotly_relayout", function(_,ed) { update_layout(ed, value.not(_.target)); } );
+        for (const el of value) {
+          el.on( "plotly_relayout", function(ed) { update_layout(ed, value.not(el)); } );
+        }
       }
     }
     
