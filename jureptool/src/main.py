@@ -522,6 +522,7 @@ def _ProcessReport(njob,total_jobs,job,config):
         for plot in config['plots']['_overview'][side]['plots']:
           # Loop over all sections inside 'plots' key
           for section in plot.keys():
+            if section not in config['plots']: continue
             config_section = config['plots'][section]
             if section.startswith('_'): continue
             # Loop over all graphs inside a given section that is inside 'plots'
