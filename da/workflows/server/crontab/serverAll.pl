@@ -18,15 +18,15 @@ use lib "$FindBin::RealBin/../../../lib";
 use LML_da_util qw( get_date remove_old_logs check_folder );
 
 # Folder definitions
-my $system = $ENV{'LLVIEW_SYSTEMNAME'}; 
-my $llview = $ENV{'LLVIEW_HOME'};
-my $data = $ENV{'LLVIEW_DATA'};
-my $conf = $ENV{'LLVIEW_CONF'};
+my $LLVIEW_SYSTEMNAME = $ENV{'LLVIEW_SYSTEMNAME'}; 
+my $LLVIEW_HOME = $ENV{'LLVIEW_HOME'};
+my $LLVIEW_DATA = $ENV{'LLVIEW_DATA'};
+my $LLVIEW_CONF = $ENV{'LLVIEW_CONF'};
 my $prefix = "crontab_server"; # prefix for log/err files
 
 
 # Defining log and error files
-my $logs="$data/$system/logs/";
+my $logs="$LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/";
 # Checking if logs folder exist, and if not, creates it
 &check_folder($logs);
 my $logfile = "$logs/$prefix.".&get_date().".log";
@@ -45,7 +45,7 @@ if(-f $shutdown) {
 }
 
 # Commands for monitor
-my $searchCmdMonitor = "perl $llview/da/monitor/monitor_file.pl --config $conf/server/workflows/actions.inp";
+my $searchCmdMonitor = "perl $LLVIEW_HOME/da/monitor/monitor_file.pl --config $LLVIEW_CONF/server/workflows/actions.inp";
 my $startMonitor = "cd $logs; $searchCmdMonitor 1>> $logfile 2>> $errfile &";
 # Checking if llview monitor is running
 restartProg($searchCmdMonitor, $startMonitor);
@@ -54,16 +54,16 @@ restartProg($searchCmdMonitor, $startMonitor);
 # (JuRepTool was moved to an action in actions.inp, but this part 
 # was kept here commented out in case it is preferred to be used)
 # Checking if JuReptool is running
-# my $jureptool = "$llview/jureptool";
+# my $jureptool = "$LLVIEW_HOME/jureptool";
 # my $nprocs = ($ENV{'JUREPTOOL_NPROCS'} =~ '^[0-9]+$') ? $ENV{'JUREPTOOL_NPROCS'} : 2;
 # if ( $nprocs > 0 ) {
 #   # folder used by jureptool for temporary files (lastmod and reports), as well as shutdown file (to shutdown only jureptool)
-#   my $folder = "$data/$system/jureptool/";
+#   my $folder = "$LLVIEW_DATA/$LLVIEW_SYSTEMNAME/jureptool/";
 #   &check_folder($folder);
 #   &check_folder("$folder/results/"); # folder required for temporary reports
 
 #   my $searchCmdjureptool = "$ENV{PYTHON} $jureptool/src/main.py --configfolder $ENV{LLVIEW_CONF}/jureptool --shutdown $ENV{LLVIEW_SHUTDOWN} $folder/shutdown";
-#   my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $data/$system/tmp/jobreport/tmp/plotlist.dat --logprefix $data/$system/logs/jureptool 1>> $data/$system/logs/jureptool.log 2>> $data/$system/logs/jureptool.errlog &";  
+#   my $startjureptool = "cd $folder; nice -n 19 $searchCmdjureptool --nohtml --gzip --nprocs $nprocs --daemon --loglevel DEBUG $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/tmp/jobreport/tmp/plotlist.dat --logprefix $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/jureptool 1>> $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/jureptool.log 2>> $LLVIEW_DATA/$LLVIEW_SYSTEMNAME/logs/jureptool.errlog &";  
 #   restartProg($searchCmdjureptool, $startjureptool);
 # }
 

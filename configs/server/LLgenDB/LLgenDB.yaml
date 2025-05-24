@@ -39,7 +39,7 @@ databases:
   %include "conf_jobs/jobstep.yaml"
 
   # job errmsg info
-  # %include "conf_jobs/joberr.yaml"
+  %include "conf_jobs/joberr.yaml"
 
   # reservations
   %include "conf_jobs/reservations.yaml"
@@ -68,7 +68,7 @@ databases:
 
   # # SYSTEM info
   # %include "conf_sysstat/sysstat.yaml"
-  # %include "conf_sysstat/nodeerr.yaml"
+  %include "conf_sysstat/nodeerr.yaml"
 
   #  DB for internal statitics of DB usage
   %include "conf_internal/DBstat.yaml"

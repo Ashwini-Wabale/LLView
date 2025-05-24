@@ -105,15 +105,15 @@
     #               ref: [ table ]
     #               data:
     #                 default_columns: [ sysstat ]
-    #           - page:
-    #               name: "Node-Errors"
-    #               section: "sysnodeerr"
-    #               template: "/data/LLtemplates/nodeerr"
-    #               context: "data/_sysstat/nodeerr.json"
-    #               default: false
-    #               ref: [ table ]
-    #               data:
-    #                 default_columns: [ errmsg ]
+              - page:
+                  name: "Node-Errors"
+                  section: "sysnodeerr"
+                  template: "/data/LLtemplates/nodeerr"
+                  context: "data/_sysstat/nodeerr.json"
+                  default: false
+                  ref: [ table ]
+                  data:
+                    default_columns: [ errmsg ]
     #           - page:
     #               name: "Core Usage Pattern"
     #               section: "corepattern"
