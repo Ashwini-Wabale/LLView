@@ -2,10 +2,20 @@
 
 The public version of LLview can be downloaded from [GitHub](https://github.com/FZJ-JSC/LLview).
 It currently contains a simplified workload including all the necessary
-scripts and plugins for a basic functioning. This version does not include:
+scripts and plugins for a basic functioning. This version includes
 
-- Client (Live view)
-- Plugins other than Slurm, Prometheus and GitLab
+- Core structure to process the configurations, create SQLite databases and process data for presentation on the web portal
+- JuRepTool to create PDF and interactive HTML reports
+- Plugins for:
+    - Slurm
+    - Prometheus and other REST-API
+    - Flat files (via regex)
+    - GitLab repos
+
+It still does not cover:
+
+- Client and live view (the schematic view of the jobs on the nodes)
+- Other plugins
 - Logger (module that collects LLview's access metrics)
 
 These features will be added in future updates.
