@@ -25,7 +25,7 @@ Even though the number of processes/threads included eventual simultaneous multi
 On the HTML report, the distribution of core usage per node was indicated in the following graph:
 <figure markdown>
   ![Unused cores](../images/high_load_low_usage_corespernode.png){ width="800" }
-  <figcaption>Example of core distribution per node of a job no using all the cores</figcaption>
+  <figcaption>Example of core distribution per node of a job not using all the cores</figcaption>
 </figure>
 As it can also be seen from this colorplot, not only the "Logical" cores (the second half of the cores) were not used, neither some of the "Physical" (the first half) cores.
 

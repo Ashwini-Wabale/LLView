@@ -642,7 +642,7 @@
         headerName: "#Err",
         valueFormatter: "(params) => round_number_or_null_int(params)", 
         cellClass: "text-right", 
-        cellStyle: "color: red; font-weight: bold", 
+        cellStyle: "{color: 'red', 'font-weight': 'bold'}", 
         headerTooltip: "Number of error messages from node logs",
       },
       {
@@ -651,7 +651,7 @@
         headerName: "#ErrNds",
         valueFormatter: "(params) => round_number_or_null_int(params)", 
         cellClass: "text-right", 
-        cellStyle: "color: red; font-weight: bold", 
+        cellStyle: "{color: 'red', 'font-weight': 'bold'}", 
         headerTooltip: "Number of nodes with error messages from node logs",
       },
     ]

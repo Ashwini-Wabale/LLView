@@ -62,8 +62,8 @@ sub process_dataset_datatable {
           # Starting child column
           $coldefs .= "        {\n";
           while ((my $subkey, my $value) = each %{$subele}) {
-            if (($value =~/\(.*\)\s=>/) || ($subkey=~'filterParams') || ($subkey=~'floatingFilterComponent')) {
-              # If element contains a JS function, i.e. is of the form '(...) =>', write it out without quotes
+            if (($value =~/\(.*\)\s=>/) || ($value=~/^{.*}$/) || ($subkey=~'filterParams') || ($subkey=~'floatingFilterComponent')) {
+              # If element contains a JS function, i.e. is of the form '(...) =>', or if it's an object {...}, write it out without quotes
               $coldefs .= "          $subkey: $value,\n";
             } else {
               $coldefs .= "          $subkey: \"$value\",\n";
