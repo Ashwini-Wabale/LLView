@@ -6,8 +6,11 @@
 #
 # Contributions must follow the Contributor License Agreement. More information see the CONTRIBUTING.md file at the top level.
 #
+# Disclaimer: This file was created with the help of Gemini AI by Google.
+#
 # Contributors:
 #    Filipe Guimarães (Forschungszentrum Juelich GmbH)
+
 """
 File Parsing Plugin for LLview
 
