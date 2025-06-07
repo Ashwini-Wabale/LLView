@@ -55,8 +55,8 @@ def cpus(options: dict, cpus_info) -> dict:
   log.info("Adding extra information for cpus...\n")
 
   # Default is using 2 smt (i.e., 1 logiccore) when 'smt' not given in options
-  nsmts = options['smt'] if 'smt' in options else 2
-  nsockets = options['sockets'] if 'sockets' in options else 1
+  nsmts = options.get('smt',2)
+  nsockets = options.get('sockets',1)
 
   cpusextra = {}
   # Updating the jobs dictionary by adding or removing keys
@@ -116,13 +116,13 @@ def gpu(options: dict, gpus_info) -> dict:
   if gpus_info._token:
     # with token
     headers = {'accept': 'application/json', 'Authorization': gpus_info._token}
-    r = requests.get(url, headers=headers, timeout=(5,10), verify=gpus_info._verify)
+    r = requests.get(url, headers=headers, timeout=(10,20), verify=gpus_info._verify)
   else:
     # with credentials
     credentials = None
     if gpus_info._user and gpus_info._pass:
       credentials = (gpus_info._user, gpus_info._pass)
-    r = requests.get(url, auth=credentials, timeout=(5,10), verify=gpus_info._verify)
+    r = requests.get(url, auth=credentials, timeout=(10,20), verify=gpus_info._verify)
 
   # If current query does not succeed, log error and skip next steps
   if not r.ok:
@@ -197,7 +197,7 @@ class Info:
     """
     return not bool(self._dict)
 
-  def query(self, metrics, prefix="", stype="", cached_queries = {}):
+  def query(self, metrics, prefix="", stype="", cached_queries = {}, start_ts=None):
     """
     This function will loop through the metrics given in the list 'metrics'
     and perform them in the server defined in self.
@@ -234,13 +234,13 @@ class Info:
         if self._token:
           # with token
           headers = {'accept': 'application/json', 'Authorization': self._token}
-          r = requests.get(url, headers=headers, timeout=(5,10), verify=self._verify)
+          r = requests.get(url, headers=headers, timeout=(10,20), verify=self._verify)
         else:
           # with credentials
           credentials = None
           if self._user and self._pass:
             credentials = (self._user, self._pass)
-          r = requests.get(url, auth=credentials, timeout=(5,10), verify=self._verify)
+          r = requests.get(url, auth=credentials, timeout=(10,20), verify=self._verify)
 
         # If current query does not succeed, log error and continue to next query
         if not r.ok:
@@ -267,7 +267,7 @@ class Info:
       # Looping over all instances (nodes/gpus) in current queried result
       for instance in data:
         # Default ID is obtained from instance['metric']['instance']
-        id_from = metric['id'] if 'id' in metric else 'instance'
+        id_from = metric.get('id','instance')
         # Testing if metric and instance are sub-keys. If so, this is a response from Prometheus
         if ('metric' in instance) and (id_from in instance['metric']):
           # Getting name of the node
@@ -294,7 +294,8 @@ class Info:
           if 'factor' in metric:
             self._raw[id][name] *= metric['factor']
           # Adding extra keys 
-          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = instance['value'][0]
+          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = start_ts # General timestamp (time the plugin started)
+          self._raw[id][f'{name}_ts' if prefix else 'ts'] = instance['value'][0] # Internal ts from current query
           if isinstance(gpu,int):
             self._raw[id]['pid'] = pid
             self._raw[id]['id'] = id
@@ -309,8 +310,8 @@ class Info:
           self._raw[id].setdefault(name,{})
           self._raw[id][name] = data[instance]
           self._raw[id]['id'] = id
-          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = r['out']['index'][0]
-          
+          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = start_ts # General timestamp (time the plugin started)
+          self._raw[id][f'{name}_ts' if prefix else 'ts'] = r['out']['index'][0] # Internal ts from current query          
     for instance in self._raw:
       # Adding prefix and type of the unit, when given in the input
       if prefix:
@@ -889,7 +890,7 @@ def main():
                   username=username,
                   password=password,
                   token=token,
-                  client_secret=server_config['client_secret'] if 'client_secret' in server_config else None,
+                  client_secret=server_config.get('client_secret',None),
                   verify=verify,
                   )
 
@@ -899,9 +900,10 @@ def main():
       else:
         cached_queries |= info.query(
                                       file['metrics'],
-                                      prefix=file['prefix'] if 'prefix' in file else 'i',
-                                      stype=file['type'] if 'type' in file else 'item',
+                                      prefix=file.get('prefix','i'),
+                                      stype=file.get('type','item'),
                                       cached_queries = cached_queries,
+                                      start_ts = start_time,
                                     )
 
       # Modifying output with functions
@@ -921,8 +923,8 @@ def main():
       # Applying pattern to include or exclude units
       if 'exclude' in file or 'include' in file:
         info.apply_pattern(
-                            exclude=file['exclude'] if 'exclude' in file else '',
-                            include=file['include'] if 'include' in file else ''
+                            exclude=file.get('exclude',''),
+                            include=file.get('include','')
                           )
 
       # Mapping keywords
@@ -943,7 +945,7 @@ def main():
       timing[name]['duration'] = end_time - start_time
       timing[name]['nelems'] = len(info)
       # The __nelems_{type} is used to indicate to DBupdate the number of elements - important when the file is empty
-      timing[name][f"__nelems_{file['type'] if 'type' in file else 'item'}"] = len(info)
+      timing[name][f"__nelems_{file.get('type','item')}"] = len(info)
       timing[name]['__type'] = 'pstat'
       timing[name]['__id'] = f'pstat_get{filename}'
       info.add(timing)
