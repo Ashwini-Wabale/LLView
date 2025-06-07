@@ -249,7 +249,8 @@ class Info:
 
         # Getting data from returned result of query
         r = r.json()
-        self.log.debug(f"Raw response received: {r}\n")
+        self.log.debug(f"Raw response received\n")
+        # self.log.debug(f"Raw response received: {r}\n")
 
         if r and 'data' in r and r['data'] and 'result' in r['data']:
           # Prometheus response
@@ -264,54 +265,143 @@ class Info:
         if ('cache' in metric) and metric['cache']:
           cached_queries[name] = data
 
-      # Looping over all instances (nodes/gpus) in current queried result
-      for instance in data:
-        # Default ID is obtained from instance['metric']['instance']
-        id_from = metric.get('id','instance')
-        # Testing if metric and instance are sub-keys. If so, this is a response from Prometheus
-        if ('metric' in instance) and (id_from in instance['metric']):
-          # Getting name of the node
-          pid = instance['metric'][id_from]
-          if 'replace' in metric and pid in metric['replace']:
-            pid = self.substitute_placeholders(metric['replace'][pid], instance['metric'])
-          gpu = None
-          if 'device' in instance['metric']:
-            # If 'device' key is present, this is a gpu
-            gpu = int(instance['metric']['device'].replace('nvidia',''))
-          id = f"{pid}" + ( f"_{gpu:02d}" if isinstance(gpu,int) else "" )
-          self._raw.setdefault(id,{})
-          # Getting value
-          if 'cpu' in instance['metric']:
-            self._raw[id].setdefault(name,{})
-            # Storing as a dictionary to be concatenated later on
-            self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = ast.literal_eval(instance['value'][1])
-            if ('min' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] < metric['min']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['min']
-            if ('max' in metric) and self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] > metric['max']: self._raw[id][name][ast.literal_eval(instance['metric']['cpu'])] = metric['max']
-          else:
-            self._raw[id][name] = ast.literal_eval(instance['value'][1])
-            if ('min' in metric) and self._raw[id][name] < metric['min']: self._raw[id][name] = metric['min']
-            if ('max' in metric) and self._raw[id][name] > metric['max']: self._raw[id][name] = metric['max']
-          if 'factor' in metric:
-            self._raw[id][name] *= metric['factor']
-          # Adding extra keys 
-          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = start_ts # General timestamp (time the plugin started)
-          self._raw[id][f'{name}_ts' if prefix else 'ts'] = instance['value'][0] # Internal ts from current query
-          if isinstance(gpu,int):
-            self._raw[id]['pid'] = pid
-            self._raw[id]['id'] = id
-            self._raw[id]['feature'] = f"GPU{gpu}"
-          else:
-            self._raw[id]['id'] = pid
-        else:
-          # Response that is not from Prometheus (currently, from SEMS)
-          # Getting id of the current value
-          id = instance
-          self._raw.setdefault(id,{})
-          self._raw[id].setdefault(name,{})
-          self._raw[id][name] = data[instance]
-          self._raw[id]['id'] = id
-          self._raw[id][f'{prefix}_ts' if prefix else 'ts'] = start_ts # General timestamp (time the plugin started)
-          self._raw[id][f'{name}_ts' if prefix else 'ts'] = r['out']['index'][0] # Internal ts from current query          
+    # If data is empty, there's nothing to do.
+    if not data:
+      self.log.debug("Data is empty, skipping loop processing.")
+      return
+
+    self.log.debug(f"Collecting information of {len(data)} elements...\n")
+
+    # Determine the structure of the data from the first element.
+    # This avoids redundant 'if' checks inside the loop.
+    first_instance = data[0]
+    has_metric_key = 'metric' in first_instance
+
+    # If instance contain the key 'metric' (e.g., Prometheus)
+    if has_metric_key:
+      # Pre-calculate values and flags to use inside the loop
+      id_from = metric.get('id', 'instance')
+      
+      # Determine metric type (gpu, cpu, or other) from the first element
+      first_metric_dict = first_instance['metric']
+      is_gpu_metric = 'device' in first_metric_dict
+      is_cpu_metric = 'cpu' in first_metric_dict
+      
+      # Pre-cache optional processing flags and values
+      has_replace = 'replace' in metric
+      has_min = 'min' in metric
+      min_val = metric.get('min')
+      has_max = 'max' in metric
+      max_val = metric.get('max')
+      use_factor = 'factor' in metric
+      factor = metric.get('factor', 1.0)
+      
+      # Pre-format timestamp keys
+      ts_key = f'{prefix}_ts' if prefix else 'ts'
+      name_ts_key = f'{name}_ts' if prefix else 'ts'
+
+      # For GPU data
+      if is_gpu_metric:
+        for instance in data:
+          metric_dict = instance['metric']
+          pid = metric_dict[id_from]
+
+          if has_replace and pid in metric['replace']:
+            pid = self.substitute_placeholders(metric['replace'][pid], metric_dict)
+          
+          gpu = int(metric_dict['device'].replace('nvidia',''))
+          id = f"{pid}_{gpu:02d}"
+          
+          # Use float() instead of slow ast.literal_eval() - to be checked if this works for all cases
+          value = float(instance['value'][1])
+          
+          if use_factor:
+            value *= factor
+          if has_min and value < min_val:
+            value = min_val
+          if has_max and value > max_val:
+            value = max_val
+          
+          id_data = self._raw.setdefault(id, {})
+          id_data[name] = value
+          id_data[ts_key] = start_ts
+          id_data[name_ts_key] = instance['value'][0]
+          id_data['pid'] = pid
+          id_data['id'] = id
+          id_data['feature'] = f"GPU{gpu}"
+
+      # For CPU data
+      elif is_cpu_metric:
+        for instance in data:
+          metric_dict = instance['metric']
+          pid = metric_dict[id_from]
+          id = pid
+
+          if has_replace and pid in metric['replace']:
+            pid = self.substitute_placeholders(metric['replace'][pid], metric_dict)
+            id = pid # ID must be updated if pid is replaced
+
+          # Use int() and float() - much faster than ast.literal_eval()
+          cpu_core = int(metric_dict['cpu'])
+          value = float(instance['value'][1])
+
+          if use_factor:
+            value *= factor
+          if has_min and value < min_val:
+            value = min_val
+          if has_max and value > max_val:
+            value = max_val
+
+          id_data = self._raw.setdefault(id, {})
+          cpu_dict = id_data.setdefault(name, {})
+          cpu_dict[cpu_core] = value
+          
+          id_data[ts_key] = start_ts
+          id_data[name_ts_key] = instance['value'][0]
+          id_data['id'] = id
+          
+      # For general data (no 'cpu' nor 'device' key inside)
+      else:
+        for instance in data:
+          metric_dict = instance['metric']
+          pid = metric_dict[id_from]
+          id = pid
+
+          if has_replace and pid in metric['replace']:
+            pid = self.substitute_placeholders(metric['replace'][pid], metric_dict)
+            id = pid # ID must be updated if pid is replaced
+          
+          # Use float() instead of slow ast.literal_eval()
+          value = float(instance['value'][1])
+
+          if use_factor:
+            value *= factor
+          if has_min and value < min_val:
+            value = min_val
+          if has_max and value > max_val:
+            value = max_val
+            
+          id_data = self._raw.setdefault(id, {})
+          id_data[name] = value
+          id_data[ts_key] = start_ts
+          id_data[name_ts_key] = instance['value'][0]
+          id_data['id'] = id
+
+    # If instance does not contain the key 'metric' (e.g., SEMS)
+    else:
+      # `data` is a dictionary where keys are the IDs.
+      ts_key = f'{prefix}_ts' if prefix else 'ts'
+      name_ts_key = f'{name}_ts' if prefix else 'ts'
+      internal_ts = r['out']['index'][0]
+      
+      for id, value in data.items():
+        id_data = self._raw.setdefault(id, {})
+        id_data[name] = value
+        id_data['id'] = id
+        id_data[ts_key] = start_ts
+        id_data[name_ts_key] = internal_ts
+
+    self.log.debug(f"Finished parsing elements, adding internal and default information...\n")
     for instance in self._raw:
       # Adding prefix and type of the unit, when given in the input
       if prefix:
@@ -324,6 +414,7 @@ class Info:
           self._raw[instance][name] = metric['default']
 
     self._dict |= self._raw
+    self.log.debug(f"Done with queries\n")
     return cached_queries
 
   def substitute_placeholders(self, template: str, values: dict) -> str:

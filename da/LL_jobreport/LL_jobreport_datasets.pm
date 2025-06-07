@@ -718,6 +718,7 @@ sub check_fileregister {
     my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks) = stat($file);
     $ds->{$shortfile}->{status}=FSTATUS_EXISTS;
     $ds->{$shortfile}->{lastts_saved}=$mtime;
+    $ds->{$shortfile}->{mts}=$self->{CURRENTTS}; # last change ts
     $ds->{$shortfile}->{checksum}=0;
   } else {
     $ds->{$shortfile}->{status}=FSTATUS_NOT_EXISTS;
