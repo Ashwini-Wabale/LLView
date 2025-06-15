@@ -54,6 +54,9 @@ my $opt_config=undef;
 my $opt_dbdir=undef;
 my $opt_archdir=undef;
 my $opt_dblist=undef;
+my $opt_systemname=undef;
+my $opt_currentts=undef;
+my $opt_currenttsfile=undef;
 my $caller=$0;$caller=~s/^.*\/([^\/]+)$/$1/gs;
 my $instname="[${caller}][PRIMARY]";
 
@@ -64,6 +67,9 @@ usage($0) if( ! GetOptions(
               'dbdir=s'          => \$opt_dbdir,
               'archdir=s'        => \$opt_archdir,
               'dblist=s'         => \$opt_dblist,
+              'systemname=s'     => \$opt_systemname,
+              'currentts=i'      => \$opt_currentts,
+              'currenttsfile=s'  => \$opt_currenttsfile,
               'maxprocesses=i'   => \$opt_maxproc,
               'dump'             => \$opt_dump,
               'demo'             => \$opt_demo
@@ -76,13 +82,23 @@ if(! -f $opt_config) {
   exit;
 }
 
+my $currentts=time();
+if (defined($opt_currenttsfile)) {
+  if(-f $opt_currenttsfile) {
+    open(IN,$opt_currenttsfile) or die "cannot open $opt_currenttsfile";
+    $currentts=<IN>;chomp($currentts);
+    close(IN);
+  }
+} elsif(defined($opt_currentts)) {
+  $currentts=$opt_currentts;
+}
+
 my $DB;
 
 my $starttime=time();
-$DB = LLmonDB->new($opt_config,$opt_dbdir,$opt_archdir,$opt_verbose);
+$DB = LLmonDB->new($opt_config,$opt_dbdir,$opt_archdir,$opt_verbose,$opt_systemname,$currentts);
 $DB->init();
 printf("%s open DB                                         in %7.4fs\n",$instname,time()-$starttime);
-
 
 $starttime=time();
 $DB->archive_data($opt_dblist,$opt_maxproc);  

@@ -61,6 +61,15 @@ sub process_graphpage {
 
   $dsref=$gpref;
 
+  if(!defined($gpref->{stat_database})) {
+    printf(STDERR "[process_graphpage] ERROR stat_db not defined fname=%s (%s,%s,%s)\n",$fname,caller());
+    return(); 
+  };
+  if(!defined($gpref->{stat_table})) {
+    printf(STDERR "[process_graphpage] ERROR stat_table not defined fname=%s (%s,%s,%s)\n",$fname,caller());
+    return(); 
+  };
+
   # get status of datasets from DB
   my $where="name='".$gpref->{name}."'";
   $self->get_datasetstat_from_DB($gpref->{stat_database},$gpref->{stat_table},$where);
@@ -71,7 +80,7 @@ sub process_graphpage {
   my $fh = IO::File->new();
   &check_folder("$file");
   if (!($fh->open("> $file"))) {
-    print STDERR "LLmonDB:    WARNING: cannot open $file, skipping...\n";
+    print STDERR "[process_graphpage] LLmonDB:    WARNING: cannot open $file, skipping...\n";
     return();
   }
   $fh->print($self->encode_JSON($dsref));

@@ -15,6 +15,7 @@ show_pattern:
     - "gpu"
     - "gh"
     - "arm"
+    - "hwai"
   # xx: 
   #    - val1
   #    - val2         

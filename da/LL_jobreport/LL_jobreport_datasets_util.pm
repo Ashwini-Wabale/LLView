@@ -30,6 +30,15 @@ sub get_datasetstat_from_DB {
                                     where => $where,
                                     hash_value => "name,ukey,lastts_saved,checksum,status,mts"
                                   });
+  if(!defined($stat_db)) {
+    printf(STDERR "[get_datasetstat_from_DB] ERROR stat_db not defined (%s,%s,%s)\n",caller());
+    return(); 
+  };
+  if(!defined($stat_table)) {
+    printf(STDERR "[get_datasetstat_from_DB] ERROR stat_table not defined (%s,%s,%s)\n",caller());
+    return(); 
+  };
+
   $self->{DATASETSTAT}->{$stat_db}->{$stat_table}=$dataref;
   # print "end get_datasetstat_from_DB $stat_db,$stat_table,$where\n";
 }

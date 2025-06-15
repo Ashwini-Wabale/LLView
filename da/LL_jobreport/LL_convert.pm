@@ -124,6 +124,9 @@ sub init_convert_functions {
                                 "onlygtnull" => \&onlygtnull,
                                 "as_array"   => \&as_array,
                                 "corepattern" => \&corepattern,
+                                "tolower"     => \&tolower,
+                                "toupper"     => \&toupper,
+                                "toupperfirst" => \&toupperfirst,
                                 "null_if_empty" => \&null_if_empty
                               };
   return();
@@ -599,6 +602,33 @@ sub onlygtnull {
     return($number);
   } else {
     return("");
+  }
+}
+
+sub toupper {
+  my ($text)=@_;
+  if(!defined($text)) {
+    return("");
+  } else {
+    return(uc($text));
+  }
+}
+
+sub toupperfirst {
+  my ($text)=@_;
+  if(!defined($text)) {
+    return("");
+  } else {
+    return(ucfirst($text));
+  }
+}
+
+sub tolower {
+  my ($text)=@_;
+  if(!defined($text)) {
+    return("");
+  } else {
+    return(lc($text));
   }
 }
 

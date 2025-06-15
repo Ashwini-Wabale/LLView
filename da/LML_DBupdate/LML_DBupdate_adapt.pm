@@ -173,7 +173,7 @@ sub adapt_data {
 
     #  file system info
     $ref->{"fs_bw_all"}=$ref->{"fs_br_all"}=$ref->{"fs_ooc_all"}=0;
-    foreach my $fs ("home", "scratch", "project", "fastdata") {
+    foreach my $fs ("home", "scratch", "project1", "data1") {
       $ref->{"fs_ts_$fs"}  = $currentts if(!exists($ref->{"fs_ts_$fs"}));
       $ref->{"fs_dts_$fs"} = 60         if(!exists($ref->{"fs_dts_$fs"}));
 

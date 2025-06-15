@@ -79,6 +79,16 @@ sub process_view {
   # get status of datasets from DB
   my $where="name='".$viewref->{name}."'";
   $self->get_datasetstat_from_DB($viewref->{stat_database},$viewref->{stat_table},$where);
+
+  if(!defined($viewref->{stat_database})) {
+    printf(STDERR "[process_view] ERROR stat_db not defined vname=%s (%s,%s,%s)\n",$vname,caller());
+    return(); 
+  };
+  if(!defined($viewref->{stat_table})) {
+    printf(STDERR "[process_view] ERROR stat_table not defined vname=%s (%s,%s,%s)\n",$vname,caller());
+    return(); 
+  };
+
   my $ds=$self->{DATASETSTAT}->{$viewref->{stat_database}}->{$viewref->{stat_table}};
 
   # save the JSON file

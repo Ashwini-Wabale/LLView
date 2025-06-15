@@ -29,7 +29,7 @@ sub archive_data {
   my($self) = shift;
   my($dblist,$MAX_PROCESSES) = @_;
   my($db,$table,$archopts,$optref,$tables,$rc);
-  my $currentts=time();
+  my $currentts=$self->{CURRENTTS};
   my $currentdate=sec_to_date($currentts);
   printf("%s  LLmonDB: start archive_data at $currentdate\n",$self->{INSTNAME}) if($debug>=3);
 
@@ -118,13 +118,18 @@ sub archive_data {
           }
 
           # 'limit: <expr>, <expr>,
+          # 'limit_save: <expr>, <expr>,
           #    expression: max(col)-val    
-          if(exists($optref->{archive}->{limit})) {
-            my $expressions=$optref->{archive}->{limit};
+          if(exists($optref->{archive}->{limit}) || exists($optref->{archive}->{limit_save})) {
+            my $expressions=exists($optref->{archive}->{limit})?$optref->{archive}->{limit}:undef;
+            my $expressions_save=exists($optref->{archive}->{limit_save})?$optref->{archive}->{limit_save}:undef;
             my $stime=time();
-            $rc=$self->archive_data_by_limit($db,$table,$tableref,$expressions,$archopts);
-            printf("%s  LLmonDB:  archive %6d entries of table %15s/%-35s in %8.5fs (by expressions $expressions)\n",
-                    $self->{INSTNAME},$rc,$db,$table,time()-$stime);
+            $rc=$self->archive_data_by_limit($db,$table,$tableref,$expressions,$expressions_save,$archopts);
+            printf("\t LLmonDB:     archive %6d entries of table %25s/%-40s in %8.5fs (by limit %s, %s)\n",
+                    $rc,$db,$table,time()-$stime,
+                    defined($expressions)?$expressions:"",
+                    defined($expressions_save)?"save: $expressions_save":""
+                  );
           }
 
           # limit_aggr_time: [ 1440, 4320, 17280, 32560, 129600, 525600 ]     # in minutes
@@ -153,7 +158,6 @@ sub archive_data {
 }
 
 
-
 sub archive_data_non_existent {
   my($self) = shift;
   my($db,$table,$tableref,$ntable,$ncol,$archopts)=@_;
@@ -166,37 +170,72 @@ sub archive_data_non_existent {
 
 sub archive_data_by_limit {
   my($self) = shift;
-  my($db,$table,$tableref,$expressions,$archopts)=@_;
+  my($db,$table,$tableref,$expressions,$expressions_save,$archopts)=@_;
 
   # scan expressions
-  my(@whereparts,$where,$rc);
-  
-  foreach my $expr (split/\s*,\s*/,$expressions) {
-    if($expr=~/^\s*max\(([^\)]+)\)\s*-\s*(.*)\s*$/) {
-      my($col,$subvalue)=($1,$2);
-      my $maxvalue=$self->query($db,$table,
-              {
-              type => 'get_max',
-              hash_key => $col
-              });
-      # printf("%s  LLmonDB:  $db,$table,$col  maxvalue=%s TS_ERROR\n",$self->{INSTNAME}, $maxvalue);
-      my $val=$self->timeexpr_to_sec($subvalue);
-      if($val >= 0 ) {
-        $maxvalue-=$val;
-      } else {
-        printf STDERR ("%s  LLmonDB:    WARNING: unknown time expr '$subvalue'\n",$self->{INSTNAME});
-      }
-      push(@whereparts,"( ($col<$maxvalue) AND ($col>0) )");
-    } else {
-      printf STDERR ("%s  LLmonDB:    WARNING: unknown pattern '$expr'\n",$self->{INSTNAME});
-    }
-  }
-  $where=join(" AND ",@whereparts);
-  # print "TMPDEB: $expressions, $where\n";
-  $rc=$self->archive_process_data($db,$table,$tableref,$where,$archopts);
+  my $rc_save=0;
+  my $rc=0;
+  my $maxval_cache={};
+  my $lastts_save_cache=$self->archive_data_get_lastts_save_cache($db,$table,$archopts);
 
-  return($rc);
+  my $where_save=$self->archive_data_by_limit_eval_expression($db,$table,$expressions_save,$maxval_cache,$lastts_save_cache);
+  my $where=$self->archive_data_by_limit_eval_expression($db,$table,$expressions,$maxval_cache);
+
+  if(defined($where_save) && !defined($where)) {
+    $rc_save=$self->archive_process_data($db,$table,$tableref,$where_save,$archopts,"save");
+  } elsif(!defined($where_save) && defined($where)) {
+    $rc=$self->archive_process_data($db,$table,$tableref,$where,$archopts,"save_delete");
+  } elsif(defined($where_save) && defined($where)) {
+    $rc_save=$self->archive_process_data($db,$table,$tableref,$where_save,$archopts,"save");
+    $rc+=$self->archive_process_data($db,$table,$tableref,$where,$archopts,"delete");
+  }
+  $self->archive_data_put_lastts_save_cache($db,$table,$archopts,$lastts_save_cache) if($rc_save>0);
+
+  return($rc+$rc_save);
 }
+
+sub archive_data_by_limit_eval_expression {
+  my($self) = shift;
+  my($db,$table,$expressions,$maxval_cache,$lastts_save_cache)=@_;
+  my $where=undef;
+  my (@whereparts);
+
+  if(defined($expressions)) {
+    foreach my $expr (split/\s*,\s*/,$expressions) {
+      if($expr=~/^\s*max\(([^\)]+)\)\s*-\s*(.*)\s*$/) {
+        my($col,$subvalue)=($1,$2);
+        my $maxvalue;
+        if(!exists($maxval_cache->{$col})) {
+          $maxval_cache->{$col}=$self->query($db,$table,
+                                            {
+                                          type => 'get_max',
+                                          hash_key => $col
+                                            });
+        }
+        my $val=$self->timeexpr_to_sec($subvalue);
+        if($val >= 0 ) {
+          $maxvalue=$maxval_cache->{$col}-$val;
+        } else {
+          printf("\t LLmonDB:    WARNING: unknown time expr '$subvalue'\n");
+        }
+        my $minvalue=0.0000001;
+        if(defined($lastts_save_cache)) {
+          $minvalue=$lastts_save_cache->{$col} if(exists($lastts_save_cache->{$col}));
+        }
+        push(@whereparts,"( ($col<$maxvalue) AND ($col>=$minvalue) )");
+        if(defined($lastts_save_cache)) {
+          $lastts_save_cache->{$col}=$maxvalue;
+        }
+      } else {
+        printf("\t LLmonDB:    WARNING: unknown pattern '$expr'\n");
+      }
+    }
+    $where=join(" AND ",@whereparts);
+    #	print "TMPDEB: $db:$table: $where\n" if (defined($lastts_save_cache));
+  }
+  return($where);
+}
+
 
 sub archive_data_by_limit_aggr_time {
   my($self) = shift;
@@ -229,10 +268,14 @@ sub archive_data_by_limit_aggr_time {
 
 sub archive_process_data {
   my($self) = shift;
+  my($db,$table,$tableref,$where,$archopts,$opt_mode)=@_;
   my($db,$table,$tableref,$where,$archopts)=@_;
   my $columns=$tableref->{columns};
 
   my($colref,$colsref,$filename);
+  my $mode="save_delete";
+  $mode=$opt_mode if(defined($opt_mode));
+
 
   # get config of table and mapping of attributes from config file
   foreach $colref (@{$columns}) {
@@ -253,50 +296,107 @@ sub archive_process_data {
     return($count);
   }
 
-  if($archopts->{archive_data}) {
-    # check arch file
-    $filename=sprintf("%s/db_%s_tab_%s_date_%s.csv",
-            $archopts->{archdir},
-            $db,
-            $table,
-            LLmonDB::sec_to_date_week_fn($archopts->{currentts})
-          );
-    my $fh = IO::File->new();
-    if (! $fh->open(">> $filename")) {
-      print STDERR "$self->{INSTNAME} LLmonDB:    ERROR: cannot open $filename\n";
-    } else {
-      printf( $fh  "#DATE: %s TS:%s\n",$archopts->{currentdate},$archopts->{currentts});
-      printf( $fh  "#COUNT: %d\n",$count);
-      printf( $fh  "#COLUMNS: %s\n",join(",",@{$colsref}));
+  if($mode=~/save/) {
+    if($archopts->{archive_data}) {
+      # check arch file
+      $filename=sprintf("%s/db_%s_tab_%s_date_%s.csv",
+                        $archopts->{archdir},
+                        $db,
+                        $table,
+                        LLmonDB::sec_to_date_week_fn($archopts->{currentts})
+                      );
+      my $fh = IO::File->new();
+      if (! $fh->open(">> $filename")) {
+        print "LLmonDB:    ERROR, cannot open $filename\n";
+      } else {
+        printf( $fh  "#DATE: %s TS:%s\n",$archopts->{currentdate},$archopts->{currentts});
+        printf( $fh  "#COUNT: %d\n",$count);
+        printf( $fh  "#COLUMNS: %s\n",join(",",@{$colsref}));
 
+        # store data in arch file
+        $self->query($db,$table,
+                      {
+                        type => 'get_execute',
+                        columns => $colsref,
+                        where => $where,
+                        execute => sub {
+                                  # my @values=map {($_=~/,/) ? "\"".$_."\"" : $_ } @_;
+                                  my @values=map { local $_ = $_; s/\\\\/  /g; s/\,/\\\\,/g; $_ } @_;
+                                  print $fh join(",",@values),"\n";
+                              }
+                      });
+        $fh->close();
+      }
+      printf("\t LLmonDB:    -> archived data to $filename ($count entries)\n") if($self->{VERBOSE});
+    }
+  }
+
+  if($mode=~/delete/) {
+    if($archopts->{remove_data}) {
       # store data in arch file
-      $self->query($db,$table,
-                    {
-                    type => 'get_execute',
-                    columns => $colsref,
-                    where => $where,
-                    execute => sub {
-                      my @values=map {($_=~/,/) ? "\"".$_."\"" : $_ } @_;
-                      print $fh join(",",@values),"\n";
-                    }
-                    });
+      my $rcount=$self->delete($db,$table,
+                              {
+                                type => 'some_rows',
+                                where => $where
+                              });
+
+      printf("\t LLmonDB:    -> removed $rcount entries\n") if($self->{VERBOSE});
+    }
+  }
+  return($count);
+
+  $self->{A}=0;  #dummy statement to avoid unused warning
+}
+
+sub archive_data_get_lastts_save_cache {
+  # my($self) = shift;
+  shift;
+  my($db,$table,$archopts)=@_;
+  my $ts_cache={};
+
+  my $filename=sprintf("%s/_db_%s_tab_%s_stat.dat",
+                        $archopts->{archdir},
+                        $db,
+                        $table);
+
+  if(-f $filename) {
+    my $fh = IO::File->new();
+    if (! $fh->open("< $filename")) {
+      print "LLmonDB:    ERROR, cannot open $filename\n";
+    } else {
+      while(my $line=<$fh>) {
+        if($line=~/^(.*)\:(.*?)\s*$/) {
+          $ts_cache->{$1}=$2;
+        }
+      }
       $fh->close();
     }
-    printf("%s  LLmonDB:    -> archived data to $filename ($count entries)\n",$self->{INSTNAME}) if($self->{VERBOSE});
   }
+  return($ts_cache);
+}
 
-  if($archopts->{remove_data}) {
-    # store data in arch file
-    my $rcount=$self->delete($db,$table,
-                            {
-                            type => 'some_rows',
-                            where => $where
-                            });
-    printf("%s  LLmonDB:    -> removed $rcount entries\n",$self->{INSTNAME}) if($self->{VERBOSE});
+sub archive_data_put_lastts_save_cache {
+  # my($self) = shift;
+  shift;
+  my($db,$table,$archopts,$ts_cache)=@_;
+
+  if(scalar keys(%{$ts_cache}) > 0) {
+    my $filename=sprintf("%s/_db_%s_tab_%s_stat.dat",
+                          $archopts->{archdir},
+                          $db,
+                          $table);
+
+    my $fh = IO::File->new();
+    if (! $fh->open("> $filename")) {
+      print "LLmonDB:    ERROR, cannot open $filename\n";
+    } else {
+      foreach my $key (sort(keys(%{$ts_cache}))) {
+        print $fh "$key:$ts_cache->{$key}\n";
+      }
+      $fh->close();
+    }
   }
-
-  return($count);
-  $self->{A}=0;  #dummy statement to avoid unused warning
+  return;
 }
 
 1;

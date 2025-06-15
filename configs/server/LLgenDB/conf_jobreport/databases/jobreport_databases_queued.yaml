@@ -19,6 +19,7 @@
           - queued_stat
       archive:
         limit: max(ts)-72d
+        limit_save: max(ts)-1d
       index: jobid,ts
     columns: 
       - { name: jobid,           type: jobid_t,           LLDB_from: jobstate/queuedjobs,    LL_default: 'unknown' }

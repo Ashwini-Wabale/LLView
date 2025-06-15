@@ -27,6 +27,7 @@ sub process_LMLdata {
   my($LMLdata,$MAX_PROCESSES)=@_;
   my($db,$table,$options,@DBs);
   my $cap=$LMLdata->{CAPABILITIES};
+  my $capf=$LMLdata->{CAPABILITIES_FORCED};
 
   printf("$self->{INSTNAME} LLmonDB: start process_LMLdata\n") if($debug>=3);
 
@@ -44,6 +45,9 @@ sub process_LMLdata {
           if(exists($options->{update}->{LML})) {
             my $what=$options->{update}->{LML};
             if(exists($cap->{$what})) {
+              $processDB=1;
+            }
+            if(exists($capf->{$what})) {
               $processDB=1;
             }
           }
@@ -170,21 +174,29 @@ sub process_LMLdata_from_LML {
   my $cap=$LMLdata->{CAPABILITIES};
   my $changed=0;
 
+  my $forceupdate=0;
+  if(exists($LMLdata->{ENTRIES_BY_CAP_FORCED}->{$what})) {
+    $forceupdate=1;
+  }
+
   #  check if file contains input data for that table
-  if(!exists($cap->{$what})) {
+  if((!exists($cap->{$what})) && (!$forceupdate) ) {
     printf("$self->{INSTNAME} LLmonDB:     Input has no data for %s for table %s, skipping table ...\n",$what, $table) if($self->{VERBOSE});
     return($changed);
   }
-  
 
   if(exists($LMLdata->{ENTRIES_BY_CAP}->{$what})) {
     $listref=$LMLdata->{ENTRIES_BY_CAP}->{$what};
     printf("$self->{INSTNAME} LLmonDB:     found capability '%s' in input data, processing table\n",$what); # if($self->{VERBOSE});
+  } elsif($forceupdate) {
+    $listref=[];
+    printf("$self->{INSTNAME} LLmonDB: force update category %s for table %s \n",$what, $table) if($self->{VERBOSE});
   } else {
     printf(STDERR "$self->{INSTNAME} LLmonDB: ERROR: unknown LML update category %s for table %s \n",$what, $table);
+    return($changed);
   }
 
-  if( $#{$listref} < 0 ) { # no entries 
+  if ( ( $#{$listref} < 0)  && (!$forceupdate) )  { # no entries 
     printf("$self->{INSTNAME} LLmonDB: WARNING no entries found for %s in table %s \n",$what, $table);
     return($changed);
   }
@@ -195,14 +207,18 @@ sub process_LMLdata_from_LML {
     if($options->{update}->{mode} eq "replace") {
       $starttime=time();
       my $cnt=$dbobj->remove_contents($table);
+      $changed=($cnt>0);
       printf("$self->{INSTNAME} LLmonDB: removed contents (%d rows) of table %s \n",$cnt,$table) if($self->{VERBOSE});
     }
   }
 
-  $changed=1;
-  $starttime=time();
-  my ($cnt,$LMLminlastinsert,$LMLmaxlastinsert)=$self->add_to_table($dbobj,$table,$columns,$listref);
-  printf("$self->{INSTNAME} LLmonDB:     add.     %6d entries to table %15s/%-35s in %8.5fs\n",$cnt,$db,$table,time()-$starttime);
+  my  ($cnt,$LMLminlastinsert,$LMLmaxlastinsert);
+  if ( $#{$listref} >= 0 )  { 
+    $starttime=time();
+    ($cnt,$LMLminlastinsert,$LMLmaxlastinsert)=$self->add_to_table($dbobj,$table,$columns,$listref);
+    $changed=1;
+    printf("$self->{INSTNAME} LLmonDB:     add.     %6d entries to table %15s/%-30s in %8.5fs\n",$cnt,$db,$table,time()-$starttime);
+  }
 
   #  check for LLgenDB some update which have to be performed before update of trigerred tables
   if( exists($options->{update}->{LLgenDB}) ) {
@@ -311,7 +327,6 @@ sub add_to_table {
       push(@{$LMLminlastinsert},undef);
       push(@{$LMLmaxlastinsert},undef);
     }
-    # print "TMPDEB: replacelist=(@replacelist)\n";
   }
   
   my $seq=$dbobj->start_insert_sequence($table,$colsref);

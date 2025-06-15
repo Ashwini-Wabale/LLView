@@ -43,6 +43,7 @@ my $opt_dbdir=undef;
 my $opt_systemname=undef;
 my $opt_currentts=undef;
 my $opt_currenttsfile=undef;
+my $opt_updatealways=undef;
 my $caller=$0;$caller=~s/^.*\/([^\/]+)$/$1/gs;
 my $instname="[${caller}][PRIMARY]";
 my $msg;
@@ -56,6 +57,7 @@ usage($0) if( ! GetOptions(
             'systemname=s'     => \$opt_systemname,
             'currentts=i'      => \$opt_currentts,
             'currenttsfile=s'  => \$opt_currenttsfile,
+            'updatealways=s'    => \$opt_updatealways,
             'dump'             => \$opt_dump,
             'demo'             => \$opt_demo
             ) );
@@ -124,7 +126,7 @@ $msg=sprintf("%s readingInput                                    in %7.4fs (ts=%
 
 $starttime=time();
 my $checklmldata=($count_lml>0);
-my $LMLmon_input_data=$fileobj->get_data($checklmldata);
+my $LMLmon_input_data=$fileobj->get_data($checklmldata,$opt_updatealways);
 
 if($opt_dump) {
   &check_folder("./dump/");
@@ -143,12 +145,14 @@ $msg=sprintf("%s endtime_ts %d\n",$instname,time()); logmsg($msg);
 
 sub usage {
   die "Usage: $_[0] <options> <filenames> 
-                -config <configfile> : YAML config file (required)
-                -dbdir               : database directory (required)
-                -maxprocesses        : max number of processes used (default: 8)
-                -systemname          : System name
-                -verbose             : verbose mode to log more information
-                -demo                : activate demo mode
-                -dump                : dump entries to ./dump
+                --config <file>                  : YAML config file
+                --updatealways <type, type, ...> : update DB of these type always (also if no data in input files) 
+                --demo                           : run in demo mode (e.g. name mangling)
+                --dbdir <dir>                    : directory containing database
+                --systemname <name>              : name of monitored system
+                --currentts <ts>                 : current timestamp (if running in replay mode) 
+                --currenttsfile <file>           : file containng current timestamp (if running in replay mode) 
+                --timings                        : print additional timing info
+                --verbose                        : verbose
 ";
 }

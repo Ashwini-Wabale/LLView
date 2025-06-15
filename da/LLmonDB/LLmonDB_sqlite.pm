@@ -189,7 +189,7 @@ sub recreate_table {
   $sql .= ")";
   $rc=$self->{DBH}->do($sql);
   if(!defined($rc)) {
-    print STDERR "\t   LLmonDB_sqlite: ERROR on last command, skip rest operation (created table $newtable, $sql)\n";
+    print STDERR "[recreate_table] \t   LLmonDB_sqlite: ERROR on last command, skip rest operation (created table $newtable, $sql)\n";
     return(-1);
   }
   print "\t   LLmonDB_sqlite: created table $newtable for ($sql) RC=$rc\n";
@@ -200,7 +200,7 @@ sub recreate_table {
   $sql .= " from $table";
   $rc=$self->{DBH}->do($sql);
   if(!defined($rc)) {
-    print STDERR "\t   LLmonDB_sqlite: ERROR on last command, skip rest operation (copy data from $table to $newtable, $sql)\n";
+    print STDERR "[recreate_table] \t   LLmonDB_sqlite: ERROR on last command, skip rest operation (copy data from $table to $newtable, $sql)\n";
     return(-1);
   }
   print "\t   LLmonDB_sqlite: copied data from $table to $newtable ($sql) RC=$rc\n";
@@ -210,7 +210,7 @@ sub recreate_table {
     $sql = "DROP TABLE $table";
     $rc=$self->{DBH}->do($sql);
     if(!defined($rc)) {
-      print STDERR "\t   LLmonDB_sqlite: ERROR on last command, skip rest operation (drop old table $table, $sql)\n";
+      print STDERR "[recreate_table] \t   LLmonDB_sqlite: ERROR on last command, skip rest operation (drop old table $table, $sql)\n";
       return(-1);
     }
     print "\t   LLmonDB_sqlite: drop old table $table ($sql) RC=$rc\n";
@@ -219,7 +219,7 @@ sub recreate_table {
     $sql = "ALTER TABLE $newtable RENAME TO $table";
     $rc=$self->{DBH}->do($sql);
     if(!defined($rc)) {
-      print STDERR "\t   LLmonDB_sqlite: ERROR on last command, skip rest operation (rename $newtable to $table, $sql)\n";
+      print STDERR "[recreate_table] \t   LLmonDB_sqlite: ERROR on last command, skip rest operation (rename $newtable to $table, $sql)\n";
       return(-1);
     }
     print "\t   LLmonDB_sqlite: drop old table ($sql) RC=$rc\n";
@@ -482,7 +482,7 @@ sub execute_sql {
     # printf("\t   LLmonDB_sqlite: executed (sql: %s)\n",$sql);
     my $rc=$self->{DBH}->do($sql);
     $self->LOGREPORT($self->{DBNAME},"E:execute_sql",caller(),$DBI::errstr) if(!defined($rc));
-    printf(STDERR "\t   LLmonDB_sqlite: executed sql: %s \n",$sql) if(!defined($rc));
+    printf(STDERR "[execute_sql] \t   LLmonDB_sqlite: executed sql: %s \n",$sql) if(!defined($rc));
     $rc_all+=$rc  if(defined($rc));
   }
   $self->mycommit();
@@ -554,7 +554,7 @@ sub query {
                       );
 
   } else {
-    print STDERR "\t   LLmonDB_sqlite: ERROR in query, unknown type $type\n";
+    print STDERR "[query] \t   LLmonDB_sqlite: ERROR in query, unknown type $type\n";
   }
   return($retval);
 }
@@ -572,6 +572,10 @@ sub query_hash_values_table {
   # print "query_hash_values_table: $nkeys (".ref(\$nkeys).") -> $keylist\n";
   my $sql;
   if(!defined($qsql)) {
+    if(!defined($table)) {
+      printf(STDERR "[query_hash_values_table] \t   LLmonDB_sqlite: ERROR cannot prepare query_hash_values_table, [table not defined] ($nkeys,$nvalue,$where,$qsql,%s,%s)\n",caller());
+      return(undef);
+    }
     $sql = "SELECT $keylist,$nvalue FROM $table";
     $sql.=" WHERE $where" if($where);
   } else {
@@ -581,7 +585,7 @@ sub query_hash_values_table {
   # print "query_hash_values_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_hash_values_table(table: $table sql: %s...)\n",substr($sql,0,240));
+    printf(STDERR "[query_hash_values_table] \t   LLmonDB_sqlite: ERROR cannot prepare query_hash_values_table(table: $table sql: %s...)\n",substr($sql,0,240));
     return(undef);
   }
   $sth->execute();
@@ -611,7 +615,7 @@ sub query_arrayref_of_arrayref_table {
   print "query_arrays_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_arrayref_table(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_arrayref_of_arrayref_table] \t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_arrayref_table(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -641,7 +645,7 @@ sub query_arrayref_of_hashref_table {
   # print "query_arrays_table: $sql\n";
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_hashref_table(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_arrayref_of_hashref_table] \t   LLmonDB_sqlite: ERROR cannot prepare query_arrayref_of_hashref_table(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -665,7 +669,7 @@ sub query_get_min {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_min(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_get_min] \t   LLmonDB_sqlite: ERROR cannot prepare query_get_min(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -690,7 +694,7 @@ sub query_get_max {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_max(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_get_max] \t   LLmonDB_sqlite: ERROR cannot prepare query_get_max(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   $sth->execute();
@@ -715,7 +719,7 @@ sub query_get_count {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_count(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_get_count] \t   LLmonDB_sqlite: ERROR cannot prepare query_get_count(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   my $rc=$sth->execute();
@@ -760,7 +764,7 @@ sub query_get_execute {
   
   my $sth = $self->{DBH}->prepare($sql);
   if(!$sth) {
-    printf(STDERR "\t   LLmonDB_sqlite: ERROR cannot prepare query_get_execute(table: $table sql: %s...)\n",substr($sql,0,120));
+    printf(STDERR "[query_get_execute] \t   LLmonDB_sqlite: ERROR cannot prepare query_get_execute(table: $table sql: %s...)\n",substr($sql,0,120));
     return(undef);
   }
   my $rc=$sth->execute();
@@ -776,7 +780,7 @@ sub query_get_execute {
       &$funcref($hashref); $c++;
     }
   } else {
-    print STDERR "\t   LLmonDB_sqlite: ERROR in query_get_execute, unknown qtype $qtype\n";
+    print STDERR "[query_get_execute] \t   LLmonDB_sqlite: ERROR in query_get_execute, unknown qtype $qtype\n";
   }
   $retval=$c;
 
@@ -826,7 +830,7 @@ sub delete {
                           $optsref->{where}
                         );
   } else {
-    print STDERR "\t   LLmonDB_sqlite: ERROR in delete, unknown type $type\n";
+    print STDERR "[delete] \t   LLmonDB_sqlite: ERROR in delete, unknown type $type\n";
   }
   $self->LOGREPORT($self->{DBNAME},"E:delete",caller(),$DBI::errstr) if(!defined($retval));
   return($retval);
@@ -857,7 +861,7 @@ sub delete_some_rows {
   my $rc=$self->{DBH}->do($sql);
   $self->LOGREPORT($self->{DBNAME},"E:delete_some_rows",caller(),$DBI::errstr) if(!defined($rc));
   if(!defined($rc)) {
-    print STDERR "\t   LLmonDB_sqlite: ERROR in delete_some_rows, sql=$sql\n";
+    print STDERR "[delete_some_rows] \t   LLmonDB_sqlite: ERROR in delete_some_rows, sql=$sql\n";
   }
   $self->mycommit();
   $retval=$rc;

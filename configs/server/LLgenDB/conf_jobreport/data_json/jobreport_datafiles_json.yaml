@@ -152,7 +152,19 @@
                      ts_min->todate_std_hhmmss,
                      dt->cut4digits,dt_min->cut4digits,dt_avg->cut4digits,dt_max->cut4digits,
                      cmplx_min->cut1digits,cmplx_avg->cut1digits,cmplx_max->cut1digits'
-    
+
+- dataset:
+    name:            joblist_stat_by_source
+    set:             json_joblist_stat_by_source
+    filepath:       '$outputdir/_internal/joblist_stat_by_source.json.gz'
+    data_database:   jobreport
+    data_table:      joblist_sources_stat
+    stat_table:      datasetstat_sources_stat
+    stat_database:   jobreport_json_stat
+    format:         'json'
+    columns:        's_start, s_ts, s_defer, s_step, s_err, s_ld, s_rc,s_co, s_fa, s_ic, s_fs, s_gpu, num_jobs, min_ts_start, min_ts, min_jobid, max_jobid, avg_jwallm, max_jwallm'
+    column_convert: 'min_ts_start->todate_std_hhmmss,min_ts->todate_std_hhmmss'
+
 - dataset:
     name: support_CorePattern
     set:        corepattern
