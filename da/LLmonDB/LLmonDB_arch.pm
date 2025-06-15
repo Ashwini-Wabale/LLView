@@ -269,7 +269,6 @@ sub archive_data_by_limit_aggr_time {
 sub archive_process_data {
   my($self) = shift;
   my($db,$table,$tableref,$where,$archopts,$opt_mode)=@_;
-  my($db,$table,$tableref,$where,$archopts)=@_;
   my $columns=$tableref->{columns};
 
   my($colref,$colsref,$filename);
