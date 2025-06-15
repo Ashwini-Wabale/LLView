@@ -496,6 +496,34 @@
       - { name: n_all,           group: "heatmap", sort: "N", title: "N_ALL",     desc: "Percentage used by jobs of any size",   data_format: "percent_or_null", bg_color_map: "n_all 'RdYlGn'" }
 
 - dataset:
+    name: template_joblist_source_stat
+    set:           template
+    filepath:      '$outputdir/LLtemplates/joblist_source_stat.handlebars'
+    stat_database: jobreport_json_stat
+    stat_table:    datasetstat_templates
+    format:        'template'
+    columns:
+      - { name: s_start,      group: "jobliststat", sort: "N", title: "S_start",        data_format: "round_number_or_null_int", desc: "Source job (scontrol) available"      }
+      - { name: s_ts,         group: "jobliststat", sort: "N", title: "S_ts",           data_format: "round_number_or_null_int", desc: "Source ts (last update) available" }
+      - { name: s_defer,      group: "jobliststat", sort: "N", title: "S_defer",        data_format: "round_number_or_null_int", desc: "Source defer (15min intervall) available"}
+      - { name: s_step,       group: "jobliststat", sort: "N", title: "S_step",         data_format: "round_number_or_null_int", desc: "Source step (sacct) available" }
+      - { name: s_err,        group: "jobliststat", sort: "N", title: "S_err",          data_format: "round_number_or_null_int", desc: "Source error counter available" }
+      - { name: s_ld,         group: "jobliststat", sort: "N", title: "S_ld",           data_format: "round_number_or_null_int", desc: "Source loadmem available" }
+      - { name: s_rc,         group: "jobliststat", sort: "N", title: "S_rc",           data_format: "round_number_or_null_int", desc: "Source rc (sacct)"}
+      - { name: s_co,         group: "jobliststat", sort: "N", title: "S_co",           data_format: "round_number_or_null_int", desc: "Source cores available" }
+      - { name: s_fa,         group: "jobliststat", sort: "N", title: "S_fa",           data_format: "round_number_or_null_int", desc: "Source fabric available" }
+      - { name: s_ic,         group: "jobliststat", sort: "N", title: "S_ic",           data_format: "round_number_or_null_int", desc: "Source ICmap available" }
+      - { name: s_fs,         group: "jobliststat", sort: "N", title: "S_fs",           data_format: "round_number_or_null_int", desc: "Source file system available" }
+      - { name: s_gpu,        group: "jobliststat", sort: "N", title: "S_gpu",          ddata_format: "round_number_or_null_int", esc: "Source GPU available"}
+      - { name: num_jobs,     group: "jobliststat", sort: "N", title: "#jobs",          data_format: "round_number_or_null_int", desc: "number of jobs" }
+      - { name: min_ts_start, group: "jobliststat", sort: "D", title: "min_ts_start",   desc: "min job start time stamp" }
+      - { name: min_ts,       group: "jobliststat", sort: "D", title: "min_ts",         desc: "min update timestamp" }
+      - { name: min_jobid,    group: "jobliststat", sort: "S", title: "min_jobid",      desc: "min jobid"}
+      - { name: max_jobid,    group: "jobliststat", sort: "S", title: "max_jobidN",     desc: "max jobid"}
+      - { name: avg_jwallm,   group: "jobliststat", sort: "N", title: "avg_wall(min)",  data_format: "round_number_or_null", desc: "avg wall time of job" }
+      - { name: max_jwallm,   group: "jobliststat", sort: "N", title: "max_wall(min)",  data_format: "round_number_or_null", desc: "max wall time of job" }
+
+- dataset:
     name: template_CB
     set:           template
     filepath:      '$outputdir/LLtemplates/CB.handlebars'

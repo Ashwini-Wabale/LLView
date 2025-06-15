@@ -83,11 +83,12 @@
           sql: DELETE FROM rolemap_active_stat;
                INSERT INTO rolemap_active_stat (fid,u_ts,id,wsaccount,project,kind, numjobs)
                                                 SELECT r.fid, r.u_ts,r.id,r.wsaccount,r.project,r.kind,
-                                                       a.numqueuedjobs+a.numjobs
+                                                       SUM(a.numqueuedjobs+a.numjobs)
                                                 FROM rolelist r
                                                 LEFT JOIN alljobs_stat a
                                                 ON r.id=a.owner AND r.project=a.account
                                                 WHERE r.kind="U"
+                                                GROUP by r.fid, r.u_ts,r.id,r.wsaccount,r.project,r.kind
 
                                                 UNION ALL
 

@@ -194,6 +194,34 @@ sub sec_to_date_yymmdd {
   return($date);
 }
 
+sub sec_to_date_ger {
+  my ($lsec)=@_;
+  my($date);
+  my ($sec,$min,$hours,$mday,$mon,$year,$rest)=localtime($lsec);
+  $year=sprintf("%04d",2000 + $year % 100);
+  $mon++;
+  $date=sprintf("%02d.%02d.%02d-%02d:%02d:%02d",$mday,$mon,$year,$hours,$min,$sec);
+  # print "TMPDEB: sec_to_date $lsec -> sec=$sec,min=$min,hours=$hours,mday=$mday,mon=$mon,year=$year -> $date\n";
+  return($date);
+}
+
+sub date_to_sec_ger {
+  my ($ldate)=@_;
+  my ($mday,$mon,$year,$hours,$min,$sec)=split(/[ \.:\/\-\_\.T]/,$ldate);
+  $mon--;
+  my $timesec=timelocal($sec,$min,$hours,$mday,$mon,$year);
+  return($timesec);
+}
+
+sub date_to_sec_res {
+  my ($ldate)=@_;
+  my ($year,$mon,$mday,$hours,$min,$sec)=split(/[ :\/\-\_\.T]/,$ldate);
+  $mon--;
+  my $timesec=timelocal($sec,$min,$hours,$mday,$mon,$year);
+  # print "TMPDEB: date_to_sec_res $ldate -> sec=$sec,min=$min,hours=$hours,mday=$mday,mon=$mon,year=$year -> $timesec\n";
+  return($timesec);
+}
+
 sub sec_to_date2 {
   my ($lsec)=@_;
   my($date);

@@ -27,6 +27,10 @@ sub query {
   printf("  LLmonDB: start query %s/%s\n",$db,$table) if($debug>=3);
 
   my $dbobj=$self->get_db_handle($db);
+  if(!defined($dbobj)) {
+    printf(STDERR "[query] \t   LLmonDB_sqlite: ERROR in query, [no db handle] (%s,%s,%s)\n",caller());
+    return(undef);
+  }
   $resultref=$dbobj->query($table,$optsref);
 
   printf("  LLmonDB: end query\n") if($debug>=3);

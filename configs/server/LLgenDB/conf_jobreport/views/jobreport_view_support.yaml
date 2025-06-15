@@ -343,6 +343,12 @@
                   section: "internaltransfer"
                   default: false
                   graph_page_config: "/data/ll/graphpage_internaltransfer.json"
+              - page:
+                  name: "Joblist Source Stat"
+                  section: "joblist_source_stat"
+                  default: false
+                  template: "/data/LLtemplates/joblist_source_stat"
+                  context: "data/_internal/joblist_stat_by_source.json"
        - page:
            name: "Help"
            section: "help"

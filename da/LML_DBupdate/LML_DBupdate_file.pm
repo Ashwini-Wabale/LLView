@@ -30,7 +30,7 @@ sub new {
   my $dbdir = shift;
   my $demo = shift;
 
-  printf("\t LML_DBupdate_file: new %s\n",ref($proto)) if($debug>=3);
+  printf("\t [LML_DBupdate_file] new %s\n",ref($proto)) if($debug>=3);
   $self->{VERBOSE}    = $verbose;
   $self->{DBDIR}      = $dbdir;
   $self->{DEMO}       = $demo;
@@ -70,31 +70,31 @@ sub read_LML {
   if($self->{VERBOSE}) {
     print $fh->get_stat();
   }
-  printf("\t LML_DBupdate_file: read_LML $filename\n") if($debug>=3);
+  printf("\t [LML_DBupdate_file] read_LML $filename\n") if($debug>=3);
 }
 
 sub get_data {
   my($self) = shift;
-  my($checklmldata) =@_;
+  my($checklmldata,$updatealways) =@_;
 
   if(!$self->{DATAAVAIL}) {
     $self->update_structure();
 
     if($checklmldata) {
       if(!exists($self->{DATA}->{SYSTEM_TS})) {
-        printf(STDERR "\nLML_DBupdate_file: ERROR SYSTEM_TS missing, probably no system element in input files, leaving...\n\n");
+        printf(STDERR "\n[LML_DBupdate_file] ERROR SYSTEM_TS missing, probably no system element in input files, leaving...\n\n");
         return();
       }
     }
 
-    $self->check_capabilities();
+    $self->check_capabilities($updatealways);
     if($checklmldata) {
       $self->adapt_data();
       $self->adapt_data_demo_mode() if($self->{DEMO});
     }
     $self->{DATAAVAIL}=1;
   }
-  printf("\t LML_DBupdate_file: get_data\n") if($debug>=3);
+  printf("\t [LML_DBupdate_file] get_data\n") if($debug>=3);
   return($self->{DATA});
 }
 
@@ -398,19 +398,21 @@ sub update_structure {
           push(@{$data->{TRIGGER_ENTRIES}},$jref);
         }
       } else {
-        printf(STDERR "\t LML_DBupdate_file, WARNING: scan keys, unknown type %s\n",$ref->{type});
+        printf(STDERR "\t [LML_DBupdate_file] WARNING: scan keys, unknown type %s\n",$ref->{type});
       }
     }
   } # foreach $fh
   
-  printf("\t LML_DBupdate_file: update structure\n") if($debug>=3);
+  printf("\t [LML_DBupdate_file] update structure\n") if($debug>=3);
 }
 
 sub check_capabilities {
   my($self) = shift;
+  my($updatealways)=@_;
   
   my $data=$self->{DATA};
   my $cap=$self->{DATA}->{CAPABILITIES};
+  my $capf=$self->{DATA}->{CAPABILITIES_FORCED};
 
   foreach my $e (keys(%{$data})) {
     if($e=~/^(.*)_ENTRIES$/) {
@@ -421,7 +423,16 @@ sub check_capabilities {
       }
     }
   }
-  
+  if(defined($updatealways)) {
+    foreach my $type (split(/\s*,\s*/,$updatealways)) {
+      my $ltype=lc($type);
+      if(!exists($self->{DATA}->{ENTRIES_BY_CAP}->{$ltype})) {
+        $self->{DATA}->{ENTRIES_BY_CAP_FORCED}->{$ltype}=[];
+        $capf->{$ltype}=1;
+      }
+    }
+  }
+
   #  keep only gpu nodes for GPU LML file 
   if(0) {
     if($cap->{gpunode}) {
@@ -430,8 +441,9 @@ sub check_capabilities {
       }
     }
   }
-  printf("\t LML_DBupdate_file: found capabilities %s\n",join(",",keys(%{$cap}))) if($self->{VERBOSE});
-  printf("\t LML_DBupdate_file: check_capabilities\n") if($debug>=3);
+  printf("\t [LML_DBupdate_file] found capabilities              %s\n",join(",",(sort(keys(%{$self->{DATA}->{ENTRIES_BY_CAP}}))))) if($self->{VERBOSE});
+  printf("\t [LML_DBupdate_file] found capabilities to be forced %s\n",join(",",(sort(keys(%{$self->{DATA}->{ENTRIES_BY_CAP_FORCED}}))))) if($self->{VERBOSE});
+  printf("\t [LML_DBupdate_file] check_capabilities\n") if($debug>=3);
 }
 
 sub dump_entries_by_cap {
@@ -451,7 +463,7 @@ sub dump_entries_by_cap {
 
 sub close {
   my($self) = shift;
-  printf("\t LML_DBupdate_file: close\n") if($debug>=3);
+  printf("\t [LML_DBupdate_file] close\n") if($debug>=3);
 }
 
 1;

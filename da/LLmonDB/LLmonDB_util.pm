@@ -25,6 +25,11 @@ sub get_db_handle {
   my($db)=@_;
   printf("  LLmonDB: start check_db_open %s\n",$db) if($debug>=3);
 
+  if(!defined($db)) {
+    printf(STDERR "[get_db_handle] \t   LLmonDB_sqlite: ERROR in get_db_handle, [db not defined] (%s,%s,%s)\n",caller());
+    return(undef);
+  }
+
   # check if DB is already opened and init
   my $dbobj=undef;
   if( exists($self->{DBOBJS}->{$db}) ) {

@@ -24,6 +24,7 @@ jobreport:
           - update_info
           - joblist_stat_by_account_owner
           - joblist_stat_by_account_owner_do_update
+          - joblist_sources_stat
           - jureptool_json
           - joblist_stat
           - projstat_accounted_jobs
@@ -31,7 +32,8 @@ jobreport:
           - projstat_per_project
           - projstat_per_project_aggr
         archive:
-          limit: max(ts_start)-21d,max(ts)-21d
+          limit:      max(ts_start)-21d,max(ts)-21d
+          limit_save: max(ts_start)-25h,max(ts)-25h
         index: jobid,lastts
       columns: 
         - { name: jobid,           type: jobid_t,           LLDB_from: jobstate/queuedjobs,    LL_default: 'unknown' }
@@ -728,7 +730,60 @@ jobreport:
           - { name: account,         type: account_t }
           - { name: owner,           type: owner_t }
           - { name: timeframe,       type: cnt_t  }
-        
+
+  - table:
+      name: joblist_sources_stat
+      options:
+        update:
+          sql_update_contents:
+            sqldebug: 0
+            sql: DELETE FROM joblist_sources_stat;
+                 INSERT INTO joblist_sources_stat (s_start, s_ts, s_defer, s_step, s_err, s_ld, s_rc,
+                                                   s_co, s_fa, s_ic, s_fs, s_gpu,
+                                                   num_jobs, min_ts_start, min_ts,
+                                                   min_jobid, max_jobid, avg_jwallm, max_jwallm)
+                     SELECT (ts_start>0) _start,
+                            (ts>0) _ts,
+                            (lastupdts>0) _defer,
+                            (step_lastts>0) _step,
+                            (errmsgts>0) _err,
+                            (ldlastts>0) _ld,
+                            (rc_lastts>0) _rc,
+                            (cores_lastts>0) _co,
+                            (falastts>0) _fa,
+                            (icmaplastts>0) _ic,
+                            (fs_all_fslastts>0) _fs,
+                            (gpulastts>0) _gpu,
+                            COUNT(*) num,
+                            MIN(ts_start),
+                            MIN(ts),
+                            MIN(1*jobid),
+                            MAX(1*jobid),
+                            AVG(rc_wallh)*60.0,
+                            MAX(rc_wallh)*60.0
+                            FROM joblist
+                            GROUP by _start, _ts, _defer, _step, _err, _ld, _rc, _co, _fa, _ic, _fs, _gpu;
+      columns: 
+          - { name: s_start,        type: count_t }
+          - { name: s_ts,           type: count_t }
+          - { name: s_defer,        type: count_t }
+          - { name: s_step,         type: count_t }
+          - { name: s_err,          type: count_t }
+          - { name: s_ld,           type: count_t }
+          - { name: s_rc,           type: count_t }
+          - { name: s_co,           type: count_t }
+          - { name: s_fa,           type: count_t }
+          - { name: s_ic,           type: count_t }
+          - { name: s_fs,           type: count_t }
+          - { name: s_gpu,          type: count_t }
+          - { name: num_jobs,       type: count_t }
+          - { name: min_ts_start,   type: ts_t }
+          - { name: min_ts,         type: ts_t }
+          - { name: min_jobid,      type: count_t }
+          - { name: max_jobid,      type: count_t }
+          - { name: avg_jwallm,     type: float_t }
+          - { name: max_jwallm,     type: float_t }
+
   %include "./databases/jobreport_databases_queued.yaml"
   %include "./databases/jobreport_databases_roles.yaml"
   %include "./databases/jobreport_databases_projstat.yaml"
@@ -1081,6 +1136,9 @@ jobreport_json_stat:
       %include "./databases/jobreport_databases_stat_tables.yaml"
   - table:
       name: datasetstat_heatmap
+      %include "./databases/jobreport_databases_stat_tables.yaml"
+  - table:
+      name: datasetstat_sources_stat
       %include "./databases/jobreport_databases_stat_tables.yaml"
 
 jobreport_CB_stat:
