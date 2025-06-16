@@ -1,5 +1,71 @@
 # LLview Public Releases
 
+### 2.4.0-base (June 16, 2025)
+
+New file-parser plugin and extensions to the Prometheus one (more generic for REST-API now). Large rewrite on JuRepTool to generalise plots. Further improvements on JURI, including Queue Analysis and Queue View.
+
+<h4> Added </h4>
+
+- Slurm plugin: Added query for Slurm accounts from running jobs (still to be added in DB)
+- Added YAML-linter
+- Added plugin to parse files using regex definitions (e.g., for healthchecker logs)
+- Added example configuration for healthchecker (to be used with the file-parser plugin)
+- Added example configuration for job error (`joberr.yaml`) and node error (`nodeerr.yaml`) tables
+- Added new envvar variable `LLVIEW_DEMO_MODE` to activate demo mode
+- JuRepTool: possibility to add red lines to mark graphs (to be used with calibrate)
+- JuRepTool: added "Download Data" button for timeline
+- JURI: Added quck buttons to filter RUNNING, COMPLETED and FAILED jobs
+- JURI: Added queue view using bar-plots (including calendar and fixed hoverinfo)
+- JURI: Added jquery-ui for calendar
+- JURI: Added quickfilter to URL to be able to restore it after refresh or link sharing
+- JURI: Added JUPITER logo
+
+<h4> Changed </h4>
+
+- Improved and extended documentation
+- Added logo for dark mode in README
+- Improved Apache header files
+- Changed ActiveSM to percentage
+- Extended the 'prometheus' plugin to handle more generic REST-API (possibility to give endpoints, client secret, and more)
+- Generalisations on Slurm plugin (unlimited time in queue, format of Gres, empty responses)
+- Generalisation on `get_hostnodename.py` to allow multiple expansions
+- Changed `remoteAll.pl` and `serverAll.pl` scripts to use same envvars names
+- Increased timeout on Prometheus plugin
+- Improved and optimized workflow on Prometheus plugin (much faster now)
+- Changes from production: improved logging, bug fixes, small improvements
+- JuRepTool: changed the way the overview graph is defined (now configurable)
+- JuRepTool: major rewriting to allow graphs inside the same section get data from different dat files
+- JuRepTool: improved CI tests, that should be now faster and include their own configuration
+- JuRepTool: added energy values on header, when present on the json file
+- JURI: Make background color of colored cells stay in selected rows
+- JURI: Improved mouse resizing of footer (including preventDefault to avoid selecting text when resizing)
+- JURI: Improved CB tables with links
+- JURI: Automatically show column that are used for sorting
+- JURI: Updated plotly.js to 3.0.0
+- JURI: Removed d3.csv parsing for plots
+- JURI: Improved async plots when jobs are quickly selected
+- JURI: Improved slider plots in 'Queue Analysis'
+- JURI: 'username' in project page now clickable (to the user page on that given project)
+- JURI: Generalised parsing of timestamps
+- Other minor improvements in LLview, JuRepTool and JURI
+
+<h4> Fixed </h4>
+
+- Fixed `.htaccess` files to require valid user
+- Fix for "unparseable" line in slurm output
+- Fixed escape sequence for Python>=3.13
+- Fixed check of modification date of files, that led to pdf and html reports not being synced.
+- JuRepTool: Fixed zoom-lock for new Plotly version
+- JURI: Fixed adding filter options to page
+- JURI: Unified system names on login page
+- JURI: Added `.js.gz` to `.htaccess`
+- JURI: Slider bar with steps are updated directly with the event (plotly would not update all traces)
+- JURI: Added 'id' to 'floatingFilters'
+- JURI: Clean up the plots when plotting fails (when selecting a job, the wrong plots could be shown)
+- JURI: Fixed fonts of the core patterns on Chrome
+- Other minor fixes in LLview, JuRepTool and JURI
+
+
 ### 2.3.2-base (December 16, 2024)
 
 <h4> Added </h4>
